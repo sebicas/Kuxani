@@ -48,14 +48,13 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy Drizzle migration files for runtime migrations
-COPY --from=builder /app/drizzle ./drizzle
-
-# Install drizzle-kit for migrations (production only needs this)
-RUN npm install --no-save drizzle-kit postgres
-
-# Copy a startup script
+# Copy Drizzle schema + config for runtime db:push
+COPY --from=builder /app/src/lib/db/schema ./src/lib/db/schema
 COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
+
+# Install drizzle-kit for schema push
+RUN npm install --no-save drizzle-kit postgres
 
 USER nextjs
 
@@ -64,5 +63,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Run migrations then start the server
-CMD ["sh", "-c", "npx drizzle-kit migrate && node server.js"]
+# Push schema to database then start the server
+CMD ["sh", "-c", "npx drizzle-kit push && node server.js"]
