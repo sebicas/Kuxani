@@ -10,7 +10,7 @@ import {
   real,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { users } from "./users";
+import { user } from "./auth";
 import { couples } from "./couples";
 
 /* ── Enums ── */
@@ -90,8 +90,8 @@ export const challengePerspectives = pgTable("challenge_perspectives", {
   challengeId: uuid("challenge_id")
     .references(() => challenges.id, { onDelete: "cascade" })
     .notNull(),
-  userId: uuid("user_id")
-    .references(() => users.id, { onDelete: "cascade" })
+  userId: text("user_id")
+    .references(() => user.id, { onDelete: "cascade" })
     .notNull(),
   perspectiveText: text("perspective_text"),
   submitted: boolean("submitted").default(false).notNull(),
@@ -105,7 +105,7 @@ export const challengeMessages = pgTable("challenge_messages", {
   challengeId: uuid("challenge_id")
     .references(() => challenges.id, { onDelete: "cascade" })
     .notNull(),
-  senderId: uuid("sender_id").references(() => users.id),
+  senderId: text("sender_id").references(() => user.id),
   senderType: senderTypeEnum("sender_type").notNull(),
   content: text("content").notNull(),
   reactions: jsonb("reactions").$type<Record<string, string[]>>(),
@@ -119,8 +119,8 @@ export const challengeRequests = pgTable("challenge_requests", {
   challengeId: uuid("challenge_id")
     .references(() => challenges.id, { onDelete: "cascade" })
     .notNull(),
-  requestedBy: uuid("requested_by")
-    .references(() => users.id, { onDelete: "cascade" })
+  requestedBy: text("requested_by")
+    .references(() => user.id, { onDelete: "cascade" })
     .notNull(),
   requestText: text("request_text").notNull(),
   category: requestCategoryEnum("category").default("other").notNull(),
@@ -135,8 +135,8 @@ export const challengeAttachments = pgTable("challenge_attachments", {
   challengeId: uuid("challenge_id")
     .references(() => challenges.id, { onDelete: "cascade" })
     .notNull(),
-  uploadedBy: uuid("uploaded_by")
-    .references(() => users.id, { onDelete: "cascade" })
+  uploadedBy: text("uploaded_by")
+    .references(() => user.id, { onDelete: "cascade" })
     .notNull(),
   fileUrl: text("file_url").notNull(),
   fileType: fileTypeEnum("file_type").default("other").notNull(),
@@ -182,7 +182,7 @@ export const voiceTranscriptSegments = pgTable("voice_transcript_segments", {
   sessionId: uuid("session_id")
     .references(() => voiceSessions.id, { onDelete: "cascade" })
     .notNull(),
-  speakerId: uuid("speaker_id").references(() => users.id),
+  speakerId: text("speaker_id").references(() => user.id),
   speakerType: speakerTypeEnum("speaker_type").notNull(),
   content: text("content").notNull(),
   startMs: integer("start_ms").notNull(),
@@ -214,9 +214,9 @@ export const challengePerspectivesRelations = relations(
       fields: [challengePerspectives.challengeId],
       references: [challenges.id],
     }),
-    user: one(users, {
+    user: one(user, {
       fields: [challengePerspectives.userId],
-      references: [users.id],
+      references: [user.id],
     }),
   })
 );
@@ -228,9 +228,9 @@ export const challengeMessagesRelations = relations(
       fields: [challengeMessages.challengeId],
       references: [challenges.id],
     }),
-    sender: one(users, {
+    sender: one(user, {
       fields: [challengeMessages.senderId],
-      references: [users.id],
+      references: [user.id],
     }),
   })
 );

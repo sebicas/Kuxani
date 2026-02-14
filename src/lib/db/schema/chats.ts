@@ -7,7 +7,7 @@ import {
   pgEnum,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { users } from "./users";
+import { user } from "./auth";
 
 /* ── Enums ── */
 export const chatRoleEnum = pgEnum("chat_role", ["user", "assistant"]);
@@ -15,8 +15,8 @@ export const chatRoleEnum = pgEnum("chat_role", ["user", "assistant"]);
 /* ── Personal Chats ── */
 export const personalChats = pgTable("personal_chats", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id")
-    .references(() => users.id, { onDelete: "cascade" })
+  userId: text("user_id")
+    .references(() => user.id, { onDelete: "cascade" })
     .notNull(),
   title: text("title").default("New Chat").notNull(),
   isShared: boolean("is_shared").default(false).notNull(),
@@ -38,9 +38,9 @@ export const personalMessages = pgTable("personal_messages", {
 export const personalChatsRelations = relations(
   personalChats,
   ({ one, many }) => ({
-    user: one(users, {
+    user: one(user, {
       fields: [personalChats.userId],
-      references: [users.id],
+      references: [user.id],
     }),
     messages: many(personalMessages),
   })

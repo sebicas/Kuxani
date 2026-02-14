@@ -7,14 +7,14 @@ import {
   integer,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { users } from "./users";
+import { user } from "./auth";
 import { couples } from "./couples";
 
 /* ── Mood Entries ── */
 export const moodEntries = pgTable("mood_entries", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id")
-    .references(() => users.id, { onDelete: "cascade" })
+  userId: text("user_id")
+    .references(() => user.id, { onDelete: "cascade" })
     .notNull(),
   primaryEmotion: text("primary_emotion").notNull(),
   secondaryEmotion: text("secondary_emotion"),
@@ -27,8 +27,8 @@ export const moodEntries = pgTable("mood_entries", {
 /* ── Gratitude Entries ── */
 export const gratitudeEntries = pgTable("gratitude_entries", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id")
-    .references(() => users.id, { onDelete: "cascade" })
+  userId: text("user_id")
+    .references(() => user.id, { onDelete: "cascade" })
     .notNull(),
   coupleId: uuid("couple_id")
     .references(() => couples.id, { onDelete: "cascade" })
@@ -40,18 +40,18 @@ export const gratitudeEntries = pgTable("gratitude_entries", {
 
 /* ── Relations ── */
 export const moodEntriesRelations = relations(moodEntries, ({ one }) => ({
-  user: one(users, {
+  user: one(user, {
     fields: [moodEntries.userId],
-    references: [users.id],
+    references: [user.id],
   }),
 }));
 
 export const gratitudeEntriesRelations = relations(
   gratitudeEntries,
   ({ one }) => ({
-    user: one(users, {
+    user: one(user, {
       fields: [gratitudeEntries.userId],
-      references: [users.id],
+      references: [user.id],
     }),
     couple: one(couples, {
       fields: [gratitudeEntries.coupleId],

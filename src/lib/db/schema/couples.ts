@@ -7,7 +7,7 @@ import {
   pgEnum,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { users } from "./users";
+import { user } from "./auth";
 
 /* ── Enums ── */
 export const coupleStatusEnum = pgEnum("couple_status", [
@@ -37,8 +37,8 @@ export const coupleMembers = pgTable("couple_members", {
   coupleId: uuid("couple_id")
     .references(() => couples.id, { onDelete: "cascade" })
     .notNull(),
-  userId: uuid("user_id")
-    .references(() => users.id, { onDelete: "cascade" })
+  userId: text("user_id")
+    .references(() => user.id, { onDelete: "cascade" })
     .notNull(),
   role: memberRoleEnum("role").default("creator").notNull(),
   colorCode: text("color_code").default("#6366f1").notNull(),
@@ -73,9 +73,9 @@ export const coupleMembersRelations = relations(coupleMembers, ({ one }) => ({
     fields: [coupleMembers.coupleId],
     references: [couples.id],
   }),
-  user: one(users, {
+  user: one(user, {
     fields: [coupleMembers.userId],
-    references: [users.id],
+    references: [user.id],
   }),
 }));
 
