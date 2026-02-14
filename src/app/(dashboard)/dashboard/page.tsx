@@ -1,3 +1,4 @@
+import Link from "next/link";
 import styles from "../dashboard.module.css";
 
 export default function DashboardPage() {
@@ -30,19 +31,55 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Mood Today ── */}
-        <div className="card">
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", marginBottom: "var(--space-md)" }}>
-            <span>🫶</span>
-            <h3 className="heading-3">Mood Today</h3>
+        <Link href="/mood" style={{ textDecoration: "none", color: "inherit" }}>
+          <div className="card" style={{ cursor: "pointer", transition: "transform 0.15s ease, box-shadow 0.15s ease" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", marginBottom: "var(--space-md)" }}>
+              <span>🫶</span>
+              <h3 className="heading-3">Mood Tracker</h3>
+            </div>
+            <p className="text-muted text-sm">
+              How are you feeling? Check in with your emotional state and
+              track your mood over time.
+            </p>
+            <span className="btn btn-secondary btn-sm" style={{ marginTop: "var(--space-md)", display: "inline-block" }}>
+              Check In →
+            </span>
           </div>
-          <p className="text-muted text-sm">
-            How are you feeling? Check in with your emotional state and
-            optionally share it with your partner.
-          </p>
-          <button className="btn btn-secondary btn-sm" style={{ marginTop: "var(--space-md)" }}>
-            Check In
-          </button>
-        </div>
+        </Link>
+
+        {/* ── Love Languages ── */}
+        <Link href="/love-languages" style={{ textDecoration: "none", color: "inherit" }}>
+          <div className="card" style={{ cursor: "pointer", transition: "transform 0.15s ease, box-shadow 0.15s ease" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", marginBottom: "var(--space-md)" }}>
+              <span>💕</span>
+              <h3 className="heading-3">Love Languages</h3>
+            </div>
+            <p className="text-muted text-sm">
+              Discover your love language and understand how you and your
+              partner express and receive love.
+            </p>
+            <span className="btn btn-secondary btn-sm" style={{ marginTop: "var(--space-md)", display: "inline-block" }}>
+              Take the Quiz →
+            </span>
+          </div>
+        </Link>
+
+        {/* ── Private Therapy ── */}
+        <Link href="/personal" style={{ textDecoration: "none", color: "inherit" }}>
+          <div className="card" style={{ cursor: "pointer", transition: "transform 0.15s ease, box-shadow 0.15s ease" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", marginBottom: "var(--space-md)" }}>
+              <span>💬</span>
+              <h3 className="heading-3">Private Therapy</h3>
+            </div>
+            <p className="text-muted text-sm">
+              Chat privately with your AI therapist for personal reflection
+              and growth. Nothing is shared unless you choose.
+            </p>
+            <span className="btn btn-secondary btn-sm" style={{ marginTop: "var(--space-md)", display: "inline-block" }}>
+              Start a Chat →
+            </span>
+          </div>
+        </Link>
 
         {/* ── Partner Status ── */}
         <div className="card">
@@ -76,3 +113,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
