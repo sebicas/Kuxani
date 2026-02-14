@@ -38,6 +38,20 @@ export const gratitudeEntries = pgTable("gratitude_entries", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+/* ── Love Language Results ── */
+export const loveLanguageResults = pgTable("love_language_results", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .references(() => user.id, { onDelete: "cascade" })
+    .notNull(),
+  wordsOfAffirmation: integer("words_of_affirmation").notNull(),
+  actsOfService: integer("acts_of_service").notNull(),
+  receivingGifts: integer("receiving_gifts").notNull(),
+  qualityTime: integer("quality_time").notNull(),
+  physicalTouch: integer("physical_touch").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 /* ── Relations ── */
 export const moodEntriesRelations = relations(moodEntries, ({ one }) => ({
   user: one(user, {
@@ -60,5 +74,16 @@ export const gratitudeEntriesRelations = relations(
   })
 );
 
+export const loveLanguageResultsRelations = relations(
+  loveLanguageResults,
+  ({ one }) => ({
+    user: one(user, {
+      fields: [loveLanguageResults.userId],
+      references: [user.id],
+    }),
+  })
+);
+
 export type MoodEntry = typeof moodEntries.$inferSelect;
 export type GratitudeEntry = typeof gratitudeEntries.$inferSelect;
+export type LoveLanguageResult = typeof loveLanguageResults.$inferSelect;

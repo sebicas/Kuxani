@@ -1,0 +1,342 @@
+/* ══════════════════════════════════════════════════
+   Mood & Emotion Tracker — Styles
+   ══════════════════════════════════════════════════ */
+
+.moodHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-xl);
+}
+
+/* ── Emotion Wheel ── */
+.wheelSection {
+  margin-bottom: var(--space-2xl);
+}
+
+.wheelContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.emotionWheel {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-sm);
+  max-width: 480px;
+  width: 100%;
+}
+
+.emotionBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  background: var(--bg-elevated);
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+}
+
+.emotionBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.emotionBtnSelected {
+  border-width: 2px;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.emotionEmoji {
+  font-size: 2rem;
+}
+
+.emotionLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+/* ── Intensity Slider ── */
+.intensitySection {
+  width: 100%;
+  max-width: 480px;
+  margin-top: var(--space-md);
+}
+
+.intensityLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
+
+.intensityValue {
+  font-weight: 600;
+  font-size: 1.25rem;
+  font-family: var(--font-display);
+}
+
+.intensitySlider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--border-default);
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.intensitySlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-fast);
+}
+
+.intensitySlider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.intensityScale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  margin-top: var(--space-xs);
+}
+
+/* ── Notes ── */
+.notesInput {
+  width: 100%;
+  max-width: 480px;
+  margin-top: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  resize: vertical;
+  min-height: 60px;
+  transition: all var(--transition-fast);
+}
+
+.notesInput:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-primary-light);
+  outline: none;
+}
+
+/* ── Share Toggle ── */
+.shareRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 480px;
+  margin-top: var(--space-md);
+  padding: var(--space-sm) 0;
+}
+
+.shareSwitch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: var(--border-default);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: none;
+}
+
+.shareSwitchActive {
+  background: var(--accent-primary);
+}
+
+.shareSwitchKnob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.shareSwitchActive .shareSwitchKnob {
+  left: 22px;
+}
+
+/* ── Submit ── */
+.submitRow {
+  width: 100%;
+  max-width: 480px;
+  margin-top: var(--space-lg);
+}
+
+/* ── Today's Entry ── */
+.todayCard {
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.todayEmoji {
+  font-size: 4rem;
+  margin-bottom: var(--space-md);
+}
+
+.todayEmotion {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  margin-bottom: var(--space-xs);
+}
+
+.todayIntensity {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-md);
+}
+
+.todayNotes {
+  font-style: italic;
+  color: var(--text-muted);
+  padding: var(--space-md);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+/* ── History ── */
+.historySection {
+  margin-top: var(--space-2xl);
+}
+
+.historyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.historyCard {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  text-align: center;
+  transition: all var(--transition-fast);
+}
+
+.historyCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.historyEmoji {
+  font-size: 2rem;
+  margin-bottom: var(--space-xs);
+}
+
+.historyEmotion {
+  font-weight: 500;
+  font-size: 0.875rem;
+  text-transform: capitalize;
+}
+
+.historyDate {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: var(--space-xs);
+}
+
+.historyIntensityBar {
+  height: 4px;
+  border-radius: var(--radius-full);
+  margin-top: var(--space-sm);
+  background: var(--border-default);
+  overflow: hidden;
+}
+
+.historyIntensityFill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width var(--transition-base);
+}
+
+/* ── Weekly Trend ── */
+.trendSection {
+  margin-top: var(--space-2xl);
+}
+
+.trendBars {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-sm);
+  height: 120px;
+  margin-top: var(--space-md);
+  padding: var(--space-md);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.trendBarWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.trendBar {
+  width: 100%;
+  max-width: 40px;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: height var(--transition-base);
+  min-height: 4px;
+}
+
+.trendBarLabel {
+  font-size: 0.625rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Empty State ── */
+.emptyHistory {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--text-muted);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .emotionWheel {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .historyGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

@@ -1,0 +1,294 @@
+/* ══════════════════════════════════════════════════
+   Love Languages Assessment — Styles
+   ══════════════════════════════════════════════════ */
+
+.llHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-xl);
+}
+
+/* ── Start State ── */
+.startCard {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: var(--space-2xl) var(--space-xl);
+}
+
+.startIcon {
+  font-size: 4rem;
+  margin-bottom: var(--space-lg);
+  display: block;
+}
+
+.startTitle {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-bottom: var(--space-md);
+}
+
+.startDescription {
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: var(--space-xl);
+}
+
+.languagePreview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  justify-content: center;
+  margin-bottom: var(--space-xl);
+}
+
+.languageTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-xs) var(--space-md);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-full);
+  font-size: 0.8125rem;
+  font-weight: 450;
+}
+
+/* ── Quiz ── */
+.quizContainer {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.progressBar {
+  width: 100%;
+  height: 6px;
+  background: var(--border-default);
+  border-radius: var(--radius-full);
+  margin-bottom: var(--space-xl);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+  border-radius: var(--radius-full);
+  transition: width var(--transition-base);
+}
+
+.progressText {
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-bottom: var(--space-md);
+}
+
+.questionCard {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.questionText {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: var(--space-xl);
+  color: var(--text-secondary);
+}
+
+.optionsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.optionBtn {
+  width: 100%;
+  padding: var(--space-lg);
+  background: var(--bg-elevated);
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
+}
+
+.optionBtn:hover {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.optionBtn:active {
+  transform: translateY(0);
+}
+
+.optionLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--space-xs);
+}
+
+/* ── Results ── */
+.resultsContainer {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.resultsSummary {
+  text-align: center;
+  margin-bottom: var(--space-2xl);
+}
+
+.resultsTopEmoji {
+  font-size: 4rem;
+  margin-bottom: var(--space-md);
+  display: block;
+}
+
+.resultsTopLabel {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--space-xs);
+}
+
+.resultsTopName {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.resultsDescription {
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-top: var(--space-md);
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ── Bar Chart ── */
+.barChart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-bottom: var(--space-2xl);
+}
+
+.barRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.barLabel {
+  width: 160px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.barTrack {
+  flex: 1;
+  height: 28px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: var(--space-sm);
+  min-width: 30px;
+}
+
+.barScore {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+}
+
+/* ── Partner Comparison ── */
+.comparisonSection {
+  margin-top: var(--space-2xl);
+}
+
+.comparisonGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+  margin-top: var(--space-md);
+}
+
+.comparisonCard {
+  text-align: center;
+}
+
+.comparisonLabel {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--space-sm);
+}
+
+.comparisonEmoji {
+  font-size: 2.5rem;
+  margin-bottom: var(--space-xs);
+}
+
+.comparisonName {
+  font-weight: 600;
+  font-family: var(--font-display);
+}
+
+.comparisonWaiting {
+  text-align: center;
+  padding: var(--space-xl);
+  color: var(--text-muted);
+}
+
+/* ── Retake ── */
+.retakeRow {
+  text-align: center;
+  margin-top: var(--space-2xl);
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .barLabel {
+    width: 120px;
+    font-size: 0.75rem;
+  }
+
+  .comparisonGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .languagePreview {
+    flex-direction: column;
+    align-items: center;
+  }
+}

@@ -6,16 +6,17 @@ import styles from "./dashboard.module.css";
 
 const navItems = [
   { href: "/dashboard", label: "Home", icon: "🏠" },
-  { href: "/dashboard/challenges", label: "Challenges", icon: "🔮" },
-  { href: "/dashboard/personal", label: "Private Therapy", icon: "💬" },
-  { href: "/dashboard/mood", label: "Mood Tracker", icon: "🫶" },
-  { href: "/dashboard/gratitude", label: "Gratitude", icon: "✨" },
-  { href: "/dashboard/insights", label: "Insights", icon: "📊" },
+  { href: "/challenges", label: "Challenges", icon: "🔮" },
+  { href: "/personal", label: "Private Therapy", icon: "💬" },
+  { href: "/mood", label: "Mood Tracker", icon: "🫶" },
+  { href: "/love-languages", label: "Love Languages", icon: "💕" },
+  { href: "/gratitude", label: "Gratitude", icon: "✨" },
+  { href: "/insights", label: "Insights", icon: "📊" },
 ];
 
 const secondaryNavItems = [
-  { href: "/dashboard/exercises", label: "Exercises", icon: "📚" },
-  { href: "/dashboard/settings", label: "Settings", icon: "⚙️" },
+  { href: "/exercises", label: "Exercises", icon: "📚" },
+  { href: "/settings", label: "Settings", icon: "⚙️" },
 ];
 
 export default function DashboardLayout({
