@@ -48,13 +48,13 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy Drizzle schema + config for runtime db:push
+# Copy Drizzle config + schema for runtime db:push
 COPY --from=builder /app/src/lib/db/schema ./src/lib/db/schema
 COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
-# Install drizzle-kit for schema push
-RUN npm install --no-save drizzle-kit postgres
+# Copy drizzle-kit + postgres driver + all transitive deps from builder
+COPY --from=builder /app/node_modules ./node_modules
 
 USER nextjs
 
