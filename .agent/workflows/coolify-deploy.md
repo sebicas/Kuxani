@@ -59,8 +59,8 @@ Complete guide to deploying the Kuxani Next.js application on a Coolify instance
 4. Configure **Storage**:
    - Add a persistent volume mounted at `/data`
 5. Configure **Network**:
-   - **Port 9000**: MinIO API (used by the app) — expose internally
-   - **Port 9001**: MinIO Console (web UI) — optionally expose with a domain for admin access (e.g., `minio.kuxani.com`)
+   - **Port 9000**: MinIO S3 API — expose with domain `minio.kuxani.com`
+   - **Port 9001**: MinIO Console — expose with domain `console.minio.kuxani.com`
 6. Click **Deploy**
 7. Note the **internal hostname** (e.g., `kuxani-minio`) and port for later
 

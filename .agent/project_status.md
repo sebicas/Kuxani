@@ -1,6 +1,6 @@
 # Kuxani — Project Status
 
-> Last updated: 2026-02-14
+> Last updated: 2026-02-14 (Phase 2 complete)
 
 ---
 
@@ -32,18 +32,21 @@
 - [ ] **Challenge discussion thread** — Chat-style interface with partner attribution
 - [ ] **Requests & commitments** — Submit, accept, track partner requests
 - [ ] **File attachments** — MinIO upload/download for WhatsApp exports, screenshots, audio
-- [ ] **Coolify deployment config** — Docker Compose for production + Coolify setup
+- [x] **Coolify deployment config** — Docker Compose for production + Coolify setup
 
 ---
 
 ## Phase 2 — Personal Growth
 
+### ✅ Completed
+
+- [x] **Personal therapy chat** — Private AI chat for individual reflection (schema, API, UI with chat list + chat detail)
+- [x] **Mood & emotion tracker** — Daily check-in with Plutchik emotion wheel, weekly trends, history
+- [x] **Love languages assessment** — 5 Love Languages quiz, results visualization, AI integration
+
 ### ⬜ Pending
 
-- [ ] **Personal therapy chat** — Private AI chat for individual reflection
 - [ ] **Privacy controls** — Private vs shared chat visibility, granular sharing
-- [ ] **Mood & emotion tracker** — Daily check-in with Plutchik emotion wheel, weekly trends
-- [ ] **Love languages assessment** — 5 Love Languages quiz, side-by-side results, AI integration
 
 ---
 
@@ -77,11 +80,11 @@
 | --- | ------------------------------- | ----- | ---------- |
 | 1   | Onboarding & Partner Invite     | 1     | ⬜ Pending |
 | 2   | Challenges (Conflict Workspace) | 1     | ⬜ Pending |
-| 3   | Personal Therapy Chat           | 2     | ⬜ Pending |
+| 3   | Personal Therapy Chat           | 2     | ✅ Done    |
 | 4   | Chat Interface (ChatGPT-like)   | 1     | ⬜ Pending |
 | 5   | Privacy Controls                | 2     | ⬜ Pending |
-| 6   | Mood & Emotion Tracker          | 2     | ⬜ Pending |
-| 7   | Love Languages Assessment       | 2     | ⬜ Pending |
+| 6   | Mood & Emotion Tracker          | 2     | ✅ Done    |
+| 7   | Love Languages Assessment       | 2     | ✅ Done    |
 | 8   | Weekly Relationship Check-In    | 3     | ⬜ Pending |
 | 9   | Gratitude Journal               | 3     | ⬜ Pending |
 | 10  | Conflict Pattern Recognition    | 3     | ⬜ Pending |
@@ -101,5 +104,5 @@
 | PostgreSQL 17       | ✅ Configured | Docker Compose, port 5432                |
 | MinIO (S3)          | ✅ Configured | Docker Compose, ports 9000/9001          |
 | Hocuspocus (Yjs WS) | ⬜ Pending    | Config in `.env.example`, not yet set up |
-| Coolify             | ⬜ Pending    | Not yet created                          |
+| Coolify             | ✅ Configured | Dockerfile + deployment guide ready      |
 | CI/CD               | ⬜ Pending    | Not yet configured                       |
