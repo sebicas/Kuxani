@@ -1,0 +1,43 @@
+# Dependencies
+node_modules
+npm-debug.log*
+
+# Next.js build output
+.next
+out
+build
+
+# Version control
+.git
+.gitignore
+
+# Environment files
+.env*
+!.env.example
+
+# IDE / Editor
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+
+# Testing
+test-results
+playwright-report
+coverage
+e2e
+tests
+
+# Documentation / Agent
+.agent
+CLAUDE.md
+README.md
+
+# Docker
+Dockerfile
+docker-compose.yml
+
+# Misc
+*.pem
+*.tsbuildinfo
