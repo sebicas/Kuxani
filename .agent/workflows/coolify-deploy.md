@@ -6,13 +6,23 @@ description: How to deploy Kuxani to Coolify with PostgreSQL and MinIO
 
 Complete guide to deploying the Kuxani Next.js application on a Coolify instance, including setting up PostgreSQL and MinIO services.
 
+## Environments
+
+| Environment     | Domain                   | Git Branch    |
+| --------------- | ------------------------ | ------------- |
+| **Production**  | `https://kuxani.com`     | `main`        |
+| **Development** | `https://dev.kuxani.com` | `development` |
+
+> [!IMPORTANT]
+> You should create **two separate Coolify applications** — one for each environment — each pointing to its respective Git branch. Each environment needs its own PostgreSQL database and MinIO instance (or shared MinIO with separate buckets).
+
 ---
 
 ## Prerequisites
 
 - A running **Coolify** instance (v4+) with a connected server
-- Your **Kuxani Git repository** accessible from Coolify (GitHub/GitLab/Bitbucket)
-- A **domain name** pointed to your Coolify server (e.g., `kuxani.example.com`)
+- Your **Kuxani Git repository** accessible from Coolify (GitHub)
+- DNS A records for `kuxani.com` and `dev.kuxani.com` pointed to your Coolify server
 
 ---
 
@@ -22,12 +32,12 @@ Complete guide to deploying the Kuxani Next.js application on a Coolify instance
 2. Click **+ New** → **Database** → **PostgreSQL**
 3. Select version **17** (matches development)
 4. Configure the service:
-   - **Name**: `kuxani-postgres`
+   - **Name**: `kuxani-postgres` (production) / `kuxani-postgres-dev` (development)
    - **Default Database**: `kuxani`
    - **Username**: `kuxani`
    - **Password**: Generate a strong password (save it for later)
 5. Click **Deploy**
-6. Once running, copy the **Internal Connection URL** — it will look like:
+6. Once running, copy the **Internal Connection URL**:
    ```
    postgres://kuxani:<password>@kuxani-postgres:5432/kuxani
    ```
@@ -50,7 +60,7 @@ Complete guide to deploying the Kuxani Next.js application on a Coolify instance
    - Add a persistent volume mounted at `/data`
 5. Configure **Network**:
    - **Port 9000**: MinIO API (used by the app) — expose internally
-   - **Port 9001**: MinIO Console (web UI) — optionally expose with a domain for admin access (e.g., `minio.example.com`)
+   - **Port 9001**: MinIO Console (web UI) — optionally expose with a domain for admin access (e.g., `minio.kuxani.com`)
 6. Click **Deploy**
 7. Note the **internal hostname** (e.g., `kuxani-minio`) and port for later
 
@@ -61,15 +71,19 @@ After MinIO is running:
 1. Open the MinIO Console (port 9001 web UI)
 2. Log in with your `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD`
 3. Go to **Buckets** → **Create Bucket**
-4. Name: `kuxani-uploads`
+4. Name: `kuxani-uploads` (production) / `kuxani-uploads-dev` (development)
 5. Set access policy to **Private** (the app will use pre-signed URLs)
 
 ---
 
 ## Step 3: Deploy the Kuxani Application
 
+Repeat this for **each environment** (production and development):
+
 1. In the same project, click **+ New** → **Application**
-2. Select your **Git repository** and branch (e.g., `main`)
+2. Select your **Git repository** and the appropriate branch:
+   - **Production**: `main` branch
+   - **Development**: `development` branch
 3. Configure the build:
    - **Build Pack**: **Dockerfile**
    - **Dockerfile Location**: `/Dockerfile` (root of the repo)
@@ -83,26 +97,26 @@ In the application settings, go to **Environment Variables** and add:
 
 ### Required Variables
 
-| Variable             | Value                                                      | Description                                         |
-| -------------------- | ---------------------------------------------------------- | --------------------------------------------------- |
-| `DATABASE_URL`       | `postgres://kuxani:<password>@kuxani-postgres:5432/kuxani` | Internal PostgreSQL connection URL                  |
-| `BETTER_AUTH_SECRET` | `<generate-random-64-char-string>`                         | Auth encryption secret (use `openssl rand -hex 32`) |
-| `BETTER_AUTH_URL`    | `https://kuxani.example.com`                               | Public URL of the app                               |
-| `OPENAI_API_KEY`     | `sk-...`                                                   | OpenAI API key                                      |
-| `MINIO_ENDPOINT`     | `kuxani-minio`                                             | Internal MinIO hostname                             |
-| `MINIO_PORT`         | `9000`                                                     | MinIO API port                                      |
-| `MINIO_ACCESS_KEY`   | `<your-minio-access-key>`                                  | Same as `MINIO_ROOT_USER`                           |
-| `MINIO_SECRET_KEY`   | `<your-minio-secret-key>`                                  | Same as `MINIO_ROOT_PASSWORD`                       |
-| `MINIO_BUCKET`       | `kuxani-uploads`                                           | Bucket name created in Step 2                       |
+| Variable             | Production                                            | Development                                               |
+| -------------------- | ----------------------------------------------------- | --------------------------------------------------------- |
+| `DATABASE_URL`       | `postgres://kuxani:<pwd>@kuxani-postgres:5432/kuxani` | `postgres://kuxani:<pwd>@kuxani-postgres-dev:5432/kuxani` |
+| `BETTER_AUTH_SECRET` | `<generate with openssl rand -hex 32>`                | `<generate with openssl rand -hex 32>`                    |
+| `BETTER_AUTH_URL`    | `https://kuxani.com`                                  | `https://dev.kuxani.com`                                  |
+| `OPENAI_API_KEY`     | `sk-...`                                              | `sk-...`                                                  |
+| `MINIO_ENDPOINT`     | `kuxani-minio`                                        | `kuxani-minio`                                            |
+| `MINIO_PORT`         | `9000`                                                | `9000`                                                    |
+| `MINIO_ACCESS_KEY`   | `<your-minio-access-key>`                             | `<your-minio-access-key>`                                 |
+| `MINIO_SECRET_KEY`   | `<your-minio-secret-key>`                             | `<your-minio-secret-key>`                                 |
+| `MINIO_BUCKET`       | `kuxani-uploads`                                      | `kuxani-uploads-dev`                                      |
 
 ### Build-Time Variables (Build Args)
 
 These are needed at **build time** for Next.js public environment variables:
 
-| Variable              | Value                         | Description                         |
-| --------------------- | ----------------------------- | ----------------------------------- |
-| `NEXT_PUBLIC_APP_URL` | `https://kuxani.example.com`  | Public app URL                      |
-| `NEXT_PUBLIC_WS_URL`  | `wss://ws.kuxani.example.com` | WebSocket URL (if using Hocuspocus) |
+| Variable              | Production            | Development               |
+| --------------------- | --------------------- | ------------------------- |
+| `NEXT_PUBLIC_APP_URL` | `https://kuxani.com`  | `https://dev.kuxani.com`  |
+| `NEXT_PUBLIC_WS_URL`  | `wss://ws.kuxani.com` | `wss://ws.dev.kuxani.com` |
 
 > [!IMPORTANT]
 > In Coolify, mark `NEXT_PUBLIC_*` variables as **"Build Variable"** so they are available during `docker build`. Runtime-only env vars won't be embedded into the Next.js client bundle.
@@ -112,9 +126,13 @@ These are needed at **build time** for Next.js public environment variables:
 ## Step 5: Configure Domain & SSL
 
 1. In the application settings, go to **General** → **Domains**
-2. Add your domain: `https://kuxani.example.com`
+2. Add the domain for the environment:
+   - **Production**: `https://kuxani.com`
+   - **Development**: `https://dev.kuxani.com`
 3. Coolify will automatically provision a **Let's Encrypt** SSL certificate
-4. Ensure your DNS A record points to the Coolify server's IP
+4. Ensure your DNS A records point to the Coolify server's IP:
+   - `kuxani.com` → `<server-ip>`
+   - `dev.kuxani.com` → `<server-ip>`
 
 ---
 
@@ -131,7 +149,9 @@ These are needed at **build time** for Next.js public environment variables:
 
 ## Step 7: Post-Deployment Verification
 
-1. Visit `https://kuxani.example.com` — you should see the landing page
+1. Visit the appropriate URL:
+   - **Production**: `https://kuxani.com`
+   - **Development**: `https://dev.kuxani.com`
 2. Navigate to `/login` and `/signup` to verify auth is working
 3. Check the Coolify logs for any runtime errors
 
@@ -151,7 +171,7 @@ These are needed at **build time** for Next.js public environment variables:
 
 To deploy updates:
 
-1. Push changes to your Git repository
+1. Push changes to your Git repository (`main` or `development` branch)
 2. Coolify will auto-deploy if **Webhooks** are configured, or click **Deploy** manually
 3. Migrations run automatically on each container start
 
@@ -160,22 +180,25 @@ To deploy updates:
 ## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                    Coolify Server                    │
-│                                                     │
-│  ┌──────────────┐  ┌──────────┐  ┌──────────────┐  │
-│  │   Kuxani App  │  │ PostgreSQL│  │    MinIO     │  │
-│  │  (Next.js)   │──│   :5432   │  │  :9000/:9001 │  │
-│  │    :3000     │  └──────────┘  └──────────────┘  │
-│  └──────┬───────┘        │              │          │
-│         │                │              │          │
-│         └────────────────┴──────────────┘          │
-│                    Internal Network                 │
-└─────────────────────┬───────────────────────────────┘
-                      │
-                 HTTPS :443
-                      │
-                 ┌────┴────┐
-                 │  Users  │
-                 └─────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                         Coolify Server                           │
+│                                                                  │
+│  ┌─────────────────────── Production ─────────────────────────┐  │
+│  │  Kuxani App (:3000)  │  PostgreSQL (:5432)  │  MinIO (:9K) │  │
+│  │  kuxani.com          │  kuxani-postgres      │  kuxani-minio│  │
+│  └──────────────────────────────────────────────────────────────┘ │
+│                                                                  │
+│  ┌─────────────────────── Development ────────────────────────┐  │
+│  │  Kuxani App (:3000)  │  PostgreSQL (:5432)  │  MinIO (:9K) │  │
+│  │  dev.kuxani.com      │  kuxani-postgres-dev  │  (shared)    │  │
+│  └──────────────────────────────────────────────────────────────┘ │
+│                                                                  │
+│                        Internal Network                          │
+└───────────────────────────┬──────────────────────────────────────┘
+                            │
+                       HTTPS :443
+                            │
+                       ┌────┴────┐
+                       │  Users  │
+                       └─────────┘
 ```

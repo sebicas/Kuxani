@@ -24,17 +24,17 @@ A collaborative AI-mediated platform where couples work together to understand e
 
 ## Tech Stack
 
-| Layer            | Technology                         | Purpose                                |
-| ---------------- | ---------------------------------- | -------------------------------------- |
-| **Framework**    | Next.js 16 (App Router)            | Full-stack React with SSR, TypeScript  |
-| **Styling**      | Vanilla CSS (custom design system) | Full control, premium feel, dark/light |
-| **Auth**         | Better Auth                        | Self-hosted, TypeScript-native auth    |
-| **Database**     | PostgreSQL 17 + Drizzle ORM        | Type-safe queries, auto migrations     |
-| **File Storage** | MinIO (S3-compatible)              | Self-hosted object storage             |
-| **Real-time**    | Yjs + Hocuspocus                   | CRDT-based collaborative editing       |
-| **Rich Text**    | Tiptap (ProseMirror + Yjs)         | Collaborative editor                   |
-| **AI**           | OpenAI (gpt-4.1 family)            | Text reasoning, transcription, TTS     |
-| **Deployment**   | Coolify (planned)                  | Self-hosted deployment                 |
+| Layer            | Technology                         | Purpose                                      |
+| ---------------- | ---------------------------------- | -------------------------------------------- |
+| **Framework**    | Next.js 16 (App Router)            | Full-stack React with SSR, TypeScript        |
+| **Styling**      | Vanilla CSS (custom design system) | Full control, premium feel, dark/light       |
+| **Auth**         | Better Auth                        | Self-hosted, TypeScript-native auth          |
+| **Database**     | PostgreSQL 17 + Drizzle ORM        | Type-safe queries, auto migrations           |
+| **File Storage** | MinIO (S3-compatible)              | Self-hosted object storage                   |
+| **Real-time**    | Yjs + Hocuspocus                   | CRDT-based collaborative editing             |
+| **Rich Text**    | Tiptap (ProseMirror + Yjs)         | Collaborative editor                         |
+| **AI**           | OpenAI (gpt-4.1 family)            | Text reasoning, transcription, TTS           |
+| **Deployment**   | Coolify                            | `kuxani.com` (prod) · `dev.kuxani.com` (dev) |
 
 ---
 
