@@ -74,11 +74,16 @@ export const challenges = pgTable("challenges", {
   coupleId: uuid("couple_id")
     .references(() => couples.id, { onDelete: "cascade" })
     .notNull(),
+  createdBy: text("created_by")
+    .references(() => user.id, { onDelete: "cascade" })
+    .notNull(),
   title: text("title").notNull(),
   category: challengeCategoryEnum("category").default("other").notNull(),
   status: challengeStatusEnum("status").default("created").notNull(),
   aiNeutralDescription: text("ai_neutral_description"),
-  acceptedByBoth: boolean("accepted_by_both").default(false).notNull(),
+  acceptedByA: boolean("accepted_by_a").default(false).notNull(),
+  acceptedByB: boolean("accepted_by_b").default(false).notNull(),
+  rejectionFeedback: text("rejection_feedback"),
   resolutionNotes: text("resolution_notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   resolvedAt: timestamp("resolved_at"),

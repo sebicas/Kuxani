@@ -11,7 +11,7 @@ export default function DashboardPage() {
             Here&apos;s how your relationship is growing.
           </p>
         </div>
-        <button className="btn btn-primary">New Challenge</button>
+        <Link href="/challenges/new" className="btn btn-primary">New Challenge</Link>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "var(--space-lg)" }}>
@@ -25,9 +25,9 @@ export default function DashboardPage() {
             No active challenges. When both partners write their perspectives on
             a conflict, the AI helps you find common ground.
           </p>
-          <button className="btn btn-secondary btn-sm" style={{ marginTop: "var(--space-md)" }}>
+          <Link href="/challenges/new" className="btn btn-secondary btn-sm" style={{ marginTop: "var(--space-md)" }}>
             Create Your First Challenge
-          </button>
+          </Link>
         </div>
 
         {/* ── Mood Today ── */}
