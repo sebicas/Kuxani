@@ -15,6 +15,13 @@
       "when": 1771114821910,
       "tag": "0001_useful_liz_osborn",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1771134336049,
+      "tag": "0002_rare_wallop",
+      "breakpoints": true
     }
   ]
 }
