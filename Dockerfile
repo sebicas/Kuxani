@@ -54,11 +54,12 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # Copy custom server.js (replaces default standalone server.js)
 COPY --from=builder --chown=nextjs:nodejs /app/server.js ./server.js
 
-# Copy socket library files (needed at runtime by API routes)
-COPY --from=builder --chown=nextjs:nodejs /app/src/lib/socket ./src/lib/socket
+# Copy compiled server dependencies (tsc output from tsconfig.server.json)
+COPY --from=builder --chown=nextjs:nodejs /app/src/lib/db ./src/lib/db
+COPY --from=builder --chown=nextjs:nodejs /app/src/lib/auth ./src/lib/auth
+COPY --from=builder --chown=nextjs:nodejs /app/src/lib/socket/socketServer.js ./src/lib/socket/socketServer.js
 
-# Copy Drizzle config, schema, and migrations for runtime migrate
-COPY --from=builder /app/src/lib/db/schema ./src/lib/db/schema
+# Copy Drizzle config and migrations for runtime migrate
 COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/drizzle/migrations ./drizzle/migrations
