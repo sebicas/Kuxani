@@ -11,6 +11,7 @@ const navItems = [
   { href: "/mood", label: "Mood Tracker", icon: "🫶" },
   { href: "/love-languages", label: "Love Languages", icon: "💕" },
   { href: "/gratitude", label: "Gratitude", icon: "✨" },
+  { href: "/checkins", label: "Weekly Check-In", icon: "📋" },
   { href: "/insights", label: "Insights", icon: "📊" },
 ];
 
@@ -83,13 +84,14 @@ export default function DashboardLayout({
       <main className={styles.mainContent}>{children}</main>
 
       {/* ── Emergency De-escalation Button ── */}
-      <button
+      <Link
+        href="/deescalation"
         className={styles.emergencyBtn}
         title="Emergency De-escalation"
         aria-label="Emergency De-escalation Mode"
       >
         🚨
-      </button>
+      </Link>
     </div>
   );
 }

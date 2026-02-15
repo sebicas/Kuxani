@@ -1,0 +1,284 @@
+/* ── Gratitude Journal Page Styles ── */
+
+.gratitudeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2xl);
+}
+
+/* ── Daily Prompt Card ── */
+.promptCard {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  color: white;
+  margin-bottom: var(--space-2xl);
+  position: relative;
+  overflow: hidden;
+}
+
+.promptCard::before {
+  content: "✨";
+  position: absolute;
+  top: var(--space-md);
+  right: var(--space-md);
+  font-size: 2rem;
+  opacity: 0.3;
+}
+
+.promptText {
+  font-size: 1.15rem;
+  font-weight: 500;
+  line-height: 1.6;
+  font-style: italic;
+  margin-bottom: var(--space-lg);
+  max-width: 600px;
+}
+
+.promptActions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.promptBtn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background 0.15s ease;
+}
+
+.promptBtn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Entry Form ── */
+.formCard {
+  margin-bottom: var(--space-2xl);
+}
+
+.categoryPicker {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.categoryBtn {
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.15s ease;
+}
+
+.categoryBtn:hover {
+  border-color: var(--accent-primary);
+}
+
+.categoryBtnActive {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+.entryTextarea {
+  width: 100%;
+  min-height: 100px;
+  padding: var(--space-md);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.15s ease;
+}
+
+.entryTextarea:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.formFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-md);
+}
+
+.shareRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.shareSwitch {
+  width: 44px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background: var(--border-default);
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s ease;
+  padding: 0;
+}
+
+.shareSwitchActive {
+  background: var(--accent-primary);
+}
+
+.shareSwitchKnob {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.shareSwitchActive .shareSwitchKnob {
+  transform: translateX(20px);
+}
+
+/* ── Feed ── */
+.feedSection {
+  margin-top: var(--space-2xl);
+}
+
+.feedTabs {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-lg);
+}
+
+.feedTab {
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-full);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.feedTabActive {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.feedGrid {
+  display: grid;
+  gap: var(--space-md);
+}
+
+/* ── Entry Card ── */
+.entryCard {
+  padding: var(--space-lg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--bg-primary);
+  transition: box-shadow 0.15s ease;
+}
+
+.entryCard:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.entryMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-sm);
+}
+
+.entryDate {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.entryContent {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.entryPrompt {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--border-default);
+}
+
+/* ── Monthly Grid ── */
+.monthlySection {
+  margin-top: var(--space-2xl);
+}
+
+.monthGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-top: var(--space-md);
+}
+
+.monthDay {
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.monthDayFilled {
+  background: var(--accent-primary);
+  color: white;
+  font-weight: 500;
+}
+
+.monthDayEmpty {
+  background: var(--bg-secondary);
+}
+
+.monthDayLabels {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.monthDayLabel {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ── Empty State ── */
+.emptyState {
+  text-align: center;
+  padding: var(--space-3xl);
+  color: var(--text-muted);
+}
+
+.emptyEmoji {
+  font-size: 3rem;
+  margin-bottom: var(--space-md);
+}

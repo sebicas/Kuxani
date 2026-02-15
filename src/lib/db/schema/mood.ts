@@ -5,6 +5,7 @@ import {
   timestamp,
   boolean,
   integer,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { user } from "./auth";
@@ -24,16 +25,25 @@ export const moodEntries = pgTable("mood_entries", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+/* ── Gratitude Category ── */
+export const gratitudeCategoryEnum = pgEnum("gratitude_category", [
+  "gratitude",
+  "love_note",
+  "appreciation",
+]);
+
 /* ── Gratitude Entries ── */
 export const gratitudeEntries = pgTable("gratitude_entries", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id")
     .references(() => user.id, { onDelete: "cascade" })
     .notNull(),
-  coupleId: uuid("couple_id")
-    .references(() => couples.id, { onDelete: "cascade" })
-    .notNull(),
+  coupleId: uuid("couple_id").references(() => couples.id, {
+    onDelete: "cascade",
+  }),
   content: text("content").notNull(),
+  category: gratitudeCategoryEnum("category").default("gratitude").notNull(),
+  aiPrompt: text("ai_prompt"),
   shared: boolean("shared").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

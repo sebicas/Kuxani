@@ -96,19 +96,21 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Recent Gratitude ── */}
-        <div className="card">
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", marginBottom: "var(--space-md)" }}>
-            <span>✨</span>
-            <h3 className="heading-3">Gratitude</h3>
+        <Link href="/gratitude" style={{ textDecoration: "none", color: "inherit" }}>
+          <div className="card" style={{ cursor: "pointer", transition: "transform 0.15s ease, box-shadow 0.15s ease" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", marginBottom: "var(--space-md)" }}>
+              <span>✨</span>
+              <h3 className="heading-3">Gratitude</h3>
+            </div>
+            <p className="text-muted text-sm">
+              Write something you appreciate about your partner today. It can be
+              shared as a love note.
+            </p>
+            <span className="btn btn-secondary btn-sm" style={{ marginTop: "var(--space-md)", display: "inline-block" }}>
+              Write a Note →
+            </span>
           </div>
-          <p className="text-muted text-sm">
-            Write something you appreciate about your partner today. It can be
-            shared as a love note.
-          </p>
-          <button className="btn btn-secondary btn-sm" style={{ marginTop: "var(--space-md)" }}>
-            Write a Note
-          </button>
-        </div>
+        </Link>
       </div>
     </div>
   );
