@@ -1,0 +1,470 @@
+/* ── Childhood Wounds Page Styles ── */
+
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2xl);
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.headerActions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+/* ── Suggestions Banner ── */
+.suggestionsBanner {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(236, 72, 153, 0.08));
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-2xl);
+  animation: fade-in 0.3s ease;
+}
+
+.suggestionsBannerTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.suggestionCard {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  margin-bottom: var(--space-sm);
+}
+
+.suggestionCard:last-child {
+  margin-bottom: 0;
+}
+
+.suggestionInfo {
+  flex: 1;
+}
+
+.suggestionTitle {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2xs);
+}
+
+.suggestionDescription {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.suggestionSource {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: var(--space-xs);
+  font-style: italic;
+}
+
+.suggestionActions {
+  display: flex;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+}
+
+.acceptBtn,
+.dismissBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-default);
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.acceptBtn:hover {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+.dismissBtn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* ── Add Form ── */
+.formCard {
+  margin-bottom: var(--space-2xl);
+  animation: fade-in 0.3s ease;
+}
+
+.formGrid {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.formInput {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.formTextarea {
+  width: 100%;
+  min-height: 80px;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.15s ease;
+}
+
+.formTextarea:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.formFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+/* ── Two-Column Layout ── */
+.twoColumnGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .twoColumnGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.woundsColumn {
+  min-width: 0;
+}
+
+.columnHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent-primary);
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-sm);
+  border-bottom: 2px solid var(--accent-primary);
+}
+
+.columnHeaderPartner {
+  color: var(--accent-secondary, #ec4899);
+  border-bottom-color: var(--accent-secondary, #ec4899);
+}
+
+.columnIcon {
+  font-size: 1.1rem;
+}
+
+.partnerWoundCard {
+  border-left: 3px solid var(--accent-secondary, #ec4899);
+}
+
+/* ── Wounds Grid ── */
+.woundsGrid {
+  display: grid;
+  gap: var(--space-md);
+}
+
+/* ── Wound Card ── */
+.woundCard {
+  padding: var(--space-lg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--bg-primary);
+  transition: box-shadow 0.15s ease;
+  animation: fade-in 0.3s ease;
+}
+
+.woundCard:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.woundHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-sm);
+}
+
+.woundTitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.woundActions {
+  display: flex;
+  gap: var(--space-2xs);
+}
+
+.woundActionBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+}
+
+.woundActionBtn:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.woundDescription {
+  font-size: 0.925rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--space-sm);
+}
+
+.woundMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.sourceBadge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.sourceSelf {
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--accent-primary);
+}
+
+.sourcePartner {
+  background: rgba(236, 72, 153, 0.12);
+  color: var(--accent-secondary, #ec4899);
+}
+
+.sourceAi {
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+}
+
+.woundDate {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ── AI Suggestions Panel ── */
+.aiPanel {
+  margin-bottom: var(--space-2xl);
+  animation: fade-in 0.3s ease;
+}
+
+.aiPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.aiPanelTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.aiSuggestionCard {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  border: 1px dashed var(--border-default);
+  margin-bottom: var(--space-sm);
+  transition: border-color 0.15s ease;
+}
+
+.aiSuggestionCard:hover {
+  border-color: var(--accent-primary);
+}
+
+.aiSuggestionCard:last-child {
+  margin-bottom: 0;
+}
+
+.addSuggestionBtn {
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--accent-primary);
+  background: transparent;
+  color: var(--accent-primary);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.addSuggestionBtn:hover {
+  background: var(--accent-primary);
+  color: white;
+}
+
+/* ── Suggest to Partner Form ── */
+.suggestForm {
+  margin-bottom: var(--space-2xl);
+  animation: fade-in 0.3s ease;
+  border-color: rgba(236, 72, 153, 0.25);
+}
+
+/* ── Empty State ── */
+.emptyState {
+  text-align: center;
+  padding: var(--space-3xl);
+  color: var(--text-muted);
+}
+
+.emptyEmoji {
+  font-size: 3rem;
+  margin-bottom: var(--space-md);
+}
+
+/* ── Loading ── */
+.loading {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--text-muted);
+}
+
+/* ── Section Label ── */
+.sectionLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: var(--space-md);
+}
+
+/* ── Intensity Slider ── */
+.intensityRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.intensityLabel {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  min-width: 110px;
+}
+
+.intensitySlider {
+  flex: 1;
+  appearance: none;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--bg-tertiary, var(--border-default));
+  outline: none;
+  transition: opacity 0.15s ease;
+  cursor: pointer;
+}
+
+.intensitySlider::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  background: var(--accent-primary);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.intensitySlider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  background: var(--accent-primary);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* ── Intensity Badge ── */
+.intensityBadge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+}
+
+.intensityBadge[data-level="high"] {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+.intensityBadge[data-level="mid"] {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+}
+
+.intensityBadge[data-level="low"] {
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+}
