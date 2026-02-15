@@ -70,6 +70,12 @@ export async function GET() {
       heap_used_mb: toMB(mem.heapUsed),
       heap_total_mb: toMB(mem.heapTotal),
     },
+    // TEMPORARY DEBUG — remove after diagnosing IP guard issue
+    _debug_ip_guard: {
+      APP_ENV: process.env.APP_ENV || "(not set)",
+      DEV_ALLOWED_IPS: process.env.DEV_ALLOWED_IPS || "(not set)",
+      PRODUCTION_URL: process.env.PRODUCTION_URL || "(not set)",
+    },
   };
 
   return NextResponse.json(response, {
