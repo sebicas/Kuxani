@@ -166,27 +166,27 @@ test.describe("Dashboard Navigation", () => {
   test("should show all Phase 2 links in sidebar", async ({ page }) => {
     await signUpAndAuth(page);
 
-    // Check sidebar navigation items
-    await expect(page.locator("text=Private Therapy")).toBeVisible();
-    await expect(page.locator("text=Mood Tracker")).toBeVisible();
-    await expect(page.locator("text=Love Languages")).toBeVisible();
+    // Check sidebar navigation items (scoped to nav to avoid dashboard content matches)
+    await expect(page.locator("nav >> text=Private Therapy")).toBeVisible();
+    await expect(page.locator("nav >> text=Mood Tracker")).toBeVisible();
+    await expect(page.locator("nav >> text=Love Languages")).toBeVisible();
   });
 
   test("should navigate to each Phase 2 feature from sidebar", async ({ page }) => {
     await signUpAndAuth(page);
 
-    // Navigate to Private Therapy
-    await page.locator("text=Private Therapy").click();
+    // Navigate to Private Therapy (scoped to nav)
+    await page.locator("nav >> text=Private Therapy").click();
     await page.waitForURL("**/personal**");
     await expect(page.locator("h1")).toContainText("Private Therapy");
 
     // Navigate to Mood Tracker
-    await page.locator("text=Mood Tracker").click();
+    await page.locator("nav >> text=Mood Tracker").click();
     await page.waitForURL("**/mood**");
     await expect(page.locator("h1")).toContainText("Mood Tracker");
 
     // Navigate to Love Languages
-    await page.locator("text=Love Languages").click();
+    await page.locator("nav >> text=Love Languages").click();
     await page.waitForURL("**/love-languages**");
     await expect(page.locator("h1")).toContainText("Love Languages");
   });
