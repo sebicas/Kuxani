@@ -38,7 +38,8 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 
 # NODE_ENV defaults to production; override at runtime via Coolify env vars
-ENV NODE_ENV=${NODE_ENV:-production}
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Create non-root user
