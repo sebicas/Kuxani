@@ -80,5 +80,8 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD wget -qO- http://localhost:3000/api/health || exit 1
+
 # Run migrations then start the custom server
 CMD ["sh", "-c", "npx --no-update-notifier drizzle-kit migrate --config=drizzle.config.ts >/dev/null 2>&1 && node server.js"]
