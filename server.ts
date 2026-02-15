@@ -20,6 +20,7 @@ import { eq } from "drizzle-orm";
 import { auth } from "./src/lib/auth";
 
 const dev = process.env.NODE_ENV !== "production";
+const appEnv = process.env.APP_ENV || process.env.NODE_ENV || "production";
 const hostname = process.env.HOSTNAME || "0.0.0.0";
 const port = parseInt(process.env.PORT || "3000", 10);
 
@@ -117,7 +118,7 @@ async function main() {
 
   httpServer.listen(port, () => {
     console.log(
-      `> Ready on http://${hostname}:${port} (${dev ? "development" : "production"})`
+      `> Ready on http://${hostname}:${port} (${appEnv})`
     );
   });
 }

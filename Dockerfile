@@ -39,9 +39,11 @@ RUN npx tsc --project tsconfig.server.json
 FROM node:22-alpine AS runner
 WORKDIR /app
 
-# NODE_ENV defaults to production; override at runtime via Coolify env vars
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
+# NODE_ENV must always be production for Next.js standalone mode.
+# Use APP_ENV to label the deployment environment (development, staging, production).
+ENV NODE_ENV=production
+ARG APP_ENV=production
+ENV APP_ENV=${APP_ENV}
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Create non-root user
