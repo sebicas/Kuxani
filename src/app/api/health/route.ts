@@ -14,12 +14,19 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { sql } from "drizzle-orm";
+import { readFileSync } from "fs";
 
 export const dynamic = "force-dynamic";
 
-// Read version once at module load
+// Read version & commit SHA once at module load
 const APP_VERSION = process.env.npm_package_version || "0.1.0";
-const COMMIT_SHA = (process.env.COMMIT_SHA || "unknown").slice(0, 7);
+
+let COMMIT_SHA = "unknown";
+try {
+  COMMIT_SHA = readFileSync(".commit_sha", "utf-8").trim().slice(0, 7);
+} catch {
+  // File not present in dev — ignore
+}
 const startTime = Date.now();
 
 export async function GET() {
