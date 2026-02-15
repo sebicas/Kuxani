@@ -5,7 +5,7 @@ FROM node:22-alpine AS deps
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts --legacy-peer-deps
+RUN npm ci --ignore-scripts --legacy-peer-deps --no-update-notifier
 
 # ──────────────────────────────────────────────
 # Stage 2: Build the application
@@ -81,4 +81,4 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 # Run migrations then start the custom server
-CMD ["sh", "-c", "npx --no-update-notifier drizzle-kit migrate 2>/dev/null && node server.js"]
+CMD ["sh", "-c", "npx --no-update-notifier drizzle-kit migrate --config=drizzle.config.ts >/dev/null 2>&1 && node server.js"]
