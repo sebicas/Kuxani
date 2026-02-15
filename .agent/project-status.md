@@ -1,6 +1,6 @@
 # Kuxani — Project Status
 
-> Last updated: 2026-02-15 (Phase 3 Batch 1 + Challenges complete)
+> Last updated: 2026-02-15 (Post-feature QA complete — lazy OpenAI, force-dynamic, Docker fix)
 
 ---
 
@@ -25,7 +25,7 @@
 ### ⬜ Pending
 
 - [x] **Database migrations** — Drizzle `generate` + `migrate` configured in Dockerfile
-- [ ] **Partner invitation flow** — Invite link/code generation + join couple
+- [x] **Partner invitation flow** — Invite link/code generation + join couple
 - [x] **Challenges workspace** — Full lifecycle: create, perspectives, AI synthesis, accept/reject, discussion, requests, resolution
 - [ ] **Collaborative editor** — Yjs + Tiptap + Hocuspocus for perspective writing
 - [x] **AI streaming endpoint** — SSE streaming for synthesis and discussion
@@ -81,7 +81,7 @@
 
 | #   | Feature                         | Phase | Status     |
 | --- | ------------------------------- | ----- | ---------- |
-| 1   | Onboarding & Partner Invite     | 1     | ⬜ Pending |
+| 1   | Onboarding & Partner Invite     | 1     | ✅ Done    |
 | 2   | Challenges (Conflict Workspace) | 1     | ✅ Done    |
 | 3   | Personal Therapy Chat           | 2     | ✅ Done    |
 | 4   | Chat Interface (ChatGPT-like)   | 1     | ⬜ Pending |
@@ -102,10 +102,12 @@
 
 ## Infrastructure Status
 
-| Component           | Status        | Notes                                    |
-| ------------------- | ------------- | ---------------------------------------- |
-| PostgreSQL 17       | ✅ Configured | Docker Compose, port 5432                |
-| MinIO (S3)          | ✅ Configured | Docker Compose, ports 9000/9001          |
-| Hocuspocus (Yjs WS) | ⬜ Pending    | Config in `.env.example`, not yet set up |
-| Coolify             | ✅ Configured | Dockerfile + deployment guide ready      |
-| CI/CD               | ⬜ Pending    | Not yet configured                       |
+| Component           | Status        | Notes                                            |
+| ------------------- | ------------- | ------------------------------------------------ |
+| PostgreSQL 17       | ✅ Configured | Docker Compose, port 5432                        |
+| MinIO (S3)          | ✅ Configured | Docker Compose, ports 9000/9001                  |
+| Socket.IO           | ✅ Configured | Custom server (`server.ts`), same-port           |
+| Hocuspocus (Yjs WS) | ⬜ Pending    | Config in `.env.example`, not yet set up         |
+| Coolify             | ✅ Configured | Dockerfile + deployment guide ready              |
+| Docker Build        | ✅ Fixed      | Lazy OpenAI, force-dynamic, tsconfig.server.json |
+| CI/CD               | ⬜ Pending    | Not yet configured                               |

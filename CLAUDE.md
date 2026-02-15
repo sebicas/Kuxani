@@ -22,6 +22,17 @@ A collaborative AI-mediated platform where couples work together to understand e
 
 ---
 
+## ⚠️ MANDATORY: Implementation Plan Rules
+
+**Every time you create an Implementation Plan, you MUST:**
+
+1. **Wait for user approval** before writing any code. Do NOT start coding until the user explicitly approves the plan.
+2. **Last task item = `/verify`** — The final item in the task checklist must always be running the `.agent/workflows/verify.md` workflow.
+
+> **No exceptions.** Plans without user approval and a closing `/verify` step are incomplete.
+
+---
+
 ## Tech Stack
 
 | Layer            | Technology                         | Purpose                                      |
@@ -31,7 +42,8 @@ A collaborative AI-mediated platform where couples work together to understand e
 | **Auth**         | Better Auth                        | Self-hosted, TypeScript-native auth          |
 | **Database**     | PostgreSQL 17 + Drizzle ORM        | Type-safe queries, auto migrations           |
 | **File Storage** | MinIO (S3-compatible)              | Self-hosted object storage                   |
-| **Real-time**    | Yjs + Hocuspocus                   | CRDT-based collaborative editing             |
+| **Real-time**    | Socket.IO                          | Live partner updates across all features     |
+| **Collab Edit**  | Yjs + Hocuspocus                   | CRDT-based collaborative editing             |
 | **Rich Text**    | Tiptap (ProseMirror + Yjs)         | Collaborative editor                         |
 | **AI**           | OpenAI (gpt-4.1 family)            | Text reasoning, transcription, TTS           |
 | **Deployment**   | Coolify                            | `kuxani.com` (prod) · `dev.kuxani.com` (dev) |
@@ -58,13 +70,22 @@ kuxani/
 │   │   │   └── dashboard/page.tsx    # Dashboard home
 │   │   └── api/
 │   │       └── auth/[...all]/route.ts # Better Auth API catch-all
+│   ├── middleware.ts                   # Route protection (redirects unauthenticated → /, authenticated on login/signup → /dashboard)
 │   ├── lib/
 │   │   ├── ai/
 │   │   │   ├── client.ts             # OpenAI client + model constants
 │   │   │   └── prompts.ts            # Therapeutic prompts (Gottman/EFT/Attachment)
 │   │   ├── auth/
 │   │   │   ├── index.ts              # Better Auth server config (Drizzle adapter)
+│   │   │   ├── session.ts            # Server-side session helpers
 │   │   │   └── client.ts             # React hooks (useSession, signIn, signUp, signOut)
+│   │   ├── socket/
+│   │   │   ├── socketServer.ts       # Socket.IO server singleton (setIO/getIO)
+│   │   │   ├── socketClient.ts       # Socket.IO client singleton (getSocket)
+│   │   │   └── events.ts             # Shared event constants (PARTNER_JOINED, CHALLENGE_UPDATED)
+│   │   ├── hooks/
+│   │   │   ├── useChallengeSocket.ts  # React hook for challenge real-time updates
+│   │   │   └── usePartnerSocket.ts   # React hook for partner join notifications
 │   │   └── db/
 │   │       ├── index.ts              # Drizzle client initialization
 │   │       └── schema/
@@ -196,6 +217,12 @@ The design system is defined in `src/app/globals.css` with CSS custom properties
 
 ## AI Architecture
 
+### Client Initialization
+
+The OpenAI client (`src/lib/ai/client.ts`) is **lazy-initialized** via a Proxy pattern. This is critical for Docker builds where `OPENAI_API_KEY` is not available at build time. The `openai` export works identically to a direct `new OpenAI()` instance but defers construction until first use.
+
+**Rule:** All API routes that import from `@/lib/ai/client` **MUST** export `export const dynamic = "force-dynamic"` to prevent Next.js from attempting to pre-render them at build time.
+
 ### Models Used
 
 | Model               | Purpose                                  |
@@ -232,6 +259,15 @@ Use conventional commits: `<type>: <description>`
 | `perf`     | Performance improvement                                 |
 | `test`     | Adding or correcting tests                              |
 | `chore`    | Build process, tooling, dependencies                    |
+
+### Real-Time Updates (MANDATORY)
+
+All features that involve partner collaboration **MUST** use Socket.IO to push live updates. When one partner takes an action, the other partner's page MUST update automatically — no page refresh required.
+
+- Emit `CHALLENGE_UPDATED` (or feature-specific events) from API routes via `getIO().to("couple:${coupleId}").emit(EVENT, data)`
+- Use client hooks (`useChallengeSocket`, `usePartnerSocket`, etc.) to listen and refetch
+- Event constants live in `src/lib/socket/events.ts`
+- Skip own events with `userId` filtering in the client hook
 
 ### Code Style
 

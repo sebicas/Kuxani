@@ -10,6 +10,10 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.ts", "tests/**/*.test.ts"],
     testTimeout: 15000,
+    env: {
+      BETTER_AUTH_SILENT: "true",
+    },
+
   },
   resolve: {
     alias: {

@@ -20,5 +20,9 @@ export default defineConfig({
     url: "http://localhost:3000",
     reuseExistingServer: true,
     timeout: 30000,
+    env: {
+      ...process.env,
+      BETTER_AUTH_SILENT: "true",
+    },
   },
 });
