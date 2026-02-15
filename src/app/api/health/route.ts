@@ -19,6 +19,7 @@ export const dynamic = "force-dynamic";
 
 // Read version once at module load
 const APP_VERSION = process.env.npm_package_version || "0.1.0";
+const COMMIT_SHA = (process.env.COMMIT_SHA || "unknown").slice(0, 7);
 const startTime = Date.now();
 
 export async function GET() {
@@ -59,6 +60,7 @@ export async function GET() {
   const response = {
     status: healthy ? "healthy" : "unhealthy",
     version: APP_VERSION,
+    last_commit: COMMIT_SHA,
     environment: process.env.APP_ENV || process.env.NODE_ENV || "unknown",
     uptime: Math.round((Date.now() - startTime) / 1000),
     timestamp: new Date().toISOString(),
