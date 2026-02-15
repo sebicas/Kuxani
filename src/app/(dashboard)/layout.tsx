@@ -13,6 +13,7 @@ const navItems = [
   { href: "/personal", label: "Private Therapy", icon: "💬" },
   { href: "/mood", label: "Mood Tracker", icon: "🫶" },
   { href: "/love-languages", label: "Love Languages", icon: "💕" },
+  { href: "/attachment-styles", label: "Attachment Styles", icon: "🔗" },
   { href: "/gratitude", label: "Gratitude", icon: "✨" },
   { href: "/checkins", label: "Weekly Check-In", icon: "📋" },
   { href: "/insights", label: "Insights", icon: "📊" },

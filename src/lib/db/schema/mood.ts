@@ -94,6 +94,30 @@ export const loveLanguageResultsRelations = relations(
   })
 );
 
+/* ── Attachment Style Results ── */
+export const attachmentStyleResults = pgTable("attachment_style_results", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .references(() => user.id, { onDelete: "cascade" })
+    .notNull(),
+  secure: integer("secure").notNull(),
+  anxious: integer("anxious").notNull(),
+  avoidant: integer("avoidant").notNull(),
+  fearfulAvoidant: integer("fearful_avoidant").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const attachmentStyleResultsRelations = relations(
+  attachmentStyleResults,
+  ({ one }) => ({
+    user: one(user, {
+      fields: [attachmentStyleResults.userId],
+      references: [user.id],
+    }),
+  })
+);
+
 export type MoodEntry = typeof moodEntries.$inferSelect;
 export type GratitudeEntry = typeof gratitudeEntries.$inferSelect;
 export type LoveLanguageResult = typeof loveLanguageResults.$inferSelect;
+export type AttachmentStyleResult = typeof attachmentStyleResults.$inferSelect;
