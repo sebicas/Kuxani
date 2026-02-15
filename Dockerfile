@@ -37,7 +37,8 @@ RUN npx tsc --project tsconfig.server.json
 FROM node:22-alpine AS runner
 WORKDIR /app
 
-ENV NODE_ENV=production
+# NODE_ENV defaults to production; override at runtime via Coolify env vars
+ENV NODE_ENV=${NODE_ENV:-production}
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Create non-root user
@@ -75,4 +76,4 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 # Run migrations then start the custom server
-CMD ["sh", "-c", "npx drizzle-kit migrate && node server.js"]
+CMD ["sh", "-c", "npx --no-update-notifier drizzle-kit migrate 2>/dev/null && node server.js"]
