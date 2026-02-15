@@ -330,6 +330,19 @@
   color: var(--text-muted);
 }
 
+/* ── Partner Entry ── */
+.historyCardPartner {
+  border-color: rgba(168, 85, 247, 0.3);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.05), rgba(236, 72, 153, 0.05));
+}
+
+.partnerTag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--accent-secondary, #a855f7);
+  margin-bottom: var(--space-xs);
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .emotionWheel {

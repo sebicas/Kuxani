@@ -1,15 +1,20 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import styles from "./gratitude.module.css";
+import { useCoupleSocket } from "@/lib/hooks/useCoupleSocket";
+import { GRATITUDE_UPDATED } from "@/lib/socket/events";
 
 interface GratitudeEntry {
   id: string;
+  userId: string;
   content: string;
   category: "gratitude" | "love_note" | "appreciation";
   aiPrompt: string | null;
   shared: boolean;
   createdAt: string;
+  isPartnerEntry?: boolean;
+  partnerName?: string;
 }
 
 const CATEGORY_LABELS: Record<string, { label: string; emoji: string }> = {
@@ -34,14 +39,31 @@ export default function GratitudePage() {
   const [promptLoading, setPromptLoading] = useState(true);
 
   // Feed filter
-  const [feedFilter, setFeedFilter] = useState<"all" | "shared">("all");
+  const [feedFilter, setFeedFilter] = useState<"all" | "shared" | "partner">("all");
+
+  // Real-time state
+  const [coupleId, setCoupleId] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchEntries();
     fetchPrompt();
+    // Fetch couple + user info for real-time
+    fetch("/api/couples")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.couple?.id) setCoupleId(data.couple.id);
+      })
+      .catch(() => {});
+    fetch("/api/auth/get-session")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.user?.id) setCurrentUserId(data.user.id);
+      })
+      .catch(() => {});
   }, []);
 
-  async function fetchEntries() {
+  const fetchEntries = useCallback(async () => {
     try {
       const res = await fetch("/api/gratitude?days=90");
       if (res.ok) {
@@ -53,7 +75,10 @@ export default function GratitudePage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  // Real-time: auto-refresh when partner shares an entry
+  useCoupleSocket(coupleId, GRATITUDE_UPDATED, currentUserId, fetchEntries);
 
   async function fetchPrompt() {
     try {
@@ -87,8 +112,8 @@ export default function GratitudePage() {
       });
 
       if (res.ok) {
-        const entry = await res.json();
-        setEntries((prev) => [entry, ...prev]);
+        // Re-fetch to get updated list including partner entries
+        await fetchEntries();
         setContent("");
         setShowForm(false);
         setCategory("gratitude");
@@ -118,9 +143,13 @@ export default function GratitudePage() {
 
   // Filtered entries for feed
   const filteredEntries = useMemo(() => {
-    if (feedFilter === "shared") return entries.filter((e) => e.shared);
+    if (feedFilter === "shared") return entries.filter((e) => e.shared && !e.isPartnerEntry);
+    if (feedFilter === "partner") return entries.filter((e) => e.isPartnerEntry);
     return entries;
   }, [entries, feedFilter]);
+
+  // Only count own entries for the monthly grid
+  const ownEntries = useMemo(() => entries.filter((e) => !e.isPartnerEntry), [entries]);
 
   // Monthly contribution grid (last 28 days)
   const monthDays = useMemo(() => {
@@ -129,11 +158,17 @@ export default function GratitudePage() {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const dateStr = d.toDateString();
-      const hasEntry = entries.some((e) => new Date(e.createdAt).toDateString() === dateStr);
+      const hasEntry = ownEntries.some((e) => new Date(e.createdAt).toDateString() === dateStr);
       days.push({ date: dateStr, dayNum: d.getDate(), hasEntry });
     }
     return days;
-  }, [entries]);
+  }, [ownEntries]);
+
+  // Count partner love notes
+  const partnerEntryCount = useMemo(
+    () => entries.filter((e) => e.isPartnerEntry).length,
+    [entries]
+  );
 
   if (loading) {
     return (
@@ -274,35 +309,61 @@ export default function GratitudePage() {
               className={`${styles.feedTab} ${feedFilter === "shared" ? styles.feedTabActive : ""}`}
               onClick={() => setFeedFilter("shared")}
             >
-              💌 Love Notes
+              💌 My Love Notes
             </button>
+            {partnerEntryCount > 0 && (
+              <button
+                className={`${styles.feedTab} ${feedFilter === "partner" ? styles.feedTabActive : ""}`}
+                onClick={() => setFeedFilter("partner")}
+              >
+                💕 From Partner ({partnerEntryCount})
+              </button>
+            )}
           </div>
         </div>
 
         {filteredEntries.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyEmoji}>✨</div>
-            <p>No entries yet. Start by responding to today&apos;s prompt!</p>
+            <p>
+              {feedFilter === "partner"
+                ? "No shared entries from your partner yet."
+                : "No entries yet. Start by responding to today\u0027s prompt!"}
+            </p>
           </div>
         ) : (
           <div className={styles.feedGrid}>
             {filteredEntries.map((entry) => {
               const cat = CATEGORY_LABELS[entry.category] || CATEGORY_LABELS.gratitude;
               return (
-                <div key={entry.id} className={styles.entryCard}>
+                <div
+                  key={entry.id}
+                  className={`${styles.entryCard} ${
+                    entry.isPartnerEntry ? styles.entryCardPartner : ""
+                  }`}
+                >
                   <div className={styles.entryMeta}>
                     <span className="badge badge-primary">
                       {cat.emoji} {cat.label}
                     </span>
                     <span className={styles.entryDate}>{formatDate(entry.createdAt)}</span>
                   </div>
+                  {entry.isPartnerEntry && (
+                    <div className={styles.partnerLabel}>
+                      💕 From {entry.partnerName || "Partner"}
+                    </div>
+                  )}
                   <div className={styles.entryContent}>{entry.content}</div>
                   {entry.aiPrompt && (
                     <div className={styles.entryPrompt}>Prompt: {entry.aiPrompt}</div>
                   )}
                   <div style={{ marginTop: "var(--space-sm)" }}>
                     <span className={`badge ${entry.shared ? "badge-success" : "badge-primary"}`}>
-                      {entry.shared ? "💌 Shared" : "🔒 Private"}
+                      {entry.isPartnerEntry
+                        ? "💕 Shared with you"
+                        : entry.shared
+                        ? "💌 Shared"
+                        : "🔒 Private"}
                     </span>
                   </div>
                 </div>

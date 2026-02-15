@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "../challenges.module.css";
+import { useChallengeSocket } from "@/lib/hooks/useChallengeSocket";
 
 /* ── Types ── */
 interface Perspective {
@@ -93,6 +94,7 @@ export default function ChallengeWorkspacePage({
   // Synthesis
   const [synthesisStreaming, setSynthesisStreaming] = useState(false);
   const [synthesisText, setSynthesisText] = useState("");
+  const autoSynthesisTriggered = useRef(false);
 
   // Accept/Reject
   const [showRejectForm, setShowRejectForm] = useState(false);
@@ -144,9 +146,33 @@ export default function ChallengeWorkspacePage({
     if (challengeId) fetchChallenge();
   }, [challengeId, fetchChallenge]);
 
+  // Compute IDs for socket hook (need these before render)
+  const coupleId = challenge?.coupleId;
+  const currentUserId = challenge
+    ? (challenge.currentUserPartner === "a"
+      ? challenge.members[0]?.userId
+      : challenge.members[1]?.userId)
+    : undefined;
+
+  // Real-time updates: auto-refetch when partner takes action
+  useChallengeSocket(coupleId, challengeId, currentUserId, fetchChallenge);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [challenge?.messages, streamingText]);
+
+  // Auto-trigger synthesis when both perspectives are submitted
+  useEffect(() => {
+    if (
+      challenge?.status === "submitted" &&
+      !synthesisStreaming &&
+      !autoSynthesisTriggered.current
+    ) {
+      autoSynthesisTriggered.current = true;
+      generateSynthesis();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [challenge?.status]);
 
   /* ── Phase Index ── */
   const currentPhaseIndex = PHASES.indexOf(challenge?.status || "created");
@@ -537,17 +563,18 @@ export default function ChallengeWorkspacePage({
         </div>
       )}
 
-      {/* Generate Synthesis button when both submitted */}
+      {/* Auto-generating synthesis when both submitted */}
       {challenge.status === "submitted" && (
         <div className={styles.centerAction}>
-          <p className="text-muted">Both perspectives are in! Generate an AI-neutral synthesis.</p>
-          <button
-            className="btn btn-primary btn-lg"
-            onClick={generateSynthesis}
-            disabled={synthesisStreaming}
-          >
-            {synthesisStreaming ? "Generating…" : "🤖 Generate Neutral Synthesis"}
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", justifyContent: "center" }}>
+            <div className="spinner" style={{ width: 20, height: 20 }} />
+            <p className="text-muted" style={{ margin: 0 }}>✨ Both perspectives are in! Generating AI synthesis…</p>
+          </div>
+          {synthesisText && (
+            <div className={styles.synthesisContent} style={{ marginTop: "var(--space-lg)", textAlign: "left" }}>
+              {renderContent(synthesisText)}
+            </div>
+          )}
         </div>
       )}
 

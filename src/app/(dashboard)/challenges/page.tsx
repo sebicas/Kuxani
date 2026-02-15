@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import styles from "./challenges.module.css";
+import { useCoupleSocket } from "@/lib/hooks/useCoupleSocket";
+import { CHALLENGE_UPDATED } from "@/lib/socket/events";
 
 interface ChallengeItem {
   id: string;
@@ -55,12 +57,27 @@ function getStatusClass(status: string): string {
 export default function ChallengesPage() {
   const [challenges, setChallenges] = useState<ChallengeItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [coupleId, setCoupleId] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchChallenges();
+    // Fetch couple info for real-time
+    fetch("/api/couples")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.couple?.id) setCoupleId(data.couple.id);
+      })
+      .catch(() => {});
+    fetch("/api/auth/get-session")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.user?.id) setCurrentUserId(data.user.id);
+      })
+      .catch(() => {});
   }, []);
 
-  async function fetchChallenges() {
+  const fetchChallenges = useCallback(async () => {
     try {
       const res = await fetch("/api/challenges");
       if (res.ok) {
@@ -71,7 +88,10 @@ export default function ChallengesPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  // Real-time: auto-refresh when partner creates/updates a challenge
+  useCoupleSocket(coupleId, CHALLENGE_UPDATED, currentUserId, fetchChallenges);
 
   function formatDate(dateStr: string) {
     const date = new Date(dateStr);

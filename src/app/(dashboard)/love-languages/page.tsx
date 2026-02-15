@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import styles from "./love-languages.module.css";
+import { useCoupleSocket } from "@/lib/hooks/useCoupleSocket";
+import { LOVE_LANGUAGE_UPDATED } from "@/lib/socket/events";
 import {
   QUIZ_QUESTIONS,
   LOVE_LANGUAGE_NAMES,
@@ -34,12 +36,36 @@ export default function LoveLanguagesPage() {
     W: 0, A: 0, G: 0, Q: 0, T: 0,
   });
 
+  // Real-time state
+  const [coupleId, setCoupleId] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  const fetchResults = useCallback(async () => {
+    try {
+      const res = await fetch("/api/love-languages");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.userResult) {
+          setUserResult(data.userResult);
+          setPartnerResult(data.partnerResult);
+          if (view === "loading") setView("results");
+        } else if (view === "loading") {
+          setView("start");
+        }
+      } else if (view === "loading") {
+        setView("start");
+      }
+    } catch (err) {
+      console.error("Failed to fetch results:", err);
+      if (view === "loading") setView("start");
+    }
+  }, [view]);
+
   useEffect(() => {
-    let cancelled = false;
+    // Initial data fetch — inline async IIFE to avoid calling setState synchronously via fetchResults
     (async () => {
       try {
         const res = await fetch("/api/love-languages");
-        if (cancelled) return;
         if (res.ok) {
           const data = await res.json();
           if (data.userResult) {
@@ -53,14 +79,27 @@ export default function LoveLanguagesPage() {
           setView("start");
         }
       } catch (err) {
-        if (!cancelled) {
-          console.error("Failed to fetch results:", err);
-          setView("start");
-        }
+        console.error("Failed to fetch results:", err);
+        setView("start");
       }
     })();
-    return () => { cancelled = true; };
+    // Fetch couple + user info for real-time
+    fetch("/api/couples")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.couple?.id) setCoupleId(data.couple.id);
+      })
+      .catch(() => {});
+    fetch("/api/auth/get-session")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.user?.id) setCurrentUserId(data.user.id);
+      })
+      .catch(() => {});
   }, []);
+
+  // Real-time: auto-refresh when partner completes the quiz
+  useCoupleSocket(coupleId, LOVE_LANGUAGE_UPDATED, currentUserId, fetchResults);
 
   function startQuiz() {
     setScores({ W: 0, A: 0, G: 0, Q: 0, T: 0 });

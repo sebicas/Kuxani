@@ -282,3 +282,17 @@
   font-size: 3rem;
   margin-bottom: var(--space-md);
 }
+
+/* ── Partner Entry ── */
+.entryCardPartner {
+  border-color: rgba(168, 85, 247, 0.3);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.05), rgba(236, 72, 153, 0.05));
+}
+
+.partnerLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-secondary, #a855f7);
+  margin-bottom: var(--space-sm);
+}
+

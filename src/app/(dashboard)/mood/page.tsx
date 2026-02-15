@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import styles from "./mood.module.css";
+import { useCoupleSocket } from "@/lib/hooks/useCoupleSocket";
+import { MOOD_UPDATED } from "@/lib/socket/events";
 
 /* ── Plutchik's primary emotions with colors ── */
 const EMOTIONS = [
@@ -23,6 +25,8 @@ interface MoodEntry {
   notes: string | null;
   sharedWithPartner: boolean;
   createdAt: string;
+  isPartnerEntry?: boolean;
+  partnerName?: string;
 }
 
 export default function MoodPage() {
@@ -37,21 +41,39 @@ export default function MoodPage() {
   const [shareWithPartner, setShareWithPartner] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(true);
 
+  // Real-time state
+  const [coupleId, setCoupleId] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
   useEffect(() => {
     fetchEntries();
+    // Fetch couple + user info for real-time
+    fetch("/api/couples")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.couple?.id) setCoupleId(data.couple.id);
+      })
+      .catch(() => {});
+    fetch("/api/auth/get-session")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.user?.id) setCurrentUserId(data.user.id);
+      })
+      .catch(() => {});
   }, []);
 
-  async function fetchEntries() {
+  const fetchEntries = useCallback(async () => {
     try {
       const res = await fetch("/api/mood?days=30");
       if (res.ok) {
         const data = await res.json();
         setEntries(data);
 
-        // Check if user already checked in today
+        // Check if user already checked in today (own entries only)
         const today = new Date().toDateString();
         const todayEntry = data.find(
-          (e: MoodEntry) => new Date(e.createdAt).toDateString() === today
+          (e: MoodEntry) =>
+            !e.isPartnerEntry && new Date(e.createdAt).toDateString() === today
         );
         if (todayEntry) {
           setShowCheckIn(false);
@@ -62,7 +84,10 @@ export default function MoodPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  // Real-time: auto-refresh when partner shares a mood
+  useCoupleSocket(coupleId, MOOD_UPDATED, currentUserId, fetchEntries);
 
   async function handleSubmit() {
     if (!selectedEmotion) return;
@@ -82,8 +107,8 @@ export default function MoodPage() {
       });
 
       if (res.ok) {
-        const entry = await res.json();
-        setEntries((prev) => [entry, ...prev]);
+        // Re-fetch to get updated list including partner entries
+        await fetchEntries();
         setShowCheckIn(false);
         setSelectedEmotion(null);
         setIntensity(5);
@@ -110,13 +135,21 @@ export default function MoodPage() {
     return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
   }
 
-  // Today's entry
+  // Today's entry (own only, not partner)
   const todayEntry = useMemo(() => {
     const today = new Date().toDateString();
-    return entries.find((e) => new Date(e.createdAt).toDateString() === today);
+    return entries.find(
+      (e) => !e.isPartnerEntry && new Date(e.createdAt).toDateString() === today
+    );
   }, [entries]);
 
-  // Last 7 days for trend
+  // Only own entries for weekly trend
+  const ownEntries = useMemo(
+    () => entries.filter((e) => !e.isPartnerEntry),
+    [entries]
+  );
+
+  // Last 7 days for trend (own entries only)
   const weekEntries = useMemo(() => {
     const days: Array<{ day: string; entry: MoodEntry | null }> = [];
     for (let i = 6; i >= 0; i--) {
@@ -124,11 +157,11 @@ export default function MoodPage() {
       date.setDate(date.getDate() - i);
       const dayStr = date.toDateString();
       const dayLabel = date.toLocaleDateString("en-US", { weekday: "short" });
-      const entry = entries.find((e) => new Date(e.createdAt).toDateString() === dayStr) || null;
+      const entry = ownEntries.find((e) => new Date(e.createdAt).toDateString() === dayStr) || null;
       days.push({ day: dayLabel, entry });
     }
     return days;
-  }, [entries]);
+  }, [ownEntries]);
 
   if (loading) {
     return (
@@ -329,10 +362,20 @@ export default function MoodPage() {
             {entries.slice(0, 14).map((entry) => {
               const emotionData = getEmotionData(entry.primaryEmotion);
               return (
-                <div key={entry.id} className={styles.historyCard}>
+                <div
+                  key={entry.id}
+                  className={`${styles.historyCard} ${
+                    entry.isPartnerEntry ? styles.historyCardPartner : ""
+                  }`}
+                >
                   <div className={styles.historyEmoji}>
                     {emotionData?.emoji || "🫶"}
                   </div>
+                  {entry.isPartnerEntry && (
+                    <div className={styles.partnerTag}>
+                      💕 {entry.partnerName || "Partner"}
+                    </div>
+                  )}
                   <div className={styles.historyEmotion}>
                     {entry.primaryEmotion}
                   </div>
