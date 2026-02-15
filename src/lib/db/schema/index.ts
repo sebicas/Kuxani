@@ -4,3 +4,4 @@ export * from "./challenges";
 export * from "./chats";
 export * from "./mood";
 export * from "./deescalation";
+export * from "./childhood-wounds";

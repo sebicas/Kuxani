@@ -10,7 +10,7 @@
 
 // Load .env BEFORE any imports that use process.env (db, auth, etc.)
 import "dotenv/config";
-import { createServer } from "http";
+import { createServer, IncomingMessage } from "http";
 import next from "next";
 import { Server as SocketIOServer } from "socket.io";
 import { setIO } from "./src/lib/socket/socketServer";
@@ -24,13 +24,65 @@ const appEnv = process.env.APP_ENV || process.env.NODE_ENV || "production";
 const hostname = process.env.HOSTNAME || "0.0.0.0";
 const port = parseInt(process.env.PORT || "3000", 10);
 
+/* ── IP Allowlist for Development Servers ── */
+const devAllowedIps =
+  appEnv === "development" && process.env.DEV_ALLOWED_IPS
+    ? process.env.DEV_ALLOWED_IPS.split(",")
+        .map((ip) => ip.trim())
+        .filter(Boolean)
+    : null;
+const productionUrl = process.env.PRODUCTION_URL || "https://kuxani.com";
+
+function getClientIp(req: IncomingMessage): string {
+  const forwarded = req.headers["x-forwarded-for"];
+  if (forwarded) {
+    const first = Array.isArray(forwarded)
+      ? forwarded[0]
+      : forwarded.split(",")[0];
+    return first.trim();
+  }
+  return req.socket.remoteAddress || "";
+}
+
+function isIpAllowed(ip: string): boolean {
+  if (!devAllowedIps) return true; // no restriction
+  // Normalize IPv6-mapped IPv4 (e.g. ::ffff:192.168.1.1 → 192.168.1.1)
+  const normalized = ip.replace(/^::ffff:/, "");
+  // Always allow localhost
+  if (["127.0.0.1", "::1", "localhost"].includes(normalized)) return true;
+  return devAllowedIps.some(
+    (allowed) => allowed === ip || allowed === normalized
+  );
+}
+
 async function main() {
   const app = next({ dev, hostname, port });
   const handle = app.getRequestHandler();
 
   await app.prepare();
 
+  if (devAllowedIps) {
+    console.log(
+      `[ip-guard] DEV mode — allowed IPs: ${devAllowedIps.join(", ")}`
+    );
+    console.log(
+      `[ip-guard] Unauthorized requests redirect to ${productionUrl}`
+    );
+  }
+
   const httpServer = createServer((req, res) => {
+    // IP allowlist check for development servers
+    if (devAllowedIps && req.url && !req.url.startsWith("/api/health")) {
+      const clientIp = getClientIp(req);
+      if (!isIpAllowed(clientIp)) {
+        console.log(
+          `[ip-guard] Blocked ${clientIp} → redirecting to ${productionUrl}`
+        );
+        res.writeHead(302, { Location: productionUrl });
+        res.end();
+        return;
+      }
+    }
     handle(req, res);
   });
 
@@ -53,7 +105,9 @@ async function main() {
   // Remove the automatic upgrade listener added by io.attach()
   // so we can handle upgrades ourselves
   const listeners = httpServer.listeners("upgrade");
-  const engineUpgradeHandler = listeners[listeners.length - 1] as (...args: unknown[]) => void;
+  const engineUpgradeHandler = listeners[listeners.length - 1] as (
+    ...args: unknown[]
+  ) => void;
   httpServer.removeListener("upgrade", engineUpgradeHandler);
 
   // Store globally so API routes can access via getIO()
@@ -109,7 +163,12 @@ async function main() {
   httpServer.on("upgrade", (req, socket, head) => {
     if (req.url?.startsWith("/socket.io")) {
       // Route to Socket.IO's engine
-      (engineUpgradeHandler as (...args: unknown[]) => void).call(httpServer, req, socket, head);
+      (engineUpgradeHandler as (...args: unknown[]) => void).call(
+        httpServer,
+        req,
+        socket,
+        head
+      );
     } else {
       // Route to Next.js (HMR at /_next/webpack-hmr, etc.)
       nextUpgradeHandler(req, socket, head);
@@ -117,9 +176,7 @@ async function main() {
   });
 
   httpServer.listen(port, () => {
-    console.log(
-      `> Ready on http://${hostname}:${port} (${appEnv})`
-    );
+    console.log(`> Ready on http://${hostname}:${port} (${appEnv})`);
   });
 }
 

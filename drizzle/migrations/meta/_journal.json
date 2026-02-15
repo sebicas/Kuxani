@@ -29,6 +29,13 @@
       "when": 1771181816475,
       "tag": "0003_smooth_ultimatum",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1771190340754,
+      "tag": "0004_stiff_sugar_man",
+      "breakpoints": true
     }
   ]
 }

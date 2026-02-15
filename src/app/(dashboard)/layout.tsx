@@ -14,6 +14,7 @@ const navItems = [
   { href: "/mood", label: "Mood Tracker", icon: "🫶" },
   { href: "/love-languages", label: "Love Languages", icon: "💕" },
   { href: "/attachment-styles", label: "Attachment Styles", icon: "🔗" },
+  { href: "/childhood-wounds", label: "Childhood Wounds", icon: "🩹" },
   { href: "/gratitude", label: "Gratitude", icon: "✨" },
   { href: "/checkins", label: "Weekly Check-In", icon: "📋" },
   { href: "/insights", label: "Insights", icon: "📊" },

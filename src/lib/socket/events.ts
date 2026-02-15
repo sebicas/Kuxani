@@ -9,3 +9,4 @@ export const GRATITUDE_UPDATED = "gratitude-updated";
 export const MOOD_UPDATED = "mood-updated";
 export const LOVE_LANGUAGE_UPDATED = "love-language-updated";
 export const ATTACHMENT_STYLE_UPDATED = "attachment-style-updated";
+export const CHILDHOOD_WOUNDS_UPDATED = "childhood-wounds-updated";
