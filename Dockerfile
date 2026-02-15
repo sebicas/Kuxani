@@ -11,7 +11,6 @@ RUN npm ci --ignore-scripts --legacy-peer-deps --no-update-notifier
 # Stage 2: Build the application
 # ──────────────────────────────────────────────
 FROM node:22-alpine AS builder
-RUN apk add --no-cache git
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
@@ -20,12 +19,11 @@ COPY . .
 # Build arguments for public env vars needed at build time
 ARG NEXT_PUBLIC_APP_URL
 ARG NEXT_PUBLIC_WS_URL
+ARG SOURCE_COMMIT
 
 ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
 ENV NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL}
-
-# Capture git commit SHA before build
-RUN git rev-parse --short HEAD > .commit_sha || echo "unknown" > .commit_sha
+ENV COMMIT_SHA=${SOURCE_COMMIT}
 
 # Force production mode for Next.js build (Coolify may inject NODE_ENV=development
 # as an ARG, but next build must always run in production mode)
@@ -50,8 +48,9 @@ ARG APP_ENV=production
 ENV APP_ENV=${APP_ENV}
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Git commit SHA for health endpoint (captured during build)
-COPY --from=builder /app/.commit_sha ./.commit_sha
+# Git commit SHA for health endpoint
+ARG SOURCE_COMMIT
+ENV COMMIT_SHA=${SOURCE_COMMIT}
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \
