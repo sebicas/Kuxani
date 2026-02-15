@@ -32,9 +32,18 @@ export default function LoveLanguagesPage() {
 
   // Quiz state
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [scores, setScores] = useState<Record<LoveLanguageKey, number>>({
-    W: 0, A: 0, G: 0, Q: 0, T: 0,
-  });
+  const [answers, setAnswers] = useState<(LoveLanguageKey | null)[]>(
+    () => Array(QUIZ_QUESTIONS.length).fill(null)
+  );
+
+  // Derive scores from answers array
+  const scores = useMemo(() => {
+    const s: Record<LoveLanguageKey, number> = { W: 0, A: 0, G: 0, Q: 0, T: 0 };
+    for (const a of answers) {
+      if (a) s[a]++;
+    }
+    return s;
+  }, [answers]);
 
   // Real-time state
   const [coupleId, setCoupleId] = useState<string | null>(null);
@@ -102,40 +111,57 @@ export default function LoveLanguagesPage() {
   useCoupleSocket(coupleId, LOVE_LANGUAGE_UPDATED, currentUserId, fetchResults);
 
   function startQuiz() {
-    setScores({ W: 0, A: 0, G: 0, Q: 0, T: 0 });
+    setAnswers(Array(QUIZ_QUESTIONS.length).fill(null));
     setCurrentQuestion(0);
     setView("quiz");
   }
 
-  async function selectOption(language: LoveLanguageKey) {
-    const newScores = { ...scores, [language]: scores[language] + 1 };
-    setScores(newScores);
+  function selectOption(language: LoveLanguageKey) {
+    const updated = [...answers];
+    updated[currentQuestion] = language;
+    setAnswers(updated);
 
     if (currentQuestion < QUIZ_QUESTIONS.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
-    } else {
-      // Quiz complete — save results
-      try {
-        const res = await fetch("/api/love-languages", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            wordsOfAffirmation: newScores.W,
-            actsOfService: newScores.A,
-            receivingGifts: newScores.G,
-            qualityTime: newScores.Q,
-            physicalTouch: newScores.T,
-          }),
-        });
+    }
+  }
 
-        if (res.ok) {
-          const result = await res.json();
-          setUserResult(result);
-          setView("results");
-        }
-      } catch (err) {
-        console.error("Failed to save results:", err);
+  function goBack() {
+    if (currentQuestion > 0) setCurrentQuestion(currentQuestion - 1);
+  }
+
+  function goForward() {
+    if (currentQuestion < QUIZ_QUESTIONS.length - 1 && answers[currentQuestion] !== null) {
+      setCurrentQuestion(currentQuestion + 1);
+    }
+  }
+
+  async function submitQuiz() {
+    // Derive final scores from answers
+    const finalScores: Record<LoveLanguageKey, number> = { W: 0, A: 0, G: 0, Q: 0, T: 0 };
+    for (const a of answers) {
+      if (a) finalScores[a]++;
+    }
+    try {
+      const res = await fetch("/api/love-languages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          wordsOfAffirmation: finalScores.W,
+          actsOfService: finalScores.A,
+          receivingGifts: finalScores.G,
+          qualityTime: finalScores.Q,
+          physicalTouch: finalScores.T,
+        }),
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        setUserResult(result);
+        setView("results");
       }
+    } catch (err) {
+      console.error("Failed to save results:", err);
     }
   }
 
@@ -220,6 +246,9 @@ export default function LoveLanguagesPage() {
   if (view === "quiz") {
     const question = QUIZ_QUESTIONS[currentQuestion];
     const progress = ((currentQuestion + 1) / QUIZ_QUESTIONS.length) * 100;
+    const currentAnswer = answers[currentQuestion];
+    const allAnswered = answers.every((a) => a !== null);
+    const isLast = currentQuestion === QUIZ_QUESTIONS.length - 1;
 
     return (
       <div>
@@ -242,20 +271,44 @@ export default function LoveLanguagesPage() {
 
             <div className={styles.optionsList}>
               <button
-                className={styles.optionBtn}
+                className={`${styles.optionBtn}${currentAnswer === question.optionA.language ? ` ${styles.selectedOption}` : ""}`}
                 onClick={() => selectOption(question.optionA.language)}
               >
                 <div className={styles.optionLabel}>Option A</div>
                 {question.optionA.text}
               </button>
               <button
-                className={styles.optionBtn}
+                className={`${styles.optionBtn}${currentAnswer === question.optionB.language ? ` ${styles.selectedOption}` : ""}`}
                 onClick={() => selectOption(question.optionB.language)}
               >
                 <div className={styles.optionLabel}>Option B</div>
                 {question.optionB.text}
               </button>
             </div>
+          </div>
+
+          <div className={styles.quizNav}>
+            <button
+              className={`${styles.navBtn}${currentQuestion === 0 ? ` ${styles.navBtnDisabled}` : ""}`}
+              onClick={goBack}
+              disabled={currentQuestion === 0}
+            >
+              ← Back
+            </button>
+
+            {isLast && allAnswered ? (
+              <button className="btn btn-primary" onClick={submitQuiz}>
+                Submit
+              </button>
+            ) : (
+              <button
+                className={`${styles.navBtn}${currentAnswer === null ? ` ${styles.navBtnDisabled}` : ""}`}
+                onClick={goForward}
+                disabled={currentAnswer === null}
+              >
+                Next →
+              </button>
+            )}
           </div>
         </div>
       </div>

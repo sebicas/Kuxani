@@ -155,6 +155,47 @@
   transform: scale(0.95);
 }
 
+.likertBtnSelected {
+  border-color: var(--accent-primary) !important;
+  background: var(--accent-primary) !important;
+  color: white !important;
+  box-shadow: 0 0 0 2px var(--accent-primary-light);
+  transform: scale(1.08);
+}
+
+/* ── Quiz Navigation ── */
+.quizNav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-xl);
+  padding-top: var(--space-lg);
+}
+
+.navBtn {
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--bg-elevated);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.navBtn:hover:not(:disabled) {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  background: var(--accent-primary-light);
+}
+
+.navBtnDisabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 /* ── Results ── */
 .resultsContainer {
   max-width: 700px;

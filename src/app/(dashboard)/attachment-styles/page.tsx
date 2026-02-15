@@ -32,9 +32,20 @@ export default function AttachmentStylesPage() {
 
   // Quiz state
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [scores, setScores] = useState<Record<AttachmentStyleKey, number>>({
-    S: 0, N: 0, V: 0, F: 0,
-  });
+  const [answers, setAnswers] = useState<(number | null)[]>(
+    () => Array(QUIZ_STATEMENTS.length).fill(null)
+  );
+
+  // Derive scores from answers array
+  const scores = useMemo(() => {
+    const s: Record<AttachmentStyleKey, number> = { S: 0, N: 0, V: 0, F: 0 };
+    for (let i = 0; i < answers.length; i++) {
+      if (answers[i] !== null) {
+        s[QUIZ_STATEMENTS[i].style] += answers[i]!;
+      }
+    }
+    return s;
+  }, [answers]);
 
   // Real-time state
   const [coupleId, setCoupleId] = useState<string | null>(null);
@@ -102,43 +113,58 @@ export default function AttachmentStylesPage() {
   useCoupleSocket(coupleId, ATTACHMENT_STYLE_UPDATED, currentUserId, fetchResults);
 
   function startQuiz() {
-    setScores({ S: 0, N: 0, V: 0, F: 0 });
+    setAnswers(Array(QUIZ_STATEMENTS.length).fill(null));
     setCurrentQuestion(0);
     setView("quiz");
   }
 
-  async function selectRating(rating: number) {
-    const statement = QUIZ_STATEMENTS[currentQuestion];
-    const newScores = {
-      ...scores,
-      [statement.style]: scores[statement.style] + rating,
-    };
-    setScores(newScores);
+  function selectRating(rating: number) {
+    const updated = [...answers];
+    updated[currentQuestion] = rating;
+    setAnswers(updated);
 
     if (currentQuestion < QUIZ_STATEMENTS.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
-    } else {
-      // Quiz complete — save results
-      try {
-        const res = await fetch("/api/attachment-styles", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            secure: newScores.S,
-            anxious: newScores.N,
-            avoidant: newScores.V,
-            fearfulAvoidant: newScores.F,
-          }),
-        });
+    }
+  }
 
-        if (res.ok) {
-          const result = await res.json();
-          setUserResult(result);
-          setView("results");
-        }
-      } catch (err) {
-        console.error("Failed to save results:", err);
+  function goBack() {
+    if (currentQuestion > 0) setCurrentQuestion(currentQuestion - 1);
+  }
+
+  function goForward() {
+    if (currentQuestion < QUIZ_STATEMENTS.length - 1 && answers[currentQuestion] !== null) {
+      setCurrentQuestion(currentQuestion + 1);
+    }
+  }
+
+  async function submitQuiz() {
+    // Derive final scores from answers
+    const finalScores: Record<AttachmentStyleKey, number> = { S: 0, N: 0, V: 0, F: 0 };
+    for (let i = 0; i < answers.length; i++) {
+      if (answers[i] !== null) {
+        finalScores[QUIZ_STATEMENTS[i].style] += answers[i]!;
       }
+    }
+    try {
+      const res = await fetch("/api/attachment-styles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          secure: finalScores.S,
+          anxious: finalScores.N,
+          avoidant: finalScores.V,
+          fearfulAvoidant: finalScores.F,
+        }),
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        setUserResult(result);
+        setView("results");
+      }
+    } catch (err) {
+      console.error("Failed to save results:", err);
     }
   }
 
@@ -221,6 +247,9 @@ export default function AttachmentStylesPage() {
   if (view === "quiz") {
     const statement = QUIZ_STATEMENTS[currentQuestion];
     const progress = ((currentQuestion + 1) / QUIZ_STATEMENTS.length) * 100;
+    const currentAnswer = answers[currentQuestion];
+    const allAnswered = answers.every((a) => a !== null);
+    const isLast = currentQuestion === QUIZ_STATEMENTS.length - 1;
 
     return (
       <div>
@@ -250,7 +279,7 @@ export default function AttachmentStylesPage() {
                 {LIKERT_LABELS.map((label, index) => (
                   <button
                     key={index}
-                    className={styles.likertBtn}
+                    className={`${styles.likertBtn}${currentAnswer === index + 1 ? ` ${styles.likertBtnSelected}` : ""}`}
                     onClick={() => selectRating(index + 1)}
                     title={label}
                     aria-label={label}
@@ -260,6 +289,30 @@ export default function AttachmentStylesPage() {
                 ))}
               </div>
             </div>
+          </div>
+
+          <div className={styles.quizNav}>
+            <button
+              className={`${styles.navBtn}${currentQuestion === 0 ? ` ${styles.navBtnDisabled}` : ""}`}
+              onClick={goBack}
+              disabled={currentQuestion === 0}
+            >
+              ← Back
+            </button>
+
+            {isLast && allAnswered ? (
+              <button className="btn btn-primary" onClick={submitQuiz}>
+                Submit
+              </button>
+            ) : (
+              <button
+                className={`${styles.navBtn}${currentAnswer === null ? ` ${styles.navBtnDisabled}` : ""}`}
+                onClick={goForward}
+                disabled={currentAnswer === null}
+              >
+                Next →
+              </button>
+            )}
           </div>
         </div>
       </div>
