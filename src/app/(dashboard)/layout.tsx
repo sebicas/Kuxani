@@ -1,7 +1,10 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useSession, signOut } from "@/lib/auth/client";
+import { NotificationProvider } from "@/lib/notifications/NotificationProvider";
 import styles from "./dashboard.module.css";
 
 const navItems = [
@@ -26,6 +29,25 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [coupleId, setCoupleId] = useState<string | null>(null);
+
+  const userName = session?.user?.name || "Partner";
+  const userEmail = session?.user?.email || "";
+  const userInitial = userName.charAt(0).toUpperCase();
+  const currentUserId = session?.user?.id || null;
+
+  // Fetch couple ID for real-time notifications
+  useEffect(() => {
+    if (!session?.user) return;
+    fetch("/api/couples")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.couple?.id) setCoupleId(data.couple.id);
+      })
+      .catch(() => {});
+  }, [session?.user]);
 
   return (
     <div className={styles.dashboardLayout}>
@@ -71,17 +93,37 @@ export default function DashboardLayout({
 
         <div className={styles.sidebarFooter}>
           <div className={styles.sidebarUser}>
-            <div className={styles.sidebarAvatar}>K</div>
+            <div className={styles.sidebarAvatar}>{userInitial}</div>
             <div className={styles.sidebarUserInfo}>
-              <div className={styles.sidebarUserName}>Partner</div>
-              <div className={styles.sidebarUserEmail}>partner@kuxani.app</div>
+              <div className={styles.sidebarUserName}>{userName}</div>
+              <div className={styles.sidebarUserEmail}>{userEmail}</div>
             </div>
           </div>
+          <button
+            className={styles.logoutBtn}
+            onClick={() =>
+              signOut({
+                fetchOptions: {
+                  onSuccess: () => {
+                    router.push("/");
+                  },
+                },
+              })
+            }
+            title="Sign out"
+          >
+            <span className={styles.sidebarIcon}>🚪</span>
+            Log Out
+          </button>
         </div>
       </aside>
 
       {/* ── Main Content ── */}
-      <main className={styles.mainContent}>{children}</main>
+      <main className={styles.mainContent}>
+        <NotificationProvider coupleId={coupleId} currentUserId={currentUserId}>
+          {children}
+        </NotificationProvider>
+      </main>
 
       {/* ── Emergency De-escalation Button ── */}
       <Link
