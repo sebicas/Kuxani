@@ -1,10 +1,10 @@
 /**
- * Middleware Unit Tests
+ * Proxy Unit Tests
  *
- * Tests the Next.js middleware that protects authenticated routes
+ * Tests the Next.js proxy that protects authenticated routes
  * and redirects users based on session state.
  *
- * Run: npm test -- tests/middleware.test.ts
+ * Run: npm test -- tests/proxy.test.ts
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -29,7 +29,7 @@ import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse } from "next/server";
 
 // We need to dynamically import middleware after mocks are set up
-const { middleware } = await import("@/middleware");
+const { proxy } = await import("@/proxy");
 
 function createMockRequest(pathname: string) {
   return {
@@ -38,7 +38,7 @@ function createMockRequest(pathname: string) {
   } as never;
 }
 
-describe("Middleware", () => {
+describe("Proxy", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -49,7 +49,7 @@ describe("Middleware", () => {
     });
 
     it("should redirect /dashboard to / when not authenticated", () => {
-      middleware(createMockRequest("/dashboard"));
+      proxy(createMockRequest("/dashboard"));
 
       expect(NextResponse.redirect).toHaveBeenCalledTimes(1);
       const redirectUrl = vi.mocked(NextResponse.redirect).mock.calls[0][0];
@@ -57,7 +57,7 @@ describe("Middleware", () => {
     });
 
     it("should redirect /challenges to / when not authenticated", () => {
-      middleware(createMockRequest("/challenges"));
+      proxy(createMockRequest("/challenges"));
 
       expect(NextResponse.redirect).toHaveBeenCalledTimes(1);
       const redirectUrl = vi.mocked(NextResponse.redirect).mock.calls[0][0];
@@ -65,7 +65,7 @@ describe("Middleware", () => {
     });
 
     it("should redirect /mood to / when not authenticated", () => {
-      middleware(createMockRequest("/mood"));
+      proxy(createMockRequest("/mood"));
 
       expect(NextResponse.redirect).toHaveBeenCalledTimes(1);
       const redirectUrl = vi.mocked(NextResponse.redirect).mock.calls[0][0];
@@ -73,7 +73,7 @@ describe("Middleware", () => {
     });
 
     it("should redirect /settings to / when not authenticated", () => {
-      middleware(createMockRequest("/settings"));
+      proxy(createMockRequest("/settings"));
 
       expect(NextResponse.redirect).toHaveBeenCalledTimes(1);
       const redirectUrl = vi.mocked(NextResponse.redirect).mock.calls[0][0];
@@ -81,7 +81,7 @@ describe("Middleware", () => {
     });
 
     it("should redirect /personal to / when not authenticated", () => {
-      middleware(createMockRequest("/personal"));
+      proxy(createMockRequest("/personal"));
 
       expect(NextResponse.redirect).toHaveBeenCalledTimes(1);
       const redirectUrl = vi.mocked(NextResponse.redirect).mock.calls[0][0];
@@ -89,7 +89,7 @@ describe("Middleware", () => {
     });
 
     it("should redirect /gratitude to / when not authenticated", () => {
-      middleware(createMockRequest("/gratitude"));
+      proxy(createMockRequest("/gratitude"));
 
       expect(NextResponse.redirect).toHaveBeenCalledTimes(1);
       const redirectUrl = vi.mocked(NextResponse.redirect).mock.calls[0][0];
@@ -97,7 +97,7 @@ describe("Middleware", () => {
     });
 
     it("should redirect /deescalation to / when not authenticated", () => {
-      middleware(createMockRequest("/deescalation"));
+      proxy(createMockRequest("/deescalation"));
 
       expect(NextResponse.redirect).toHaveBeenCalledTimes(1);
       const redirectUrl = vi.mocked(NextResponse.redirect).mock.calls[0][0];
@@ -105,14 +105,14 @@ describe("Middleware", () => {
     });
 
     it("should allow /login through when not authenticated", () => {
-      middleware(createMockRequest("/login"));
+      proxy(createMockRequest("/login"));
 
       expect(NextResponse.redirect).not.toHaveBeenCalled();
       expect(NextResponse.next).toHaveBeenCalledTimes(1);
     });
 
     it("should allow /signup through when not authenticated", () => {
-      middleware(createMockRequest("/signup"));
+      proxy(createMockRequest("/signup"));
 
       expect(NextResponse.redirect).not.toHaveBeenCalled();
       expect(NextResponse.next).toHaveBeenCalledTimes(1);
@@ -125,7 +125,7 @@ describe("Middleware", () => {
     });
 
     it("should redirect /login to /dashboard when authenticated", () => {
-      middleware(createMockRequest("/login"));
+      proxy(createMockRequest("/login"));
 
       expect(NextResponse.redirect).toHaveBeenCalledTimes(1);
       const redirectUrl = vi.mocked(NextResponse.redirect).mock.calls[0][0];
@@ -133,7 +133,7 @@ describe("Middleware", () => {
     });
 
     it("should redirect /signup to /dashboard when authenticated", () => {
-      middleware(createMockRequest("/signup"));
+      proxy(createMockRequest("/signup"));
 
       expect(NextResponse.redirect).toHaveBeenCalledTimes(1);
       const redirectUrl = vi.mocked(NextResponse.redirect).mock.calls[0][0];
@@ -141,70 +141,70 @@ describe("Middleware", () => {
     });
 
     it("should allow /dashboard through when authenticated", () => {
-      middleware(createMockRequest("/dashboard"));
+      proxy(createMockRequest("/dashboard"));
 
       expect(NextResponse.redirect).not.toHaveBeenCalled();
       expect(NextResponse.next).toHaveBeenCalledTimes(1);
     });
 
     it("should allow /challenges through when authenticated", () => {
-      middleware(createMockRequest("/challenges"));
+      proxy(createMockRequest("/challenges"));
 
       expect(NextResponse.redirect).not.toHaveBeenCalled();
       expect(NextResponse.next).toHaveBeenCalledTimes(1);
     });
 
     it("should allow /mood through when authenticated", () => {
-      middleware(createMockRequest("/mood"));
+      proxy(createMockRequest("/mood"));
 
       expect(NextResponse.redirect).not.toHaveBeenCalled();
       expect(NextResponse.next).toHaveBeenCalledTimes(1);
     });
 
     it("should allow /love-languages through when authenticated", () => {
-      middleware(createMockRequest("/love-languages"));
+      proxy(createMockRequest("/love-languages"));
 
       expect(NextResponse.redirect).not.toHaveBeenCalled();
       expect(NextResponse.next).toHaveBeenCalledTimes(1);
     });
 
     it("should allow /gratitude through when authenticated", () => {
-      middleware(createMockRequest("/gratitude"));
+      proxy(createMockRequest("/gratitude"));
 
       expect(NextResponse.redirect).not.toHaveBeenCalled();
       expect(NextResponse.next).toHaveBeenCalledTimes(1);
     });
 
     it("should allow /deescalation through when authenticated", () => {
-      middleware(createMockRequest("/deescalation"));
+      proxy(createMockRequest("/deescalation"));
 
       expect(NextResponse.redirect).not.toHaveBeenCalled();
       expect(NextResponse.next).toHaveBeenCalledTimes(1);
     });
 
     it("should allow /invite/:code through when authenticated", () => {
-      middleware(createMockRequest("/invite/ABC12345"));
+      proxy(createMockRequest("/invite/ABC12345"));
 
       expect(NextResponse.redirect).not.toHaveBeenCalled();
       expect(NextResponse.next).toHaveBeenCalledTimes(1);
     });
 
     it("should allow /settings through when authenticated", () => {
-      middleware(createMockRequest("/settings"));
+      proxy(createMockRequest("/settings"));
 
       expect(NextResponse.redirect).not.toHaveBeenCalled();
       expect(NextResponse.next).toHaveBeenCalledTimes(1);
     });
 
     it("should allow nested /challenges/123 through when authenticated", () => {
-      middleware(createMockRequest("/challenges/some-challenge-id"));
+      proxy(createMockRequest("/challenges/some-challenge-id"));
 
       expect(NextResponse.redirect).not.toHaveBeenCalled();
       expect(NextResponse.next).toHaveBeenCalledTimes(1);
     });
 
     it("should allow deeply nested /personal/chats/123/messages through when authenticated", () => {
-      middleware(createMockRequest("/personal/chats/123/messages"));
+      proxy(createMockRequest("/personal/chats/123/messages"));
 
       expect(NextResponse.redirect).not.toHaveBeenCalled();
       expect(NextResponse.next).toHaveBeenCalledTimes(1);
@@ -217,7 +217,7 @@ describe("Middleware", () => {
     });
 
     it("should redirect /love-languages to / when not authenticated", () => {
-      middleware(createMockRequest("/love-languages"));
+      proxy(createMockRequest("/love-languages"));
 
       expect(NextResponse.redirect).toHaveBeenCalledTimes(1);
       const redirectUrl = vi.mocked(NextResponse.redirect).mock.calls[0][0];
@@ -225,7 +225,7 @@ describe("Middleware", () => {
     });
 
     it("should redirect /invite/:code to / when not authenticated", () => {
-      middleware(createMockRequest("/invite/ABC12345"));
+      proxy(createMockRequest("/invite/ABC12345"));
 
       expect(NextResponse.redirect).toHaveBeenCalledTimes(1);
       const redirectUrl = vi.mocked(NextResponse.redirect).mock.calls[0][0];
@@ -233,7 +233,7 @@ describe("Middleware", () => {
     });
 
     it("should redirect /checkins to / when not authenticated", () => {
-      middleware(createMockRequest("/checkins"));
+      proxy(createMockRequest("/checkins"));
 
       expect(NextResponse.redirect).toHaveBeenCalledTimes(1);
       const redirectUrl = vi.mocked(NextResponse.redirect).mock.calls[0][0];
@@ -241,7 +241,7 @@ describe("Middleware", () => {
     });
 
     it("should redirect /insights to / when not authenticated", () => {
-      middleware(createMockRequest("/insights"));
+      proxy(createMockRequest("/insights"));
 
       expect(NextResponse.redirect).toHaveBeenCalledTimes(1);
       const redirectUrl = vi.mocked(NextResponse.redirect).mock.calls[0][0];
@@ -249,7 +249,7 @@ describe("Middleware", () => {
     });
 
     it("should redirect /exercises to / when not authenticated", () => {
-      middleware(createMockRequest("/exercises"));
+      proxy(createMockRequest("/exercises"));
 
       expect(NextResponse.redirect).toHaveBeenCalledTimes(1);
       const redirectUrl = vi.mocked(NextResponse.redirect).mock.calls[0][0];
@@ -257,7 +257,7 @@ describe("Middleware", () => {
     });
 
     it("should redirect nested /challenges/some-id to / when not authenticated", () => {
-      middleware(createMockRequest("/challenges/some-id"));
+      proxy(createMockRequest("/challenges/some-id"));
 
       expect(NextResponse.redirect).toHaveBeenCalledTimes(1);
       const redirectUrl = vi.mocked(NextResponse.redirect).mock.calls[0][0];
