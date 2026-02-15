@@ -241,6 +241,23 @@ Use conventional commits: `<type>: <description>`
 - App Router patterns (server components by default, `"use client"` when needed)
 - Drizzle ORM for all database interactions
 
+### Pre-handoff Testing (MANDATORY)
+
+**Before handing ANY work back to the user, you MUST:**
+
+1. Run **all** integration tests and confirm they pass:
+   ```bash
+   npx vitest run
+   ```
+2. Run **all** E2E tests and confirm they pass:
+   ```bash
+   npx playwright test
+   ```
+3. Fix any failures — do NOT hand off with known test failures
+4. If new features were added, write tests for them first and include them in the run
+
+> **This is non-negotiable.** The user should never be the one to discover test failures. Always verify the full suite, not just the new tests.
+
 ---
 
 ## Key Concepts
