@@ -122,7 +122,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     .orderBy(asc(challengeMessages.createdAt));
 
   // Build context for the AI
-  let contextMessage = `## Challenge: "${challenge.title}" (${challenge.category})
+  const contextMessage = `## Challenge: "${challenge.title}" (${challenge.category})
 
 ### Partner Perspectives:
 ${perspectives.map((p, i) => `**${p.userName || `Partner ${i + 1}`}:** ${p.perspectiveText || "Not provided"}`).join("\n\n")}

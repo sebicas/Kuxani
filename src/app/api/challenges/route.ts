@@ -13,7 +13,7 @@ import {
   couples,
 } from "@/lib/db/schema";
 import { getServerSession } from "@/lib/auth/session";
-import { eq, desc, sql, and } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 
 /** Find the couple the user belongs to */
 async function getUserCouple(userId: string) {
