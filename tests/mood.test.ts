@@ -179,4 +179,143 @@ describe("Mood Tracker", () => {
     expect(entry.sharedWithPartner).toBe(false);
     createdEntryIds.push(entry.id);
   });
+
+  // ── Edge Cases ──
+
+  it("should handle very long notes", async () => {
+    const longNotes = "Feeling ".repeat(1000);
+    const [entry] = await db
+      .insert(moodEntries)
+      .values({
+        userId: testUserId,
+        primaryEmotion: "joy",
+        intensity: 5,
+        notes: longNotes,
+      })
+      .returning();
+
+    expect(entry.notes).toBe(longNotes);
+    expect(entry.notes!.length).toBe(8000);
+    createdEntryIds.push(entry.id);
+  });
+
+  it("should handle special characters in notes", async () => {
+    const specialNotes = `"Feeling" <good> & 'calm' — 你好 🎉`;
+    const [entry] = await db
+      .insert(moodEntries)
+      .values({
+        userId: testUserId,
+        primaryEmotion: "joy",
+        intensity: 5,
+        notes: specialNotes,
+      })
+      .returning();
+
+    expect(entry.notes).toBe(specialNotes);
+    createdEntryIds.push(entry.id);
+  });
+
+  it("should allow updating intensity of an entry", async () => {
+    const [entry] = await db
+      .insert(moodEntries)
+      .values({
+        userId: testUserId,
+        primaryEmotion: "anger",
+        intensity: 8,
+      })
+      .returning();
+    createdEntryIds.push(entry.id);
+
+    const [updated] = await db
+      .update(moodEntries)
+      .set({ intensity: 3 })
+      .where(eq(moodEntries.id, entry.id))
+      .returning();
+
+    expect(updated.intensity).toBe(3);
+  });
+
+  it("should toggle sharedWithPartner", async () => {
+    const [entry] = await db
+      .insert(moodEntries)
+      .values({
+        userId: testUserId,
+        primaryEmotion: "trust",
+        intensity: 6,
+      })
+      .returning();
+    createdEntryIds.push(entry.id);
+
+    expect(entry.sharedWithPartner).toBe(false);
+
+    const [shared] = await db
+      .update(moodEntries)
+      .set({ sharedWithPartner: true })
+      .where(eq(moodEntries.id, entry.id))
+      .returning();
+    expect(shared.sharedWithPartner).toBe(true);
+
+    const [unshared] = await db
+      .update(moodEntries)
+      .set({ sharedWithPartner: false })
+      .where(eq(moodEntries.id, entry.id))
+      .returning();
+    expect(unshared.sharedWithPartner).toBe(false);
+  });
+
+  it("should delete an entry without affecting others", async () => {
+    const [entryA] = await db
+      .insert(moodEntries)
+      .values({ userId: testUserId, primaryEmotion: "joy", intensity: 7 })
+      .returning();
+    const [entryB] = await db
+      .insert(moodEntries)
+      .values({ userId: testUserId, primaryEmotion: "sadness", intensity: 3 })
+      .returning();
+    createdEntryIds.push(entryA.id);
+
+    await db.delete(moodEntries).where(eq(moodEntries.id, entryB.id));
+
+    const remaining = await db
+      .select()
+      .from(moodEntries)
+      .where(eq(moodEntries.id, entryB.id));
+    expect(remaining).toHaveLength(0);
+
+    const kept = await db
+      .select()
+      .from(moodEntries)
+      .where(eq(moodEntries.id, entryA.id));
+    expect(kept).toHaveLength(1);
+  });
+
+  it("should handle negative intensity values in the DB", async () => {
+    // The DB has no constraint — app layer should validate
+    const [entry] = await db
+      .insert(moodEntries)
+      .values({
+        userId: testUserId,
+        primaryEmotion: "fear",
+        intensity: -1,
+      })
+      .returning();
+
+    expect(entry.intensity).toBe(-1);
+    createdEntryIds.push(entry.id);
+  });
+
+  it("should handle intensity beyond 10 in the DB", async () => {
+    // The DB has no constraint — app layer should validate
+    const [entry] = await db
+      .insert(moodEntries)
+      .values({
+        userId: testUserId,
+        primaryEmotion: "joy",
+        intensity: 100,
+      })
+      .returning();
+
+    expect(entry.intensity).toBe(100);
+    createdEntryIds.push(entry.id);
+  });
 });

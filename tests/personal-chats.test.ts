@@ -181,4 +181,105 @@ describe("Personal Chats", () => {
     // Mark as deleted so afterAll doesn't try to clean up
     testChatId = "";
   });
+
+  // ── Edge Cases ──
+
+  it("should handle very long message content", async () => {
+    const [chat] = await db
+      .insert(personalChats)
+      .values({ userId: testUserId, title: "Long msg chat" })
+      .returning();
+
+    const longContent = "Message ".repeat(2000);
+    const [msg] = await db
+      .insert(personalMessages)
+      .values({
+        chatId: chat.id,
+        role: "user",
+        content: longContent,
+      })
+      .returning();
+
+    expect(msg.content.length).toBe(16000);
+
+    // Cleanup
+    await db.delete(personalChats).where(eq(personalChats.id, chat.id));
+  });
+
+  it("should handle special characters in messages", async () => {
+    const [chat] = await db
+      .insert(personalChats)
+      .values({ userId: testUserId, title: "Special chars" })
+      .returning();
+
+    const specialContent = `I'm feeling "anxious" — <html> & 'stressed' 你好 🎉 \n\t`;
+    const [msg] = await db
+      .insert(personalMessages)
+      .values({
+        chatId: chat.id,
+        role: "user",
+        content: specialContent,
+      })
+      .returning();
+
+    expect(msg.content).toBe(specialContent);
+    await db.delete(personalChats).where(eq(personalChats.id, chat.id));
+  });
+
+  it("should handle multiple chats per user", async () => {
+    const chatIds: string[] = [];
+    for (let i = 0; i < 5; i++) {
+      const [chat] = await db
+        .insert(personalChats)
+        .values({ userId: testUserId, title: `Chat ${i + 1}` })
+        .returning();
+      chatIds.push(chat.id);
+    }
+
+    const chats = await db
+      .select()
+      .from(personalChats)
+      .where(eq(personalChats.userId, testUserId));
+
+    expect(chats.length).toBeGreaterThanOrEqual(5);
+
+    // Cleanup
+    for (const id of chatIds) {
+      await db.delete(personalChats).where(eq(personalChats.id, id));
+    }
+  });
+
+  it("should handle special characters in title", async () => {
+    const specialTitle = `"My Chat" — 你好 🎉 & <test>`;
+    const [chat] = await db
+      .insert(personalChats)
+      .values({ userId: testUserId, title: specialTitle })
+      .returning();
+
+    expect(chat.title).toBe(specialTitle);
+    await db.delete(personalChats).where(eq(personalChats.id, chat.id));
+  });
+
+  it("should handle many messages in a single chat", async () => {
+    const [chat] = await db
+      .insert(personalChats)
+      .values({ userId: testUserId, title: "Many messages chat" })
+      .returning();
+
+    for (let i = 0; i < 20; i++) {
+      await db.insert(personalMessages).values({
+        chatId: chat.id,
+        role: i % 2 === 0 ? "user" : "assistant",
+        content: `Message ${i + 1}`,
+      });
+    }
+
+    const messages = await db
+      .select()
+      .from(personalMessages)
+      .where(eq(personalMessages.chatId, chat.id));
+
+    expect(messages).toHaveLength(20);
+    await db.delete(personalChats).where(eq(personalChats.id, chat.id));
+  });
 });

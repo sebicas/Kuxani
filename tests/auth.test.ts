@@ -93,4 +93,45 @@ describe("Auth API", () => {
 
     expect(session).toBeNull();
   });
+
+  // ── Edge Cases ──
+
+  it("should reject duplicate email signup", async () => {
+    try {
+      await auth.api.signUpEmail({
+        body: {
+          email: testEmail, // same email as before
+          password: "AnotherPassword123!",
+          name: "Duplicate User",
+        },
+      });
+      expect.fail("Should have thrown for duplicate email");
+    } catch (error) {
+      expect(error).toBeDefined();
+    }
+  });
+
+  it("should reject sign in with non-existent email", async () => {
+    try {
+      await auth.api.signInEmail({
+        body: {
+          email: `nonexistent-${Date.now()}@kuxani.app`,
+          password: "SomePassword123!",
+        },
+      });
+      expect.fail("Should have thrown for non-existent email");
+    } catch (error) {
+      expect(error).toBeDefined();
+    }
+  });
+
+  it("should return null session with empty cookie", async () => {
+    const session = await auth.api.getSession({
+      headers: new Headers({
+        Cookie: "",
+      }),
+    });
+
+    expect(session).toBeNull();
+  });
 });

@@ -199,4 +199,120 @@ describe("Gratitude Journal", () => {
     expect(entry.category).toBe("gratitude");
     createdEntryIds.push(entry.id);
   });
+
+  // ── Edge Cases ──
+
+  it("should handle very long content", async () => {
+    const longContent = "Grateful ".repeat(1000);
+    const [entry] = await db
+      .insert(gratitudeEntries)
+      .values({
+        userId: testUserId,
+        content: longContent,
+      })
+      .returning();
+
+    expect(entry.content).toBe(longContent);
+    expect(entry.content.length).toBe(9000);
+    createdEntryIds.push(entry.id);
+  });
+
+  it("should handle special characters and unicode", async () => {
+    const specialContent = `I'm grateful for "love" — 你好 🎉 <script>alert('xss')</script> & more\n\ttabs`;
+    const [entry] = await db
+      .insert(gratitudeEntries)
+      .values({
+        userId: testUserId,
+        content: specialContent,
+      })
+      .returning();
+
+    expect(entry.content).toBe(specialContent);
+    createdEntryIds.push(entry.id);
+  });
+
+  it("should allow updating an existing entry content", async () => {
+    const [entry] = await db
+      .insert(gratitudeEntries)
+      .values({
+        userId: testUserId,
+        content: "Original content",
+      })
+      .returning();
+    createdEntryIds.push(entry.id);
+
+    const [updated] = await db
+      .update(gratitudeEntries)
+      .set({ content: "Updated content", shared: true })
+      .where(eq(gratitudeEntries.id, entry.id))
+      .returning();
+
+    expect(updated.content).toBe("Updated content");
+    expect(updated.shared).toBe(true);
+  });
+
+  it("should delete an entry without affecting others", async () => {
+    const [entryA] = await db
+      .insert(gratitudeEntries)
+      .values({ userId: testUserId, content: "Keep me" })
+      .returning();
+    const [entryB] = await db
+      .insert(gratitudeEntries)
+      .values({ userId: testUserId, content: "Delete me" })
+      .returning();
+    createdEntryIds.push(entryA.id);
+
+    await db.delete(gratitudeEntries).where(eq(gratitudeEntries.id, entryB.id));
+
+    const remaining = await db
+      .select()
+      .from(gratitudeEntries)
+      .where(eq(gratitudeEntries.id, entryB.id));
+    expect(remaining).toHaveLength(0);
+
+    const kept = await db
+      .select()
+      .from(gratitudeEntries)
+      .where(eq(gratitudeEntries.id, entryA.id));
+    expect(kept).toHaveLength(1);
+  });
+
+  it("should handle long aiPrompt text", async () => {
+    const longPrompt = "Reflect on ".repeat(500);
+    const [entry] = await db
+      .insert(gratitudeEntries)
+      .values({
+        userId: testUserId,
+        content: "Entry with long prompt",
+        aiPrompt: longPrompt,
+      })
+      .returning();
+
+    expect(entry.aiPrompt).toBe(longPrompt);
+    createdEntryIds.push(entry.id);
+  });
+
+  it("should toggle shared status", async () => {
+    const [entry] = await db
+      .insert(gratitudeEntries)
+      .values({ userId: testUserId, content: "Toggle share test" })
+      .returning();
+    createdEntryIds.push(entry.id);
+
+    expect(entry.shared).toBe(false);
+
+    const [shared] = await db
+      .update(gratitudeEntries)
+      .set({ shared: true })
+      .where(eq(gratitudeEntries.id, entry.id))
+      .returning();
+    expect(shared.shared).toBe(true);
+
+    const [unshared] = await db
+      .update(gratitudeEntries)
+      .set({ shared: false })
+      .where(eq(gratitudeEntries.id, entry.id))
+      .returning();
+    expect(unshared.shared).toBe(false);
+  });
 });

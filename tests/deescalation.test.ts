@@ -10,7 +10,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { db } from "@/lib/db";
 import { deescalationSessions, user } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 
 const testEmail = `deesc-test-${Date.now()}@kuxani.app`;
@@ -225,5 +225,151 @@ describe("De-escalation Sessions", () => {
       .delete(deescalationSessions)
       .where(eq(deescalationSessions.id, session2.id));
     await db.delete(user).where(eq(user.id, secondUserId));
+  });
+
+  // ── Edge Cases ──
+
+  it("should handle very long trigger reason", async () => {
+    const longTrigger = "Argument about ".repeat(500);
+    const [session] = await db
+      .insert(deescalationSessions)
+      .values({
+        userId: testUserId,
+        triggerReason: longTrigger,
+      })
+      .returning();
+
+    expect(session.triggerReason).toBe(longTrigger);
+    createdSessionIds.push(session.id);
+  });
+
+  it("should handle very long reflection text", async () => {
+    const longReflection = "I learned ".repeat(1000);
+    const [session] = await db
+      .insert(deescalationSessions)
+      .values({ userId: testUserId })
+      .returning();
+    createdSessionIds.push(session.id);
+
+    const [updated] = await db
+      .update(deescalationSessions)
+      .set({ reflection: longReflection, resolvedAt: new Date() })
+      .where(eq(deescalationSessions.id, session.id))
+      .returning();
+
+    expect(updated.reflection?.length).toBe(10000);
+  });
+
+  it("should handle many AI prompts in jsonb array", async () => {
+    const manyPrompts = Array.from({ length: 50 }, (_, i) => `Prompt ${i + 1}: Stay calm and breathe.`);
+    const [session] = await db
+      .insert(deescalationSessions)
+      .values({ userId: testUserId })
+      .returning();
+    createdSessionIds.push(session.id);
+
+    const [updated] = await db
+      .update(deescalationSessions)
+      .set({ aiPromptsUsed: manyPrompts })
+      .where(eq(deescalationSessions.id, session.id))
+      .returning();
+
+    expect(updated.aiPromptsUsed).toHaveLength(50);
+  });
+
+  it("should handle zero cooldown minutes", async () => {
+    const [session] = await db
+      .insert(deescalationSessions)
+      .values({ userId: testUserId })
+      .returning();
+    createdSessionIds.push(session.id);
+
+    const [updated] = await db
+      .update(deescalationSessions)
+      .set({ cooldownMinutes: 0 })
+      .where(eq(deescalationSessions.id, session.id))
+      .returning();
+
+    expect(updated.cooldownMinutes).toBe(0);
+  });
+
+  it("should handle large cooldown values", async () => {
+    const [session] = await db
+      .insert(deescalationSessions)
+      .values({ userId: testUserId })
+      .returning();
+    createdSessionIds.push(session.id);
+
+    const [updated] = await db
+      .update(deescalationSessions)
+      .set({ cooldownMinutes: 1440 }) // 24 hours
+      .where(eq(deescalationSessions.id, session.id))
+      .returning();
+
+    expect(updated.cooldownMinutes).toBe(1440);
+  });
+
+  it("should handle special characters in trigger reason", async () => {
+    const specialTrigger = `"Argument" about <finances> & 'boundaries' 你好 🔥`;
+    const [session] = await db
+      .insert(deescalationSessions)
+      .values({
+        userId: testUserId,
+        triggerReason: specialTrigger,
+      })
+      .returning();
+
+    expect(session.triggerReason).toBe(specialTrigger);
+    createdSessionIds.push(session.id);
+  });
+
+  it("should allow updating reflection on an already-resolved session", async () => {
+    const [session] = await db
+      .insert(deescalationSessions)
+      .values({ userId: testUserId, triggerReason: "Re-update test" })
+      .returning();
+    createdSessionIds.push(session.id);
+
+    // Resolve first
+    await db
+      .update(deescalationSessions)
+      .set({ reflection: "First reflection", resolvedAt: new Date() })
+      .where(eq(deescalationSessions.id, session.id));
+
+    // Update reflection
+    const [updated] = await db
+      .update(deescalationSessions)
+      .set({ reflection: "Updated reflection after re-thinking" })
+      .where(eq(deescalationSessions.id, session.id))
+      .returning();
+
+    expect(updated.reflection).toBe("Updated reflection after re-thinking");
+    expect(updated.resolvedAt).toBeDefined();
+  });
+
+  it("should delete a session without affecting others", async () => {
+    const [s1] = await db
+      .insert(deescalationSessions)
+      .values({ userId: testUserId, triggerReason: "Keep" })
+      .returning();
+    const [s2] = await db
+      .insert(deescalationSessions)
+      .values({ userId: testUserId, triggerReason: "Remove" })
+      .returning();
+    createdSessionIds.push(s1.id);
+
+    await db.delete(deescalationSessions).where(eq(deescalationSessions.id, s2.id));
+
+    const remaining = await db
+      .select()
+      .from(deescalationSessions)
+      .where(eq(deescalationSessions.id, s2.id));
+    expect(remaining).toHaveLength(0);
+
+    const kept = await db
+      .select()
+      .from(deescalationSessions)
+      .where(eq(deescalationSessions.id, s1.id));
+    expect(kept).toHaveLength(1);
   });
 });

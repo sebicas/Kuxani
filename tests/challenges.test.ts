@@ -44,12 +44,20 @@ describe("Challenges — Full Lifecycle", () => {
   // ── Setup: Create 2 users and a couple ──
   beforeAll(async () => {
     const resultA = await auth.api.signUpEmail({
-      body: { email: testUserA.email, password: testUserA.password, name: testUserA.name },
+      body: {
+        email: testUserA.email,
+        password: testUserA.password,
+        name: testUserA.name,
+      },
     });
     userAId = resultA.user.id;
 
     const resultB = await auth.api.signUpEmail({
-      body: { email: testUserB.email, password: testUserB.password, name: testUserB.name },
+      body: {
+        email: testUserB.email,
+        password: testUserB.password,
+        name: testUserB.name,
+      },
     });
     userBId = resultB.user.id;
 
@@ -155,8 +163,8 @@ describe("Challenges — Full Lifecycle", () => {
         .where(
           and(
             eq(challengePerspectives.challengeId, challengeId),
-            eq(challengePerspectives.userId, userAId)
-          )
+            eq(challengePerspectives.userId, userAId),
+          ),
         );
 
       const [updated] = await db
@@ -165,7 +173,9 @@ describe("Challenges — Full Lifecycle", () => {
         .where(eq(challengePerspectives.id, perspective.id))
         .returning();
 
-      expect(updated.perspectiveText).toBe("I felt unheard when plans were changed.");
+      expect(updated.perspectiveText).toBe(
+        "I felt unheard when plans were changed.",
+      );
       expect(updated.submitted).toBe(false);
     });
 
@@ -176,14 +186,15 @@ describe("Challenges — Full Lifecycle", () => {
         .where(
           and(
             eq(challengePerspectives.challengeId, challengeId),
-            eq(challengePerspectives.userId, userAId)
-          )
+            eq(challengePerspectives.userId, userAId),
+          ),
         );
 
       const [updated] = await db
         .update(challengePerspectives)
         .set({
-          perspectiveText: "I felt unheard when holiday plans were changed without discussing with me first. I need to feel included in major decisions.",
+          perspectiveText:
+            "I felt unheard when holiday plans were changed without discussing with me first. I need to feel included in major decisions.",
           submitted: true,
           submittedAt: new Date(),
         })
@@ -211,7 +222,9 @@ describe("Challenges — Full Lifecycle", () => {
       expect(bothSubmitted).toBe(false);
 
       // Partner B should NOT see A's text
-      const partnerAPerspective = perspectives.find((p) => p.userId === userAId);
+      const partnerAPerspective = perspectives.find(
+        (p) => p.userId === userAId,
+      );
       expect(partnerAPerspective?.submitted).toBe(true);
       // The API would null out perspectiveText for the other partner
     });
@@ -223,14 +236,15 @@ describe("Challenges — Full Lifecycle", () => {
         .where(
           and(
             eq(challengePerspectives.challengeId, challengeId),
-            eq(challengePerspectives.userId, userBId)
-          )
+            eq(challengePerspectives.userId, userBId),
+          ),
         );
 
       const [updated] = await db
         .update(challengePerspectives)
         .set({
-          perspectiveText: "I was trying to be flexible with plans but I should have communicated the change better. I felt overwhelmed by my partner's reaction.",
+          perspectiveText:
+            "I was trying to be flexible with plans but I should have communicated the change better. I felt overwhelmed by my partner's reaction.",
           submitted: true,
           submittedAt: new Date(),
         })
@@ -308,7 +322,8 @@ Both want to feel respected and included.`;
     });
 
     it("should allow Partner B to reject with reason", async () => {
-      const rejectionReason = "My feelings about the overwhelm weren't captured accurately. I felt more anxious than overwhelmed.";
+      const rejectionReason =
+        "My feelings about the overwhelm weren't captured accurately. I felt more anxious than overwhelmed.";
 
       const [updated] = await db
         .update(challenges)
@@ -373,7 +388,8 @@ Both want to feel respected and included.`;
           challengeId,
           senderId: userAId,
           senderType: "user",
-          content: "I appreciate you being willing to work through this together.",
+          content:
+            "I appreciate you being willing to work through this together.",
         })
         .returning();
 
@@ -389,7 +405,8 @@ Both want to feel respected and included.`;
           challengeId,
           senderId: null,
           senderType: "ai",
-          content: "Thank you for sharing that, Partner A. It's wonderful to see that willingness. Partner B, how does hearing that make you feel?",
+          content:
+            "Thank you for sharing that, Partner A. It's wonderful to see that willingness. Partner B, how does hearing that make you feel?",
         })
         .returning();
 
@@ -404,7 +421,8 @@ Both want to feel respected and included.`;
         challengeId,
         senderId: userBId,
         senderType: "user",
-        content: "It makes me feel heard. I'm sorry for not communicating better about the plans.",
+        content:
+          "It makes me feel heard. I'm sorry for not communicating better about the plans.",
       });
 
       const messages = await db
@@ -432,7 +450,8 @@ Both want to feel respected and included.`;
         .values({
           challengeId,
           requestedBy: userAId,
-          requestText: "Please discuss major plan changes with me before finalizing them.",
+          requestText:
+            "Please discuss major plan changes with me before finalizing them.",
           category: "behavior_change",
         })
         .returning();
@@ -466,7 +485,8 @@ Both want to feel respected and included.`;
         .values({
           challengeId,
           requestedBy: userBId,
-          requestText: "I need reassurance that it's okay to be flexible sometimes.",
+          requestText:
+            "I need reassurance that it's okay to be flexible sometimes.",
           category: "reassurance",
         })
         .returning();
@@ -502,7 +522,8 @@ Both want to feel respected and included.`;
   // ══════════════════════════════════════
   describe("Resolution", () => {
     it("should resolve the challenge with notes", async () => {
-      const notes = "We learned that communication before making changes is key. We'll check in with each other before making plans.";
+      const notes =
+        "We learned that communication before making changes is key. We'll check in with each other before making plans.";
 
       const [resolved] = await db
         .update(challenges)
@@ -529,8 +550,18 @@ Both want to feel respected and included.`;
           growthAreas: ["proactive communication", "flexibility"],
           resolutionApproach: "Both committed to discussing changes beforehand",
           commitmentsMade: [
-            { text: "Discuss major changes before finalizing", category: "behavior_change", accepted: true, fulfilled: true },
-            { text: "Reassurance about flexibility", category: "reassurance", accepted: false, fulfilled: false },
+            {
+              text: "Discuss major changes before finalizing",
+              category: "behavior_change",
+              accepted: true,
+              fulfilled: true,
+            },
+            {
+              text: "Reassurance about flexibility",
+              category: "reassurance",
+              accepted: false,
+              fulfilled: false,
+            },
           ],
         })
         .returning();
@@ -651,6 +682,283 @@ Both want to feel respected and included.`;
       expect(perspectives).toHaveLength(0);
       expect(messages).toHaveLength(0);
       expect(requests).toHaveLength(0);
+    });
+  });
+
+  // ══════════════════════════════════════
+  // Edge Cases
+  // ══════════════════════════════════════
+  describe("Edge Cases", () => {
+    it("should handle all valid category values", async () => {
+      const categories = [
+        "communication",
+        "finances",
+        "parenting",
+        "intimacy",
+        "household",
+        "trust",
+        "boundaries",
+        "family",
+        "work_life",
+        "other",
+      ] as const;
+
+      for (const cat of categories) {
+        const [c] = await db
+          .insert(challenges)
+          .values({
+            coupleId,
+            createdBy: userAId,
+            title: `Category test: ${cat}`,
+            category: cat,
+          })
+          .returning();
+
+        expect(c.category).toBe(cat);
+        // Cleanup
+        await db.delete(challenges).where(eq(challenges.id, c.id));
+      }
+    });
+
+    it("should handle very long title text", async () => {
+      const longTitle = "A".repeat(5000);
+      const [c] = await db
+        .insert(challenges)
+        .values({
+          coupleId,
+          createdBy: userAId,
+          title: longTitle,
+        })
+        .returning();
+
+      expect(c.title).toBe(longTitle);
+      expect(c.title.length).toBe(5000);
+      await db.delete(challenges).where(eq(challenges.id, c.id));
+    });
+
+    it("should handle special characters in title", async () => {
+      const specialTitle = `It's a "test" — with <html> & unicode: 你好 🎉 \n\t`;
+      const [c] = await db
+        .insert(challenges)
+        .values({
+          coupleId,
+          createdBy: userAId,
+          title: specialTitle,
+        })
+        .returning();
+
+      expect(c.title).toBe(specialTitle);
+      await db.delete(challenges).where(eq(challenges.id, c.id));
+    });
+
+    it("should handle very long perspective text", async () => {
+      const longText = "B".repeat(10000);
+      const [tmp] = await db
+        .insert(challenges)
+        .values({
+          coupleId,
+          createdBy: userAId,
+          title: "Long perspective test",
+        })
+        .returning();
+
+      const [perspective] = await db
+        .insert(challengePerspectives)
+        .values({
+          challengeId: tmp.id,
+          userId: userAId,
+          perspectiveText: longText,
+        })
+        .returning();
+
+      expect(perspective.perspectiveText?.length).toBe(10000);
+
+      await db.delete(challenges).where(eq(challenges.id, tmp.id));
+    });
+
+    it("should handle very long message content", async () => {
+      const longContent = "C".repeat(8000);
+      const [tmp] = await db
+        .insert(challenges)
+        .values({
+          coupleId,
+          createdBy: userAId,
+          title: "Long message test",
+        })
+        .returning();
+
+      const [msg] = await db
+        .insert(challengeMessages)
+        .values({
+          challengeId: tmp.id,
+          senderId: userAId,
+          senderType: "user",
+          content: longContent,
+        })
+        .returning();
+
+      expect(msg.content.length).toBe(8000);
+      await db.delete(challenges).where(eq(challenges.id, tmp.id));
+    });
+
+    it("should handle very long request text", async () => {
+      const longRequest = "D".repeat(5000);
+      const [tmp] = await db
+        .insert(challenges)
+        .values({
+          coupleId,
+          createdBy: userAId,
+          title: "Long request test",
+        })
+        .returning();
+
+      const [req] = await db
+        .insert(challengeRequests)
+        .values({
+          challengeId: tmp.id,
+          requestedBy: userAId,
+          requestText: longRequest,
+        })
+        .returning();
+
+      expect(req.requestText.length).toBe(5000);
+      await db.delete(challenges).where(eq(challenges.id, tmp.id));
+    });
+
+    it("should handle pinned messages", async () => {
+      const [tmp] = await db
+        .insert(challenges)
+        .values({
+          coupleId,
+          createdBy: userAId,
+          title: "Pinned message test",
+        })
+        .returning();
+
+      const [msg] = await db
+        .insert(challengeMessages)
+        .values({
+          challengeId: tmp.id,
+          senderId: userAId,
+          senderType: "user",
+          content: "This should be pinned",
+          pinned: true,
+        })
+        .returning();
+
+      expect(msg.pinned).toBe(true);
+      await db.delete(challenges).where(eq(challenges.id, tmp.id));
+    });
+
+    it("should handle reactions jsonb on messages", async () => {
+      const [tmp] = await db
+        .insert(challenges)
+        .values({
+          coupleId,
+          createdBy: userAId,
+          title: "Reactions test",
+        })
+        .returning();
+
+      const reactions = { "❤️": [userAId], "👍": [userAId, userBId] };
+      const [msg] = await db
+        .insert(challengeMessages)
+        .values({
+          challengeId: tmp.id,
+          senderId: userAId,
+          senderType: "user",
+          content: "Test reactions",
+          reactions,
+        })
+        .returning();
+
+      expect(msg.reactions).toEqual(reactions);
+      await db.delete(challenges).where(eq(challenges.id, tmp.id));
+    });
+
+    it("should default pinned to false for messages", async () => {
+      const [tmp] = await db
+        .insert(challenges)
+        .values({
+          coupleId,
+          createdBy: userAId,
+          title: "Default pinned test",
+        })
+        .returning();
+
+      const [msg] = await db
+        .insert(challengeMessages)
+        .values({
+          challengeId: tmp.id,
+          senderId: userAId,
+          senderType: "user",
+          content: "Not pinned",
+        })
+        .returning();
+
+      expect(msg.pinned).toBe(false);
+      await db.delete(challenges).where(eq(challenges.id, tmp.id));
+    });
+
+    it("should allow all request categories", async () => {
+      const categories = [
+        "apology",
+        "behavior_change",
+        "reassurance",
+        "boundary",
+        "other",
+      ] as const;
+      const [tmp] = await db
+        .insert(challenges)
+        .values({
+          coupleId,
+          createdBy: userAId,
+          title: "Request categories test",
+        })
+        .returning();
+
+      for (const cat of categories) {
+        const [req] = await db
+          .insert(challengeRequests)
+          .values({
+            challengeId: tmp.id,
+            requestedBy: userAId,
+            requestText: `Request with category: ${cat}`,
+            category: cat,
+          })
+          .returning();
+
+        expect(req.category).toBe(cat);
+      }
+
+      await db.delete(challenges).where(eq(challenges.id, tmp.id));
+    });
+
+    it("should store challengeSummary with empty arrays", async () => {
+      const [tmp] = await db
+        .insert(challenges)
+        .values({
+          coupleId,
+          createdBy: userAId,
+          title: "Empty summary test",
+        })
+        .returning();
+
+      const [summary] = await db
+        .insert(challengeSummaries)
+        .values({
+          challengeId: tmp.id,
+          topic: "Empty arrays test",
+          recurringThemes: [],
+          growthAreas: [],
+          commitmentsMade: [],
+        })
+        .returning();
+
+      expect(summary.recurringThemes).toEqual([]);
+      expect(summary.growthAreas).toEqual([]);
+
+      await db.delete(challenges).where(eq(challenges.id, tmp.id));
     });
   });
 });
