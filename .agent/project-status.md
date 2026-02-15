@@ -1,6 +1,6 @@
 # Kuxani — Project Status
 
-> Last updated: 2026-02-14 (Phase 2 complete)
+> Last updated: 2026-02-15 (Phase 3 Batch 1 + Challenges complete)
 
 ---
 
@@ -24,13 +24,13 @@
 
 ### ⬜ Pending
 
-- [ ] **Database migrations** — Run `db:push` or `db:generate` + `db:migrate` to initialize DB
+- [x] **Database migrations** — Drizzle `generate` + `migrate` configured in Dockerfile
 - [ ] **Partner invitation flow** — Invite link/code generation + join couple
-- [ ] **Challenge CRUD** — Create, list, view, edit challenges
+- [x] **Challenges workspace** — Full lifecycle: create, perspectives, AI synthesis, accept/reject, discussion, requests, resolution
 - [ ] **Collaborative editor** — Yjs + Tiptap + Hocuspocus for perspective writing
-- [ ] **AI streaming endpoint** — Streaming responses for synthesis and chat
-- [ ] **Challenge discussion thread** — Chat-style interface with partner attribution
-- [ ] **Requests & commitments** — Submit, accept, track partner requests
+- [x] **AI streaming endpoint** — SSE streaming for synthesis and discussion
+- [x] **Challenge discussion thread** — Chat-style interface with AI guidance
+- [x] **Requests & commitments** — Submit, accept, track partner requests
 - [ ] **File attachments** — MinIO upload/download for WhatsApp exports, screenshots, audio
 - [x] **Coolify deployment config** — Docker Compose for production + Coolify setup
 
@@ -52,13 +52,16 @@
 
 ## Phase 3 — Deeper Features
 
+### ✅ Completed
+
+- [x] **Gratitude journal** — Daily prompt, category system, optional sharing, AI prompts
+- [x] **Emergency de-escalation mode** — Breathing exercise, cooling timer, AI prompts, reflection
+
 ### ⬜ Pending
 
 - [ ] **Weekly relationship check-in** — Guided questionnaire (private first, then shared), AI summary
-- [ ] **Gratitude journal** — Daily prompt, optional sharing as "love notes", monthly summary
 - [ ] **Conflict pattern recognition** — AI analysis of recurring patterns, triggers, growth areas
 - [ ] **Guided exercises & homework** — AI-curated exercises (Gottman, EFT), tracking, reflection
-- [ ] **Emergency de-escalation mode** — Breathing exercise, cooling timer, immediate AI prompts
 
 ---
 
@@ -79,17 +82,17 @@
 | #   | Feature                         | Phase | Status     |
 | --- | ------------------------------- | ----- | ---------- |
 | 1   | Onboarding & Partner Invite     | 1     | ⬜ Pending |
-| 2   | Challenges (Conflict Workspace) | 1     | ⬜ Pending |
+| 2   | Challenges (Conflict Workspace) | 1     | ✅ Done    |
 | 3   | Personal Therapy Chat           | 2     | ✅ Done    |
 | 4   | Chat Interface (ChatGPT-like)   | 1     | ⬜ Pending |
 | 5   | Privacy Controls                | 2     | ⬜ Pending |
 | 6   | Mood & Emotion Tracker          | 2     | ✅ Done    |
 | 7   | Love Languages Assessment       | 2     | ✅ Done    |
 | 8   | Weekly Relationship Check-In    | 3     | ⬜ Pending |
-| 9   | Gratitude Journal               | 3     | ⬜ Pending |
+| 9   | Gratitude Journal               | 3     | ✅ Done    |
 | 10  | Conflict Pattern Recognition    | 3     | ⬜ Pending |
 | 11  | Guided Exercises & Homework     | 3     | ⬜ Pending |
-| 12  | Emergency De-escalation Mode    | 3     | ⬜ Pending |
+| 12  | Emergency De-escalation Mode    | 3     | ✅ Done    |
 | 13  | Milestone Timeline              | 4     | ⬜ Pending |
 | 14  | Resource Library                | 4     | ⬜ Pending |
 | 15  | Session Notes & Insights Export | 4     | ⬜ Pending |

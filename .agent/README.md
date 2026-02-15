@@ -6,7 +6,7 @@ This directory contains documentation and tooling for AI coding assistants worki
 
 | Path                          | Purpose                                              |
 | ----------------------------- | ---------------------------------------------------- |
-| `project_status.md`           | Feature tracker: implemented vs pending              |
+| `project-status.md`           | Feature tracker: implemented vs pending              |
 | `skills/git-helpers/SKILL.md` | Git workflow skill (push, merge, commit conventions) |
 | `workflows/`                  | Workflow definitions (if any)                        |
 

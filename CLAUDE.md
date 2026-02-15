@@ -284,7 +284,8 @@ A Challenge represents a conflict or issue the couple wants to work through:
 
 ## Additional Documentation
 
-- **Project status & feature tracker**: `.agent/project_status.md`
+- **Project status & feature tracker**: `.agent/project-status.md`
 - **Git workflow**: `.agent/skills/git-helpers/SKILL.md`
 - **Pre-handoff verification**: `.agent/workflows/verify.md`
+- **Post-feature QA**: `.agent/workflows/post-feature-qa.md`
 - **Commands reference**: `.agent/commands.md`
