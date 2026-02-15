@@ -23,7 +23,9 @@ ARG NEXT_PUBLIC_WS_URL
 ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
 ENV NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL}
 
-# Disable Next.js telemetry during build
+# Force production mode for Next.js build (Coolify may inject NODE_ENV=development
+# as an ARG, but next build must always run in production mode)
+ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build
