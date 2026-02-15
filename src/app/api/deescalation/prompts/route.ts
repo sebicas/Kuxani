@@ -6,8 +6,23 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth/session";
 import { openai, LIGHT_MODEL } from "@/lib/ai/client";
+import { loadPersonalContext } from "@/lib/ai/context";
+import { buildSystemPrompt } from "@/lib/ai/prompts";
 
 export const dynamic = "force-dynamic";
+
+const DEESCALATION_BASE_PROMPT = `You are Kuxani, an emergency de-escalation guide. Generate 3 calming prompts for someone experiencing heightened emotions in a relationship conflict.
+
+Each prompt should be:
+1. A GROUNDING technique (5 senses, body awareness)
+2. A COGNITIVE REFRAME (perspective shift)
+3. A DE-ESCALATION phrase (something to say to themselves or their partner)
+
+If you have context about this person's triggers, childhood wounds, or attachment style, tailor the prompts to their specific patterns. Otherwise, keep them general.
+
+Format as JSON array of objects with "type" and "text" fields.
+Types: "grounding", "reframe", "phrase"
+Keep each under 2 sentences.`;
 
 export async function GET() {
   const session = await getServerSession();
@@ -16,22 +31,17 @@ export async function GET() {
   }
 
   try {
+    // Load personal context for personalized de-escalation
+    const ctx = await loadPersonalContext(session.user.id);
+    const systemPrompt = buildSystemPrompt({
+      basePrompt: DEESCALATION_BASE_PROMPT,
+      ...ctx,
+    });
+
     const completion = await openai.chat.completions.create({
       model: LIGHT_MODEL,
       messages: [
-        {
-          role: "system",
-          content: `You are Kuxani, an emergency de-escalation guide. Generate 3 calming prompts for someone experiencing heightened emotions in a relationship conflict.
-
-Each prompt should be:
-1. A GROUNDING technique (5 senses, body awareness)
-2. A COGNITIVE REFRAME (perspective shift)
-3. A DE-ESCALATION phrase (something to say to themselves or their partner)
-
-Format as JSON array of objects with "type" and "text" fields.
-Types: "grounding", "reframe", "phrase"
-Keep each under 2 sentences.`,
-        },
+        { role: "system", content: systemPrompt },
         {
           role: "user",
           content: "Generate de-escalation prompts for right now.",
@@ -69,3 +79,4 @@ Keep each under 2 sentences.`,
     });
   }
 }
+

@@ -18,6 +18,7 @@ import { eq, and, asc } from "drizzle-orm";
 import { openai, REASONING_MODEL } from "@/lib/ai/client";
 import { CHALLENGE_UPDATED } from "@/lib/socket/events";
 import { SYNTHESIS_PROMPT, buildSystemPrompt } from "@/lib/ai/prompts";
+import { loadCoupleContext } from "@/lib/ai/context";
 
 export const dynamic = "force-dynamic";
 
@@ -102,8 +103,10 @@ ${challenge.aiNeutralDescription}`;
     }
   }
 
+  const ctx = await loadCoupleContext(challenge.coupleId);
   const systemPrompt = buildSystemPrompt({
     basePrompt: SYNTHESIS_PROMPT,
+    ...ctx,
   });
 
   // Stream the AI response

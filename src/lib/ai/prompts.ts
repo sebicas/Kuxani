@@ -99,11 +99,28 @@ export function buildSystemPrompt(options: {
   coupleProfile?: string;
   pastSummaries?: string[];
   personalProfile?: string;
+  partnerProfiles?: string;
+  childhoodWoundsContext?: string;
+  attachmentContext?: string;
+  moodContext?: string;
+  deescalationContext?: string;
 }): string {
   const parts = [options.basePrompt];
 
   if (options.coupleProfile) {
     parts.push(`\n## Couple Profile\n${options.coupleProfile}`);
+  }
+
+  if (options.partnerProfiles) {
+    parts.push(`\n## Partner Profiles\n${options.partnerProfiles}`);
+  }
+
+  if (options.childhoodWoundsContext) {
+    parts.push(`\n## Childhood Wounds\n${options.childhoodWoundsContext}`);
+  }
+
+  if (options.attachmentContext) {
+    parts.push(`\n## Attachment Styles\n${options.attachmentContext}`);
   }
 
   if (options.pastSummaries?.length) {
@@ -112,6 +129,14 @@ export function buildSystemPrompt(options: {
         .map((s, i) => `### Challenge ${i + 1}\n${s}`)
         .join("\n\n")}`
     );
+  }
+
+  if (options.moodContext) {
+    parts.push(`\n## Recent Mood Trends\n${options.moodContext}`);
+  }
+
+  if (options.deescalationContext) {
+    parts.push(`\n## De-escalation History\n${options.deescalationContext}`);
   }
 
   if (options.personalProfile) {

@@ -13,6 +13,7 @@ import { getServerSession } from "@/lib/auth/session";
 import { eq, and, asc } from "drizzle-orm";
 import { openai, REASONING_MODEL } from "@/lib/ai/client";
 import { PERSONAL_THERAPY_PROMPT, buildSystemPrompt } from "@/lib/ai/prompts";
+import { loadPersonalContext } from "@/lib/ai/context";
 
 export const dynamic = "force-dynamic";
 
@@ -58,18 +59,13 @@ export async function POST(request: NextRequest, { params }: Params) {
     .where(eq(personalMessages.chatId, id))
     .orderBy(asc(personalMessages.createdAt));
 
-  // Get user's personal profile data for context
-  const [userData] = await db
-    .select({ profileData: user.profileData })
-    .from(user)
-    .where(eq(user.id, session.user.id));
+  // Load full personal context from all data sources
+  const ctx = await loadPersonalContext(session.user.id);
 
-  // Build system prompt with personal profile context
+  // Build system prompt with enriched context
   const systemPrompt = buildSystemPrompt({
     basePrompt: PERSONAL_THERAPY_PROMPT,
-    personalProfile: userData?.profileData
-      ? JSON.stringify(userData.profileData, null, 2)
-      : undefined,
+    ...ctx,
   });
 
   // Build messages for OpenAI

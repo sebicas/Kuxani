@@ -17,6 +17,7 @@ import { getServerSession } from "@/lib/auth/session";
 import { eq, and, asc } from "drizzle-orm";
 import { openai, REASONING_MODEL } from "@/lib/ai/client";
 import { DISCUSSION_PROMPT, buildSystemPrompt } from "@/lib/ai/prompts";
+import { loadCoupleContext } from "@/lib/ai/context";
 import { CHALLENGE_UPDATED } from "@/lib/socket/events";
 
 export const dynamic = "force-dynamic";
@@ -135,8 +136,10 @@ ${challenge.aiNeutralDescription || "Not yet generated"}
 
 ### Discussion so far:`;
 
+  const ctx = await loadCoupleContext(challenge.coupleId);
   const systemPrompt = buildSystemPrompt({
     basePrompt: DISCUSSION_PROMPT,
+    ...ctx,
   });
 
   // Build OpenAI messages

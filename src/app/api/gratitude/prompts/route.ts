@@ -6,6 +6,8 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth/session";
 import { openai, LIGHT_MODEL } from "@/lib/ai/client";
+import { loadPersonalContext } from "@/lib/ai/context";
+import { buildSystemPrompt } from "@/lib/ai/prompts";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +21,16 @@ const PROMPT_CATEGORIES = [
   "future hopes",
 ];
 
+const GRATITUDE_BASE_PROMPT = `You are Kuxani, a warm relationship AI. Generate a single gratitude journal prompt for someone in a romantic relationship. The prompt should be:
+- Warm and inviting
+- Specific enough to inspire reflection
+- One sentence, ending with a question mark
+- No quotation marks around the prompt
+
+If you have context about their love languages, attachment style, or recent mood, tailor the prompt to resonate with their specific emotional landscape. Otherwise, keep it general.
+
+Respond with ONLY the prompt text, nothing else.`;
+
 export async function GET() {
   const session = await getServerSession();
   if (!session) {
@@ -29,20 +41,17 @@ export async function GET() {
     PROMPT_CATEGORIES[Math.floor(Math.random() * PROMPT_CATEGORIES.length)];
 
   try {
+    // Load personal context for personalized prompts
+    const ctx = await loadPersonalContext(session.user.id);
+    const systemPrompt = buildSystemPrompt({
+      basePrompt: `${GRATITUDE_BASE_PROMPT}\n\nFocus on the category: "${category}"`,
+      ...ctx,
+    });
+
     const completion = await openai.chat.completions.create({
       model: LIGHT_MODEL,
       messages: [
-        {
-          role: "system",
-          content: `You are Kuxani, a warm relationship AI. Generate a single gratitude journal prompt for someone in a romantic relationship. The prompt should be:
-- Warm and inviting
-- Specific enough to inspire reflection
-- Focused on the category: "${category}"
-- One sentence, ending with a question mark
-- No quotation marks around the prompt
-
-Respond with ONLY the prompt text, nothing else.`,
-        },
+        { role: "system", content: systemPrompt },
         {
           role: "user",
           content: `Generate a gratitude prompt about "${category}" for today.`,
@@ -70,3 +79,4 @@ Respond with ONLY the prompt text, nothing else.`,
     return NextResponse.json({ prompt, category: "general" });
   }
 }
+
