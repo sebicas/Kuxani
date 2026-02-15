@@ -19,11 +19,9 @@ COPY . .
 # Build arguments for public env vars needed at build time
 ARG NEXT_PUBLIC_APP_URL
 ARG NEXT_PUBLIC_WS_URL
-ARG SOURCE_COMMIT
 
 ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
 ENV NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL}
-ENV COMMIT_SHA=${SOURCE_COMMIT}
 
 # Force production mode for Next.js build (Coolify may inject NODE_ENV=development
 # as an ARG, but next build must always run in production mode)
@@ -47,10 +45,6 @@ ENV NODE_ENV=production
 ARG APP_ENV=production
 ENV APP_ENV=${APP_ENV}
 ENV NEXT_TELEMETRY_DISABLED=1
-
-# Git commit SHA for health endpoint
-ARG SOURCE_COMMIT
-ENV COMMIT_SHA=${SOURCE_COMMIT}
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \

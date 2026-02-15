@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
 
 // Read version & commit SHA once at module load
 const APP_VERSION = process.env.npm_package_version || "0.1.0";
-const COMMIT_SHA = (process.env.COMMIT_SHA || "unknown").slice(0, 7);
+const COMMIT_SHA = (process.env.SOURCE_COMMIT || "unknown").slice(0, 7);
 const startTime = Date.now();
 
 export async function GET() {
