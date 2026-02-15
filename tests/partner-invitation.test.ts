@@ -8,9 +8,16 @@
  * - Edge cases (duplicates, self-join, full couple)
  *
  * Requires: Docker (PostgreSQL) running
+ * Automatically starts a Next.js server on a random port.
  */
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { createServer, type Server } from "http";
+import type { AddressInfo } from "net";
+import next from "next";
 import { auth } from "@/lib/auth";
+
+let server: Server;
+let baseUrl: string;
 
 // ── Helper: create user & get session cookie ──
 async function createUserAndGetCookie(email: string, name: string) {
@@ -39,13 +46,12 @@ async function apiRequest(
   },
 ) {
   const { method = "GET", headers: sessionHeaders, body } = options;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const fetchHeaders: Record<string, string> = {
     Cookie: sessionHeaders.get("Cookie") || "",
   };
   if (body) fetchHeaders["Content-Type"] = "application/json";
 
-  const res = await fetch(`${appUrl}${path}`, {
+  const res = await fetch(`${baseUrl}${path}`, {
     method,
     headers: fetchHeaders,
     body: body ? JSON.stringify(body) : undefined,
@@ -67,11 +73,41 @@ describe("Partner Invitation", () => {
   let inviteCode: string;
   let coupleId: string;
 
+  // Start Next.js server on a random port
+  let originalStdoutWrite: typeof process.stdout.write;
+
   beforeAll(async () => {
+    // Suppress Next.js request logs (GET /api/... 200 in 125ms ...)
+    originalStdoutWrite = process.stdout.write.bind(process.stdout);
+    process.stdout.write = ((chunk: unknown, ...args: unknown[]) => {
+      if (typeof chunk === "string" && /^\s*(GET|POST|PUT|DELETE|PATCH)\s+\//.test(chunk)) {
+        return true;
+      }
+      return originalStdoutWrite(chunk, ...args);
+    }) as typeof process.stdout.write;
+
+    const app = next({ dev: true, dir: process.cwd(), quiet: true });
+    const handle = app.getRequestHandler();
+    await app.prepare();
+
+    server = createServer((req, res) => handle(req, res));
+    await new Promise<void>((resolve) => {
+      server.listen(0, () => {
+        const addr = server.address() as AddressInfo;
+        baseUrl = `http://localhost:${addr.port}`;
+        resolve();
+      });
+    });
+
     // Create test users
     creatorHeaders = await createUserAndGetCookie(creatorEmail, "Alice Creator");
     partnerHeaders = await createUserAndGetCookie(partnerEmail, "Bob Partner");
     thirdHeaders = await createUserAndGetCookie(thirdEmail, "Charlie Third");
+  }, 120_000); // 2 min for first-time Next.js compilation
+
+  afterAll(() => {
+    process.stdout.write = originalStdoutWrite;
+    server?.close();
   });
 
   /* ── GET /api/couples — no couple yet ── */

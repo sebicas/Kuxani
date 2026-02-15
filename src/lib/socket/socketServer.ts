@@ -20,7 +20,6 @@ declare global {
 /** Store the Socket.IO server instance (called from server.ts) */
 export function setIO(server: SocketIOServer) {
   globalThis.__socketIO = server;
-  console.log("[socketServer] setIO() called — instance stored on globalThis");
 }
 
 /** Retrieve the Socket.IO server instance (called from API routes) */
