@@ -18,6 +18,9 @@ import {
 import { getServerSession } from "@/lib/auth/session";
 import { eq, and, asc } from "drizzle-orm";
 import { openai, LIGHT_MODEL } from "@/lib/ai/client";
+import { CHALLENGE_UPDATED } from "@/lib/socket/events";
+
+export const dynamic = "force-dynamic";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -132,6 +135,16 @@ Provide a JSON object with:
     // Non-critical — don't fail the resolution
     console.error("Failed to generate challenge summary:", err);
   }
+
+  // Emit real-time event to partner
+  try {
+    const { getIO } = await import("@/lib/socket/socketServer");
+    getIO().to(`couple:${challenge.coupleId}`).emit(CHALLENGE_UPDATED, {
+      challengeId: id,
+      action: "challenge-resolved",
+      userId: session.user.id,
+    });
+  } catch { /* socket not available in test */ }
 
   return NextResponse.json(resolved);
 }

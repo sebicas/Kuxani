@@ -13,6 +13,7 @@ import {
 } from "@/lib/db/schema";
 import { getServerSession } from "@/lib/auth/session";
 import { eq, and } from "drizzle-orm";
+import { CHALLENGE_UPDATED } from "@/lib/socket/events";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -170,6 +171,16 @@ export async function PUT(request: NextRequest, { params }: Params) {
         .where(eq(challenges.id, id));
     }
   }
+
+  // Emit real-time event to partner
+  try {
+    const { getIO } = await import("@/lib/socket/socketServer");
+    getIO().to(`couple:${challenge.coupleId}`).emit(CHALLENGE_UPDATED, {
+      challengeId: id,
+      action: submit ? "perspective-submitted" : "perspective-saved",
+      userId: session.user.id,
+    });
+  } catch { /* socket not available in test */ }
 
   return NextResponse.json(updated);
 }

@@ -118,5 +118,16 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  // Emit real-time event to partner
+  try {
+    const { getIO } = await import("@/lib/socket/socketServer");
+    const { CHALLENGE_UPDATED } = await import("@/lib/socket/events");
+    getIO().to(`couple:${couple.coupleId}`).emit(CHALLENGE_UPDATED, {
+      challengeId: challenge.id,
+      action: "challenge-created",
+      userId: session.user.id,
+    });
+  } catch { /* socket not available in test */ }
+
   return NextResponse.json(challenge, { status: 201 });
 }

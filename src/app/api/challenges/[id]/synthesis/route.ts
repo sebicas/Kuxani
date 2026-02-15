@@ -16,7 +16,10 @@ import {
 import { getServerSession } from "@/lib/auth/session";
 import { eq, and, asc } from "drizzle-orm";
 import { openai, REASONING_MODEL } from "@/lib/ai/client";
+import { CHALLENGE_UPDATED } from "@/lib/socket/events";
 import { SYNTHESIS_PROMPT, buildSystemPrompt } from "@/lib/ai/prompts";
+
+export const dynamic = "force-dynamic";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -139,6 +142,16 @@ ${challenge.aiNeutralDescription}`;
             rejectionFeedback: null,
           })
           .where(eq(challenges.id, id));
+
+        // Emit real-time event to partner
+        try {
+          const { getIO } = await import("@/lib/socket/socketServer");
+          getIO().to(`couple:${challenge.coupleId}`).emit(CHALLENGE_UPDATED, {
+            challengeId: id,
+            action: "synthesis-generated",
+            userId: session.user.id,
+          });
+        } catch { /* socket not available in test */ }
 
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         controller.close();

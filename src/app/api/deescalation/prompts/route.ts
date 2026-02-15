@@ -7,6 +7,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth/session";
 import { openai, LIGHT_MODEL } from "@/lib/ai/client";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const session = await getServerSession();
   if (!session) {

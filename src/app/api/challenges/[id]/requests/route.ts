@@ -15,6 +15,7 @@ import {
 } from "@/lib/db/schema";
 import { getServerSession } from "@/lib/auth/session";
 import { eq, and, asc } from "drizzle-orm";
+import { CHALLENGE_UPDATED } from "@/lib/socket/events";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -111,6 +112,16 @@ export async function POST(request: NextRequest, { params }: Params) {
       .where(eq(challenges.id, id));
   }
 
+  // Emit real-time event to partner
+  try {
+    const { getIO } = await import("@/lib/socket/socketServer");
+    getIO().to(`couple:${challenge.coupleId}`).emit(CHALLENGE_UPDATED, {
+      challengeId: id,
+      action: "request-created",
+      userId: session.user.id,
+    });
+  } catch { /* socket not available in test */ }
+
   return NextResponse.json(req, { status: 201 });
 }
 
@@ -175,6 +186,16 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     .set(updates)
     .where(eq(challengeRequests.id, requestId))
     .returning();
+
+  // Emit real-time event to partner
+  try {
+    const { getIO } = await import("@/lib/socket/socketServer");
+    getIO().to(`couple:${challenge.coupleId}`).emit(CHALLENGE_UPDATED, {
+      challengeId: id,
+      action: "request-updated",
+      userId: session.user.id,
+    });
+  } catch { /* socket not available in test */ }
 
   return NextResponse.json(updated);
 }

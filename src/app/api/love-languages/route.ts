@@ -92,5 +92,28 @@ export async function POST(request: NextRequest) {
     })
     .returning();
 
+  // Emit real-time event to partner
+  const userMembership = await db
+    .select({ coupleId: coupleMembers.coupleId })
+    .from(coupleMembers)
+    .where(eq(coupleMembers.userId, session.user.id))
+    .limit(1);
+
+  if (userMembership.length > 0) {
+    try {
+      const { getIO } = await import("@/lib/socket/socketServer");
+      const { LOVE_LANGUAGE_UPDATED } = await import("@/lib/socket/events");
+      getIO()
+        .to(`couple:${userMembership[0].coupleId}`)
+        .emit(LOVE_LANGUAGE_UPDATED, {
+          resultId: result.id,
+          action: "love-language-completed",
+          userId: session.user.id,
+        });
+    } catch {
+      /* socket not available in test */
+    }
+  }
+
   return NextResponse.json(result, { status: 201 });
 }

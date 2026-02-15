@@ -14,6 +14,8 @@ import { eq, and, asc } from "drizzle-orm";
 import { openai, REASONING_MODEL } from "@/lib/ai/client";
 import { PERSONAL_THERAPY_PROMPT, buildSystemPrompt } from "@/lib/ai/prompts";
 
+export const dynamic = "force-dynamic";
+
 type Params = { params: Promise<{ id: string }> };
 
 export async function POST(request: NextRequest, { params }: Params) {

@@ -28,6 +28,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build
 
+# Compile custom server.ts to server.js
+RUN npx tsc --project tsconfig.server.json
+
 # ──────────────────────────────────────────────
 # Stage 3: Production runner
 # ──────────────────────────────────────────────
@@ -48,6 +51,12 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Copy custom server.js (replaces default standalone server.js)
+COPY --from=builder --chown=nextjs:nodejs /app/server.js ./server.js
+
+# Copy socket library files (needed at runtime by API routes)
+COPY --from=builder --chown=nextjs:nodejs /app/src/lib/socket ./src/lib/socket
+
 # Copy Drizzle config, schema, and migrations for runtime migrate
 COPY --from=builder /app/src/lib/db/schema ./src/lib/db/schema
 COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
@@ -64,5 +73,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Run migrations then start the server
+# Run migrations then start the custom server
 CMD ["sh", "-c", "npx drizzle-kit migrate && node server.js"]
