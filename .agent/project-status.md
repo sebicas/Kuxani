@@ -1,6 +1,6 @@
 # Kuxani — Project Status
 
-> Last updated: 2026-02-15 (Post-feature QA complete — lazy OpenAI, force-dynamic, Docker fix)
+> Last updated: 2026-02-15 (Childhood Wounds: intensity rating + two-column partner view)
 
 ---
 
@@ -56,6 +56,8 @@
 
 - [x] **Gratitude journal** — Daily prompt, category system, optional sharing, AI prompts
 - [x] **Emergency de-escalation mode** — Breathing exercise, cooling timer, AI prompts, reflection
+- [x] **Childhood Wounds** — CRUD wounds, partner suggestions, AI suggestions, intensity rating (1-10), two-column partner view
+- [x] **Attachment Styles** — 20-question Likert quiz, results visualization, real-time partner updates
 
 ### ⬜ Pending
 
@@ -93,6 +95,8 @@
 | 10  | Conflict Pattern Recognition    | 3     | ⬜ Pending |
 | 11  | Guided Exercises & Homework     | 3     | ⬜ Pending |
 | 12  | Emergency De-escalation Mode    | 3     | ✅ Done    |
+| 17  | Childhood Wounds                | 3     | ✅ Done    |
+| 18  | Attachment Styles               | 2     | ✅ Done    |
 | 13  | Milestone Timeline              | 4     | ⬜ Pending |
 | 14  | Resource Library                | 4     | ⬜ Pending |
 | 15  | Session Notes & Insights Export | 4     | ⬜ Pending |

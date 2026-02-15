@@ -95,7 +95,10 @@ kuxani/
 │   │           ├── challenges.ts     # challenges, perspectives, messages, requests,
 │   │           │                     # attachments, summaries, voice_sessions, segments
 │   │           ├── chats.ts          # personal_chats, personal_messages
-│   │           └── mood.ts           # mood_entries, gratitude_entries
+│   │           ├── mood.ts           # mood_entries, gratitude_entries,
+│   │           │                     # love_language_results, attachment_style_results
+│   │           ├── deescalation.ts   # deescalation_sessions
+│   │           └── childhood-wounds.ts # childhood_wounds
 ├── drizzle/
 │   └── migrations/                   # Auto-generated SQL migrations
 ├── public/                           # Static assets
@@ -205,13 +208,16 @@ The design system is defined in `src/app/globals.css` with CSS custom properties
 
 ### Tables Overview
 
-| Schema File     | Tables                                                                                                                          |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `auth.ts`       | `user`, `session`, `account`, `verification` (Better Auth CLI-generated, includes `profile_data` JSONB)                         |
-| `couples.ts`    | `couples`, `couple_members`, `couple_profiles`                                                                                  |
-| `challenges.ts` | `challenges`, `perspectives`, `messages`, `requests`, `attachments`, `summaries`, `voice_sessions`, `voice_transcript_segments` |
-| `chats.ts`      | `personal_chats`, `personal_messages`                                                                                           |
-| `mood.ts`       | `mood_entries`, `gratitude_entries`                                                                                             |
+| Schema File            | Tables                                                                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `auth.ts`              | `user`, `session`, `account`, `verification` (Better Auth CLI-generated, includes `profile_data` JSONB)                         |
+| `couples.ts`           | `couples`, `couple_members`, `couple_profiles`                                                                                  |
+| `challenges.ts`        | `challenges`, `perspectives`, `messages`, `requests`, `attachments`, `summaries`, `voice_sessions`, `voice_transcript_segments` |
+| `chats.ts`             | `personal_chats`, `personal_messages`                                                                                           |
+| `mood.ts`              | `mood_entries`, `gratitude_entries`                                                                                             |
+| `love-languages.ts`    | `love_language_results`                                                                                                         |
+| `attachment-styles.ts` | `attachment_style_results`                                                                                                      |
+| `childhood-wounds.ts`  | `childhood_wounds` (cols: id, userId, title, description, source, intensity, suggestedBy, status, timestamps)                   |
 
 ---
 
@@ -234,12 +240,21 @@ The OpenAI client (`src/lib/ai/client.ts`) is **lazy-initialized** via a Proxy p
 
 ### Prompt System
 
-The AI uses therapeutic frameworks (Gottman Method, EFT, Attachment Theory) with a memory-aware context builder that injects:
+The AI uses therapeutic frameworks (Gottman Method, EFT, Attachment Theory) with a **centralized context loader** (`src/lib/ai/context.ts`) that hydrates all memory tiers from the database.
 
-1. **Couple profile** (patterns, love languages)
-2. **Past challenge summaries** (last 5–10)
-3. **Current user's personal profile** (if private chat)
-4. **Current conversation context** (perspectives, discussion, requests)
+`loadCoupleContext(coupleId)` — Used by couple-facing AI (challenges, synthesis, de-escalation, gratitude):  
+`loadPersonalContext(userId)` — Used by private therapy chat.
+
+Both query up to **8 data sources** and inject them into `buildSystemPrompt()`:
+
+1. **Couple profile** (patterns, strategies, wins) — `couple_profiles`
+2. **Partner profiles** (triggers, coping, growth areas) — `user.profileData`
+3. **Childhood wounds** (title, intensity) — `childhood_wounds`
+4. **Attachment style quiz** (secure/anxious/avoidant/fearful scores) — `attachment_style_results`
+5. **Love language quiz** (5 language scores) — `love_language_results`
+6. **Past challenge summaries** (themes, commitments, dynamics) — `challenge_summaries`
+7. **Recent mood trends** (last 7 days) — `mood_entries`
+8. **De-escalation history** (triggers, reflections) — `deescalation_sessions`
 
 ---
 
@@ -314,7 +329,7 @@ A Challenge represents a conflict or issue the couple wants to work through:
 
 - **Tier 1**: Per-challenge context (perspectives, messages, requests)
 - **Tier 2**: Cross-challenge summaries (patterns, triggers, growth areas)
-- **Tier 3**: Evolving profiles (personal + couple profiles)
+- **Tier 3**: Evolving profiles — personal (`profileData`, childhood wounds, attachment styles, love languages, mood trends, de-escalation history) + couple profiles
 
 ---
 
