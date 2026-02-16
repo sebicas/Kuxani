@@ -16,12 +16,23 @@ import {
   challengeSummaries,
   challenges,
   moodEntries,
+  gratitudeEntries,
   deescalationSessions,
   loveLanguageResults,
   attachmentStyleResults,
   childhoodWounds,
 } from "@/lib/db/schema";
 import { eq, desc, and, gte, inArray } from "drizzle-orm";
+import {
+  LOVE_LANGUAGE_NAMES,
+  LOVE_LANGUAGE_DESCRIPTIONS,
+  type LoveLanguageKey,
+} from "@/lib/data/love-languages";
+import {
+  ATTACHMENT_STYLE_NAMES,
+  ATTACHMENT_STYLE_DESCRIPTIONS,
+  type AttachmentStyleKey,
+} from "@/lib/data/attachment-styles";
 
 /* ──────────────────────────────────────────────────
    Shared types
@@ -37,6 +48,21 @@ export interface AIContext {
   attachmentContext?: string;
   moodContext?: string;
   deescalationContext?: string;
+  gratitudeContext?: string;
+  loveLanguageContext?: string;
+}
+
+/* ──────────────────────────────────────────────────
+   Time boundaries (shared)
+   ────────────────────────────────────────────────── */
+
+function getTimeBoundaries() {
+  const now = Date.now();
+  return {
+    twentyFourHoursAgo: new Date(now - 24 * 60 * 60 * 1000),
+    sevenDaysAgo: new Date(now - 7 * 24 * 60 * 60 * 1000),
+    thirtyDaysAgo: new Date(now - 30 * 24 * 60 * 60 * 1000),
+  };
 }
 
 /* ──────────────────────────────────────────────────
@@ -44,6 +70,8 @@ export interface AIContext {
    ────────────────────────────────────────────────── */
 
 export async function loadCoupleContext(coupleId: string): Promise<AIContext> {
+  const { sevenDaysAgo, thirtyDaysAgo } = getTimeBoundaries();
+
   // 1. Couple profile
   const [profile] = await db
     .select()
@@ -71,21 +99,22 @@ export async function loadCoupleContext(coupleId: string): Promise<AIContext> {
           .where(inArray(user.id, memberIds))
       : [];
 
-  // 4. Childhood wounds (active only)
+  // 4. Childhood wounds (active only) — full description
   const wounds =
     memberIds.length > 0
       ? await db
           .select({
             userId: childhoodWounds.userId,
             title: childhoodWounds.title,
+            description: childhoodWounds.description,
             intensity: childhoodWounds.intensity,
           })
           .from(childhoodWounds)
           .where(
             and(
               inArray(childhoodWounds.userId, memberIds),
-              eq(childhoodWounds.status, "active")
-            )
+              eq(childhoodWounds.status, "active"),
+            ),
           )
       : [];
 
@@ -124,30 +153,31 @@ export async function loadCoupleContext(coupleId: string): Promise<AIContext> {
     .orderBy(desc(challengeSummaries.createdAt))
     .limit(5);
 
-  // 8. Recent mood entries (last 7 days)
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  // 8. Recent mood entries (last 7 days) — full details
   const moods =
     memberIds.length > 0
       ? await db
           .select({
             userId: moodEntries.userId,
             primaryEmotion: moodEntries.primaryEmotion,
+            secondaryEmotion: moodEntries.secondaryEmotion,
             intensity: moodEntries.intensity,
+            notes: moodEntries.notes,
+            sharedWithPartner: moodEntries.sharedWithPartner,
             createdAt: moodEntries.createdAt,
           })
           .from(moodEntries)
           .where(
             and(
               inArray(moodEntries.userId, memberIds),
-              gte(moodEntries.createdAt, sevenDaysAgo)
-            )
+              gte(moodEntries.createdAt, sevenDaysAgo),
+            ),
           )
           .orderBy(desc(moodEntries.createdAt))
           .limit(20)
       : [];
 
   // 9. Recent de-escalation sessions (last 30 days)
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const deescSessions = await db
     .select({
       triggerReason: deescalationSessions.triggerReason,
@@ -158,21 +188,49 @@ export async function loadCoupleContext(coupleId: string): Promise<AIContext> {
     .where(
       and(
         eq(deescalationSessions.coupleId, coupleId),
-        gte(deescalationSessions.createdAt, thirtyDaysAgo)
-      )
+        gte(deescalationSessions.createdAt, thirtyDaysAgo),
+      ),
     )
     .orderBy(desc(deescalationSessions.createdAt))
     .limit(5);
+
+  // 10. Gratitude entries (last 30 days)
+  const gratitude =
+    memberIds.length > 0
+      ? await db
+          .select({
+            userId: gratitudeEntries.userId,
+            content: gratitudeEntries.content,
+            category: gratitudeEntries.category,
+            shared: gratitudeEntries.shared,
+            createdAt: gratitudeEntries.createdAt,
+          })
+          .from(gratitudeEntries)
+          .where(
+            and(
+              inArray(gratitudeEntries.userId, memberIds),
+              gte(gratitudeEntries.createdAt, thirtyDaysAgo),
+            ),
+          )
+          .orderBy(desc(gratitudeEntries.createdAt))
+          .limit(20)
+      : [];
 
   // ── Format context strings ──
   return {
     coupleProfile: formatCoupleProfile(profile),
     pastSummaries: formatSummaries(summaries),
-    partnerProfiles: formatPartnerProfiles(userProfiles, llRows, attachmentRows),
+    partnerProfiles: formatPartnerProfiles(
+      userProfiles,
+      llRows,
+      attachmentRows,
+    ),
     childhoodWoundsContext: formatChildhoodWounds(wounds, userProfiles),
     attachmentContext: formatAttachmentStyles(attachmentRows, userProfiles),
     moodContext: formatMoodEntries(moods, userProfiles),
     deescalationContext: formatDeescalation(deescSessions),
+    gratitudeContext: formatGratitudeEntries(gratitude, userProfiles),
+    loveLanguageContext: formatLoveLanguages(llRows, userProfiles),
   };
 }
 
@@ -180,9 +238,9 @@ export async function loadCoupleContext(coupleId: string): Promise<AIContext> {
    Personal-facing context
    ────────────────────────────────────────────────── */
 
-export async function loadPersonalContext(
-  userId: string
-): Promise<AIContext> {
+export async function loadPersonalContext(userId: string): Promise<AIContext> {
+  const { sevenDaysAgo, thirtyDaysAgo } = getTimeBoundaries();
+
   // 1. User's profile data
   const [userData] = await db
     .select({
@@ -194,19 +252,20 @@ export async function loadPersonalContext(
     .where(eq(user.id, userId))
     .limit(1);
 
-  // 2. Childhood wounds (active only)
+  // 2. Childhood wounds (active only) — full description
   const wounds = await db
     .select({
       userId: childhoodWounds.userId,
       title: childhoodWounds.title,
+      description: childhoodWounds.description,
       intensity: childhoodWounds.intensity,
     })
     .from(childhoodWounds)
     .where(
       and(
         eq(childhoodWounds.userId, userId),
-        eq(childhoodWounds.status, "active")
-      )
+        eq(childhoodWounds.status, "active"),
+      ),
     );
 
   // 3. Latest attachment style results
@@ -225,27 +284,28 @@ export async function loadPersonalContext(
     .orderBy(desc(loveLanguageResults.createdAt))
     .limit(1);
 
-  // 5. Recent mood entries (last 7 days)
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  // 5. Recent mood entries (last 7 days) — full details
   const moods = await db
     .select({
       userId: moodEntries.userId,
       primaryEmotion: moodEntries.primaryEmotion,
+      secondaryEmotion: moodEntries.secondaryEmotion,
       intensity: moodEntries.intensity,
+      notes: moodEntries.notes,
+      sharedWithPartner: moodEntries.sharedWithPartner,
       createdAt: moodEntries.createdAt,
     })
     .from(moodEntries)
     .where(
       and(
         eq(moodEntries.userId, userId),
-        gte(moodEntries.createdAt, sevenDaysAgo)
-      )
+        gte(moodEntries.createdAt, sevenDaysAgo),
+      ),
     )
     .orderBy(desc(moodEntries.createdAt))
     .limit(10);
 
   // 6. De-escalation history
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const deescSessions = await db
     .select({
       triggerReason: deescalationSessions.triggerReason,
@@ -256,13 +316,32 @@ export async function loadPersonalContext(
     .where(
       and(
         eq(deescalationSessions.userId, userId),
-        gte(deescalationSessions.createdAt, thirtyDaysAgo)
-      )
+        gte(deescalationSessions.createdAt, thirtyDaysAgo),
+      ),
     )
     .orderBy(desc(deescalationSessions.createdAt))
     .limit(5);
 
-  // 7–8. Couple profile + summaries (if user is in a couple)
+  // 7. Gratitude entries (last 30 days)
+  const gratitude = await db
+    .select({
+      userId: gratitudeEntries.userId,
+      content: gratitudeEntries.content,
+      category: gratitudeEntries.category,
+      shared: gratitudeEntries.shared,
+      createdAt: gratitudeEntries.createdAt,
+    })
+    .from(gratitudeEntries)
+    .where(
+      and(
+        eq(gratitudeEntries.userId, userId),
+        gte(gratitudeEntries.createdAt, thirtyDaysAgo),
+      ),
+    )
+    .orderBy(desc(gratitudeEntries.createdAt))
+    .limit(10);
+
+  // 8–9. Couple profile + summaries (if user is in a couple)
   let coupleProfile: string | undefined;
   let pastSummaries: string[] | undefined;
 
@@ -303,36 +382,59 @@ export async function loadPersonalContext(
 
   if (userData?.profileData) {
     const pd = userData.profileData;
-    if (pd.attachmentStyle) profileParts.push(`Attachment style (self-reported): ${pd.attachmentStyle}`);
-    if (pd.loveLanguage) profileParts.push(`Love language (self-reported): ${pd.loveLanguage}`);
-    if (pd.triggers?.length) profileParts.push(`Known triggers: ${pd.triggers.join(", ")}`);
-    if (pd.copingMechanisms?.length) profileParts.push(`Coping mechanisms: ${pd.copingMechanisms.join(", ")}`);
-    if (pd.growthAreas?.length) profileParts.push(`Growth areas: ${pd.growthAreas.join(", ")}`);
+    if (pd.attachmentStyle)
+      profileParts.push(
+        `Attachment style (self-reported): ${pd.attachmentStyle}`,
+      );
+    if (pd.loveLanguage)
+      profileParts.push(`Love language (self-reported): ${pd.loveLanguage}`);
+    if (pd.triggers?.length)
+      profileParts.push(`Known triggers: ${pd.triggers.join(", ")}`);
+    if (pd.copingMechanisms?.length)
+      profileParts.push(`Coping mechanisms: ${pd.copingMechanisms.join(", ")}`);
+    if (pd.growthAreas?.length)
+      profileParts.push(`Growth areas: ${pd.growthAreas.join(", ")}`);
   }
 
   if (llResult) {
+    const dominant = getDominantLoveLanguage(llResult);
     profileParts.push(
-      `Love language quiz scores: Words ${llResult.wordsOfAffirmation}, Acts ${llResult.actsOfService}, Gifts ${llResult.receivingGifts}, Quality Time ${llResult.qualityTime}, Touch ${llResult.physicalTouch}`
+      `Love language quiz scores: Words ${llResult.wordsOfAffirmation}, Acts ${llResult.actsOfService}, Gifts ${llResult.receivingGifts}, Quality Time ${llResult.qualityTime}, Touch ${llResult.physicalTouch}`,
     );
+    if (dominant) {
+      profileParts.push(
+        `Dominant love language: ${LOVE_LANGUAGE_NAMES[dominant]} — ${LOVE_LANGUAGE_DESCRIPTIONS[dominant]}`,
+      );
+    }
   }
 
   if (attachmentResult) {
+    const dominant = getDominantAttachmentStyle(attachmentResult);
     profileParts.push(
-      `Attachment style quiz: Secure ${attachmentResult.secure}, Anxious ${attachmentResult.anxious}, Avoidant ${attachmentResult.avoidant}, Fearful-Avoidant ${attachmentResult.fearfulAvoidant}`
+      `Attachment style quiz: Secure ${attachmentResult.secure}, Anxious ${attachmentResult.anxious}, Avoidant ${attachmentResult.avoidant}, Fearful-Avoidant ${attachmentResult.fearfulAvoidant}`,
     );
+    if (dominant) {
+      profileParts.push(
+        `Dominant attachment style: ${ATTACHMENT_STYLE_NAMES[dominant]} — ${ATTACHMENT_STYLE_DESCRIPTIONS[dominant]}`,
+      );
+    }
   }
 
   const userProfiles = userData ? [userData] : [];
   const attachmentRows = attachmentResult ? [attachmentResult] : [];
+  const llRows = llResult ? [llResult] : [];
 
   return {
-    personalProfile: profileParts.length > 0 ? profileParts.join("\n") : undefined,
+    personalProfile:
+      profileParts.length > 0 ? profileParts.join("\n") : undefined,
     coupleProfile,
     pastSummaries,
     childhoodWoundsContext: formatChildhoodWounds(wounds, userProfiles),
     moodContext: formatMoodEntries(moods, userProfiles),
     deescalationContext: formatDeescalation(deescSessions),
     attachmentContext: formatAttachmentStyles(attachmentRows, userProfiles),
+    gratitudeContext: formatGratitudeEntries(gratitude, userProfiles),
+    loveLanguageContext: formatLoveLanguages(llRows, userProfiles),
   };
 }
 
@@ -340,7 +442,7 @@ export async function loadPersonalContext(
    Formatting helpers (token-efficient, no raw JSON)
    ────────────────────────────────────────────────── */
 
-interface ProfileRow {
+export interface ProfileRow {
   id: string;
   name: string | null;
   profileData: {
@@ -352,53 +454,69 @@ interface ProfileRow {
   } | null;
 }
 
-function nameFor(profiles: ProfileRow[], userId: string): string {
+export function nameFor(profiles: ProfileRow[], userId: string): string {
   return profiles.find((p) => p.id === userId)?.name || "Partner";
 }
 
-function formatCoupleProfile(
-  profile: typeof coupleProfiles.$inferSelect | undefined
+/** Returns ⚡ RECENT prefix for items within the last 24 hours */
+export function recencyTag(createdAt: Date): string {
+  const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
+  return createdAt.getTime() > twentyFourHoursAgo ? "⚡ RECENT — " : "";
+}
+
+export function formatCoupleProfile(
+  profile: typeof coupleProfiles.$inferSelect | undefined,
 ): string | undefined {
   if (!profile) return undefined;
   const parts: string[] = [];
   if (profile.communicationPatterns)
-    parts.push(`Communication patterns: ${JSON.stringify(profile.communicationPatterns)}`);
+    parts.push(
+      `Communication patterns: ${JSON.stringify(profile.communicationPatterns)}`,
+    );
   if (profile.commonTriggers)
     parts.push(`Common triggers: ${JSON.stringify(profile.commonTriggers)}`);
   if (profile.loveLanguages)
     parts.push(`Love languages: ${JSON.stringify(profile.loveLanguages)}`);
   if (profile.effectiveStrategies)
-    parts.push(`Effective strategies: ${JSON.stringify(profile.effectiveStrategies)}`);
+    parts.push(
+      `Effective strategies: ${JSON.stringify(profile.effectiveStrategies)}`,
+    );
   if (profile.recentWins)
     parts.push(`Recent wins: ${JSON.stringify(profile.recentWins)}`);
   return parts.length > 0 ? parts.join("\n") : undefined;
 }
 
-function formatSummaries(
+export function formatSummaries(
   summaries: {
     topic: string | null;
     recurringThemes: string[] | null;
     commitmentsMade: unknown;
     attachmentDynamics: unknown;
     growthAreas: string[] | null;
-  }[]
+  }[],
 ): string[] | undefined {
   if (!summaries.length) return undefined;
   return summaries.map((s) => {
     const lines: string[] = [];
     if (s.topic) lines.push(`Topic: ${s.topic}`);
-    if (s.recurringThemes?.length) lines.push(`Themes: ${s.recurringThemes.join(", ")}`);
-    if (s.commitmentsMade) lines.push(`Commitments: ${JSON.stringify(s.commitmentsMade)}`);
-    if (s.attachmentDynamics) lines.push(`Attachment dynamics: ${JSON.stringify(s.attachmentDynamics)}`);
-    if (s.growthAreas?.length) lines.push(`Growth areas: ${s.growthAreas.join(", ")}`);
+    if (s.recurringThemes?.length)
+      lines.push(`Themes: ${s.recurringThemes.join(", ")}`);
+    if (s.commitmentsMade)
+      lines.push(`Commitments: ${JSON.stringify(s.commitmentsMade)}`);
+    if (s.attachmentDynamics)
+      lines.push(
+        `Attachment dynamics: ${JSON.stringify(s.attachmentDynamics)}`,
+      );
+    if (s.growthAreas?.length)
+      lines.push(`Growth areas: ${s.growthAreas.join(", ")}`);
     return lines.join("\n");
   });
 }
 
-function formatPartnerProfiles(
+export function formatPartnerProfiles(
   profiles: ProfileRow[],
   llRows: (typeof loveLanguageResults.$inferSelect)[],
-  attachmentRows: (typeof attachmentStyleResults.$inferSelect)[]
+  attachmentRows: (typeof attachmentStyleResults.$inferSelect)[],
 ): string | undefined {
   if (!profiles.length) return undefined;
   const seen = new Set<string>();
@@ -406,45 +524,68 @@ function formatPartnerProfiles(
     const lines: string[] = [`${p.name || "Partner"}:`];
     const pd = p.profileData;
     if (pd) {
-      if (pd.triggers?.length) lines.push(`  Triggers: ${pd.triggers.join(", ")}`);
-      if (pd.copingMechanisms?.length) lines.push(`  Coping: ${pd.copingMechanisms.join(", ")}`);
-      if (pd.growthAreas?.length) lines.push(`  Growth: ${pd.growthAreas.join(", ")}`);
+      if (pd.triggers?.length)
+        lines.push(`  Triggers: ${pd.triggers.join(", ")}`);
+      if (pd.copingMechanisms?.length)
+        lines.push(`  Coping: ${pd.copingMechanisms.join(", ")}`);
+      if (pd.growthAreas?.length)
+        lines.push(`  Growth: ${pd.growthAreas.join(", ")}`);
     }
     // Latest love language for this user (first unseen)
     const ll = llRows.find((r) => r.userId === p.id && !seen.has(r.id));
     if (ll) {
       seen.add(ll.id);
+      const dominant = getDominantLoveLanguage(ll);
       lines.push(
-        `  Love languages: Words ${ll.wordsOfAffirmation}, Acts ${ll.actsOfService}, Gifts ${ll.receivingGifts}, Quality ${ll.qualityTime}, Touch ${ll.physicalTouch}`
+        `  Love languages: Words ${ll.wordsOfAffirmation}, Acts ${ll.actsOfService}, Gifts ${ll.receivingGifts}, Quality ${ll.qualityTime}, Touch ${ll.physicalTouch}`,
       );
+      if (dominant) {
+        lines.push(
+          `  Dominant: ${LOVE_LANGUAGE_NAMES[dominant]} — ${LOVE_LANGUAGE_DESCRIPTIONS[dominant]}`,
+        );
+      }
     }
     // Latest attachment for this user
-    const att = attachmentRows.find((r) => r.userId === p.id && !seen.has(r.id));
+    const att = attachmentRows.find(
+      (r) => r.userId === p.id && !seen.has(r.id),
+    );
     if (att) {
       seen.add(att.id);
+      const dominant = getDominantAttachmentStyle(att);
       lines.push(
-        `  Attachment: Secure ${att.secure}, Anxious ${att.anxious}, Avoidant ${att.avoidant}, Fearful ${att.fearfulAvoidant}`
+        `  Attachment: Secure ${att.secure}, Anxious ${att.anxious}, Avoidant ${att.avoidant}, Fearful ${att.fearfulAvoidant}`,
       );
+      if (dominant) {
+        lines.push(
+          `  Dominant: ${ATTACHMENT_STYLE_NAMES[dominant]} — ${ATTACHMENT_STYLE_DESCRIPTIONS[dominant]}`,
+        );
+      }
     }
     return lines.join("\n");
   });
   return parts.length > 0 ? parts.join("\n\n") : undefined;
 }
 
-function formatChildhoodWounds(
-  wounds: { userId: string; title: string; intensity: number }[],
-  profiles: ProfileRow[]
+export function formatChildhoodWounds(
+  wounds: {
+    userId: string;
+    title: string;
+    description: string | null;
+    intensity: number;
+  }[],
+  profiles: ProfileRow[],
 ): string | undefined {
   if (!wounds.length) return undefined;
-  const lines = wounds.map(
-    (w) => `- ${nameFor(profiles, w.userId)}: "${w.title}" (intensity ${w.intensity}/10)`
-  );
+  const lines = wounds.map((w) => {
+    const desc = w.description ? ` — ${w.description}` : "";
+    return `- ${nameFor(profiles, w.userId)}: "${w.title}" (intensity ${w.intensity}/10)${desc}`;
+  });
   return lines.join("\n");
 }
 
-function formatAttachmentStyles(
+export function formatAttachmentStyles(
   rows: (typeof attachmentStyleResults.$inferSelect)[],
-  profiles: ProfileRow[]
+  profiles: ProfileRow[],
 ): string | undefined {
   if (!rows.length) return undefined;
   const seen = new Set<string>();
@@ -452,44 +593,126 @@ function formatAttachmentStyles(
   for (const r of rows) {
     if (seen.has(r.userId)) continue;
     seen.add(r.userId);
-    lines.push(
-      `${nameFor(profiles, r.userId)}: Secure ${r.secure}, Anxious ${r.anxious}, Avoidant ${r.avoidant}, Fearful-Avoidant ${r.fearfulAvoidant}`
-    );
+    const dominant = getDominantAttachmentStyle(r);
+    let line = `${nameFor(profiles, r.userId)}: Secure ${r.secure}, Anxious ${r.anxious}, Avoidant ${r.avoidant}, Fearful-Avoidant ${r.fearfulAvoidant}`;
+    if (dominant) {
+      line += `\n  Dominant: ${ATTACHMENT_STYLE_NAMES[dominant]} — ${ATTACHMENT_STYLE_DESCRIPTIONS[dominant]}`;
+    }
+    lines.push(line);
   }
   return lines.length > 0 ? lines.join("\n") : undefined;
 }
 
-function formatMoodEntries(
+export function formatMoodEntries(
   moods: {
     userId: string;
     primaryEmotion: string;
+    secondaryEmotion: string | null;
     intensity: number;
+    notes: string | null;
+    sharedWithPartner: boolean;
     createdAt: Date;
   }[],
-  profiles: ProfileRow[]
+  profiles: ProfileRow[],
 ): string | undefined {
   if (!moods.length) return undefined;
-  const lines = moods.map(
-    (m) =>
-      `${nameFor(profiles, m.userId)} — ${m.primaryEmotion} (${m.intensity}/10) on ${m.createdAt.toLocaleDateString()}`
-  );
+  const lines = moods.map((m) => {
+    const tag = recencyTag(m.createdAt);
+    const secondary = m.secondaryEmotion ? ` + ${m.secondaryEmotion}` : "";
+    const notes = m.notes ? ` — "${m.notes}"` : "";
+    const shared = m.sharedWithPartner ? " [shared]" : "";
+    return `${tag}${nameFor(profiles, m.userId)} — ${m.primaryEmotion}${secondary} (${m.intensity}/10) on ${m.createdAt.toLocaleDateString()}${notes}${shared}`;
+  });
   return lines.join("\n");
 }
 
-function formatDeescalation(
+export function formatDeescalation(
   sessions: {
     triggerReason: string | null;
     reflection: string | null;
     createdAt: Date;
-  }[]
+  }[],
 ): string | undefined {
   if (!sessions.length) return undefined;
   const lines = sessions.map((s) => {
+    const tag = recencyTag(s.createdAt);
     const parts: string[] = [];
     if (s.triggerReason) parts.push(`Trigger: ${s.triggerReason}`);
     if (s.reflection) parts.push(`Reflection: ${s.reflection}`);
     parts.push(`Date: ${s.createdAt.toLocaleDateString()}`);
-    return parts.join(" | ");
+    return `${tag}${parts.join(" | ")}`;
   });
   return lines.join("\n");
+}
+
+export function formatGratitudeEntries(
+  entries: {
+    userId: string;
+    content: string;
+    category: string;
+    shared: boolean;
+    createdAt: Date;
+  }[],
+  profiles: ProfileRow[],
+): string | undefined {
+  if (!entries.length) return undefined;
+  const lines = entries.map((e) => {
+    const tag = recencyTag(e.createdAt);
+    const shared = e.shared ? " [shared with partner]" : "";
+    const cat =
+      e.category !== "gratitude" ? ` (${e.category.replace("_", " ")})` : "";
+    return `${tag}${nameFor(profiles, e.userId)}${cat}: "${e.content}" — ${e.createdAt.toLocaleDateString()}${shared}`;
+  });
+  return lines.join("\n");
+}
+
+export function formatLoveLanguages(
+  rows: (typeof loveLanguageResults.$inferSelect)[],
+  profiles: ProfileRow[],
+): string | undefined {
+  if (!rows.length) return undefined;
+  const seen = new Set<string>();
+  const lines: string[] = [];
+  for (const r of rows) {
+    if (seen.has(r.userId)) continue;
+    seen.add(r.userId);
+    const dominant = getDominantLoveLanguage(r);
+    let line = `${nameFor(profiles, r.userId)}: Words ${r.wordsOfAffirmation}, Acts ${r.actsOfService}, Gifts ${r.receivingGifts}, Quality Time ${r.qualityTime}, Touch ${r.physicalTouch}`;
+    if (dominant) {
+      line += `\n  Dominant: ${LOVE_LANGUAGE_NAMES[dominant]} — ${LOVE_LANGUAGE_DESCRIPTIONS[dominant]}`;
+    }
+    lines.push(line);
+  }
+  return lines.length > 0 ? lines.join("\n") : undefined;
+}
+
+/* ──────────────────────────────────────────────────
+   Dominant style / language helpers
+   ────────────────────────────────────────────────── */
+
+export function getDominantLoveLanguage(
+  result: typeof loveLanguageResults.$inferSelect,
+): LoveLanguageKey | null {
+  const scores: [LoveLanguageKey, number][] = [
+    ["W", result.wordsOfAffirmation],
+    ["A", result.actsOfService],
+    ["G", result.receivingGifts],
+    ["Q", result.qualityTime],
+    ["T", result.physicalTouch],
+  ];
+  const max = scores.reduce((a, b) => (b[1] > a[1] ? b : a));
+  return max[1] > 0 ? max[0] : null;
+}
+
+export function getDominantAttachmentStyle(
+  result: typeof attachmentStyleResults.$inferSelect,
+): AttachmentStyleKey | null {
+  const scores: [AttachmentStyleKey, number][] = [
+    ["S", result.secure],
+    ["N", result.anxious],
+    ["V", result.avoidant],
+    ["F", result.fearfulAvoidant],
+  ];
+  const max = scores.reduce((a, b) => (b[1] > a[1] ? b : a));
+  return max[1] > 0 ? max[0] : null;
 }

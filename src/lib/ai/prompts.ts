@@ -184,6 +184,9 @@ If no clear commitments were made, return empty arrays.`;
 
 /**
  * Constructs the full system prompt with memory context injected.
+ *
+ * Items marked with ⚡ RECENT occurred within the last 24 hours
+ * and should be given special attention and priority in responses.
  */
 export function buildSystemPrompt(options: {
   basePrompt: string;
@@ -195,8 +198,15 @@ export function buildSystemPrompt(options: {
   attachmentContext?: string;
   moodContext?: string;
   deescalationContext?: string;
+  gratitudeContext?: string;
+  loveLanguageContext?: string;
 }): string {
   const parts = [options.basePrompt];
+
+  // Recency awareness instruction
+  parts.push(
+    `\n## ⚡ Recency Awareness\nItems below marked with "⚡ RECENT" occurred within the last 24 hours. Prioritise these in your responses — they reflect the person's most immediate emotional state and should be acknowledged first.`
+  );
 
   if (options.coupleProfile) {
     parts.push(`\n## Couple Profile\n${options.coupleProfile}`);
@@ -214,6 +224,10 @@ export function buildSystemPrompt(options: {
     parts.push(`\n## Attachment Styles\n${options.attachmentContext}`);
   }
 
+  if (options.loveLanguageContext) {
+    parts.push(`\n## Love Languages\n${options.loveLanguageContext}`);
+  }
+
   if (options.pastSummaries?.length) {
     parts.push(
       `\n## Past Challenge Summaries\n${options.pastSummaries
@@ -228,6 +242,10 @@ export function buildSystemPrompt(options: {
 
   if (options.deescalationContext) {
     parts.push(`\n## De-escalation History\n${options.deescalationContext}`);
+  }
+
+  if (options.gratitudeContext) {
+    parts.push(`\n## Gratitude & Appreciation\n${options.gratitudeContext}`);
   }
 
   if (options.personalProfile) {

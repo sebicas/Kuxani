@@ -14,6 +14,7 @@ import {
   coupleMembers,
   coupleProfiles,
   moodEntries,
+  gratitudeEntries,
   deescalationSessions,
   childhoodWounds,
   loveLanguageResults,
@@ -77,6 +78,7 @@ describe("AI Context Loader", () => {
       {
         userId: userIdA,
         title: "Abandonment fear",
+        description: "Deep fear of being left alone stemming from early childhood when primary caregiver was frequently absent.",
         intensity: 8,
         source: "self",
         status: "active",
@@ -84,6 +86,7 @@ describe("AI Context Loader", () => {
       {
         userId: userIdB,
         title: "Rejection sensitivity",
+        description: "Heightened sensitivity to perceived rejection, often interpreting neutral cues as signs of disapproval.",
         intensity: 6,
         source: "self",
         status: "active",
@@ -137,12 +140,32 @@ describe("AI Context Loader", () => {
       {
         userId: userIdA,
         primaryEmotion: "anxious",
+        secondaryEmotion: "overwhelmed",
         intensity: 7,
+        notes: "Deadline pressure from work spilling into evening",
+        sharedWithPartner: true,
       },
       {
         userId: userIdB,
         primaryEmotion: "calm",
         intensity: 3,
+        notes: "Good meditation session this morning",
+      },
+    ]);
+
+    await db.insert(gratitudeEntries).values([
+      {
+        userId: userIdA,
+        coupleId,
+        content: "Grateful that Bob made me tea when I was stressed",
+        category: "appreciation",
+        shared: true,
+      },
+      {
+        userId: userIdB,
+        content: "Thankful for a peaceful morning together",
+        category: "gratitude",
+        shared: false,
       },
     ]);
 
@@ -157,6 +180,7 @@ describe("AI Context Loader", () => {
   afterAll(async () => {
     // Clean up in dependency order
     await db.delete(deescalationSessions).where(eq(deescalationSessions.coupleId, coupleId));
+    await db.delete(gratitudeEntries).where(inArray(gratitudeEntries.userId, [userIdA, userIdB, soloUserId]));
     await db.delete(moodEntries).where(inArray(moodEntries.userId, [userIdA, userIdB, soloUserId]));
     await db.delete(attachmentStyleResults).where(inArray(attachmentStyleResults.userId, [userIdA, userIdB, soloUserId]));
     await db.delete(loveLanguageResults).where(inArray(loveLanguageResults.userId, [userIdA, userIdB, soloUserId]));
@@ -178,20 +202,39 @@ describe("AI Context Loader", () => {
 
       expect(ctx.partnerProfiles).toBeDefined();
 
+      // Childhood wounds — full descriptions
       expect(ctx.childhoodWoundsContext).toBeDefined();
       expect(ctx.childhoodWoundsContext).toContain("Abandonment fear");
+      expect(ctx.childhoodWoundsContext).toContain("primary caregiver was frequently absent");
       expect(ctx.childhoodWoundsContext).toContain("Rejection sensitivity");
+      expect(ctx.childhoodWoundsContext).toContain("perceived rejection");
 
+      // Attachment styles — with descriptions
       expect(ctx.attachmentContext).toBeDefined();
       expect(ctx.attachmentContext).toContain("Secure 20");
       expect(ctx.attachmentContext).toContain("Avoidant 18");
+      expect(ctx.attachmentContext).toContain("Dominant:");
 
+      // Mood entries — with details
       expect(ctx.moodContext).toBeDefined();
       expect(ctx.moodContext).toContain("anxious");
+      expect(ctx.moodContext).toContain("overwhelmed");
+      expect(ctx.moodContext).toContain("Deadline pressure");
+      expect(ctx.moodContext).toContain("[shared]");
       expect(ctx.moodContext).toContain("calm");
 
       expect(ctx.deescalationContext).toBeDefined();
       expect(ctx.deescalationContext).toContain("Raised voice");
+
+      // Gratitude entries
+      expect(ctx.gratitudeContext).toBeDefined();
+      expect(ctx.gratitudeContext).toContain("Bob made me tea");
+      expect(ctx.gratitudeContext).toContain("peaceful morning");
+
+      // Love language context with descriptions
+      expect(ctx.loveLanguageContext).toBeDefined();
+      expect(ctx.loveLanguageContext).toContain("Words 10");
+      expect(ctx.loveLanguageContext).toContain("Dominant:");
     });
 
     it("should exclude dismissed childhood wounds", async () => {
@@ -208,6 +251,8 @@ describe("AI Context Loader", () => {
       expect(ctx.attachmentContext).toBeUndefined();
       expect(ctx.moodContext).toBeUndefined();
       expect(ctx.pastSummaries).toBeUndefined();
+      expect(ctx.gratitudeContext).toBeUndefined();
+      expect(ctx.loveLanguageContext).toBeUndefined();
     });
   });
 
@@ -243,6 +288,8 @@ describe("AI Context Loader", () => {
       expect(ctx.attachmentContext).toBeUndefined();
       expect(ctx.moodContext).toBeUndefined();
       expect(ctx.deescalationContext).toBeUndefined();
+      expect(ctx.gratitudeContext).toBeUndefined();
+      expect(ctx.loveLanguageContext).toBeUndefined();
     });
 
     it("should return gracefully for a nonexistent user", async () => {
