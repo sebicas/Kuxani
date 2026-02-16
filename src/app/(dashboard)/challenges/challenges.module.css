@@ -832,6 +832,20 @@
   padding: var(--space-xl);
 }
 
+/* ── Resolved Detail Sections ── */
+.resolvedSections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.resolvedDiscussion {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: visible;
+}
+
 /* ── Animations ── */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
