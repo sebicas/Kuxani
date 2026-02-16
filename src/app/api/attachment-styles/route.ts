@@ -71,11 +71,11 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const { secure, anxious, avoidant, fearfulAvoidant } = body;
 
-  // Validate all scores are present and in range (5 questions × 1–5 rating = 5–25)
+  // Validate all scores are present and in range (10 questions × 1–7 rating = 10–70)
   const scores = [secure, anxious, avoidant, fearfulAvoidant];
-  if (scores.some((s) => typeof s !== "number" || s < 5 || s > 25)) {
+  if (scores.some((s) => typeof s !== "number" || s < 10 || s > 70)) {
     return NextResponse.json(
-      { error: "Invalid scores. Each must be a number 5-25." },
+      { error: "Invalid scores. Each must be a number 10-70." },
       { status: 400 }
     );
   }

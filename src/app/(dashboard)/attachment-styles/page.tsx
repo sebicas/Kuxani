@@ -225,7 +225,7 @@ export default function AttachmentStylesPage() {
           <h2 className={styles.startTitle}>Discover Your Attachment Style</h2>
           <p className={styles.startDescription}>
             Understanding your attachment style can help you and your partner
-            build a more secure and fulfilling bond. Rate 20 statements to
+            build a more secure and fulfilling bond. Rate 40 statements to
             discover your primary attachment style.
           </p>
           <div className={styles.stylePreview}>
@@ -272,8 +272,8 @@ export default function AttachmentStylesPage() {
 
             <div className={styles.likertContainer}>
               <div className={styles.likertLabels}>
-                <span className={styles.likertLabel}>Strongly Disagree</span>
-                <span className={styles.likertLabel}>Strongly Agree</span>
+                <span className={`${styles.likertLabel} ${styles.likertLabelDisagree}`}>No, Strongly Disagree</span>
+                <span className={`${styles.likertLabel} ${styles.likertLabelAgree}`}>Yes, Strongly Agree</span>
               </div>
               <div className={styles.likertScale}>
                 {LIKERT_LABELS.map((label, index) => (
