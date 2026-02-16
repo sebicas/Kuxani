@@ -16,14 +16,14 @@ import {
 } from "@/lib/data/attachment-styles";
 
 describe("Attachment Styles Quiz Data", () => {
-  it("should have exactly 20 statements", () => {
-    expect(QUIZ_STATEMENTS.length).toBe(20);
+  it("should have exactly 40 statements", () => {
+    expect(QUIZ_STATEMENTS.length).toBe(40);
   });
 
   it("should have unique statement IDs", () => {
     const ids = QUIZ_STATEMENTS.map((s) => s.id);
     const uniqueIds = new Set(ids);
-    expect(uniqueIds.size).toBe(20);
+    expect(uniqueIds.size).toBe(40);
   });
 
   it("each statement should have non-empty text", () => {
@@ -44,13 +44,25 @@ describe("Attachment Styles Quiz Data", () => {
     expect(styles.has("F")).toBe(true);
   });
 
-  it("each style should have exactly 5 statements", () => {
+  it("each style should have exactly 10 statements", () => {
     const counts: Record<AttachmentStyleKey, number> = { S: 0, N: 0, V: 0, F: 0 };
     for (const s of QUIZ_STATEMENTS) {
       counts[s.style]++;
     }
     for (const key of Object.keys(counts) as AttachmentStyleKey[]) {
-      expect(counts[key]).toBe(5);
+      expect(counts[key]).toBe(10);
+    }
+  });
+
+  it("should have unique statement texts", () => {
+    const texts = QUIZ_STATEMENTS.map((s) => s.text);
+    const uniqueTexts = new Set(texts);
+    expect(uniqueTexts.size).toBe(40);
+  });
+
+  it("should have sequential IDs from 1 to 40", () => {
+    for (let i = 0; i < QUIZ_STATEMENTS.length; i++) {
+      expect(QUIZ_STATEMENTS[i].id).toBe(i + 1);
     }
   });
 
@@ -66,7 +78,17 @@ describe("Attachment Styles Quiz Data", () => {
     }
   });
 
-  it("should have exactly 5 Likert labels", () => {
-    expect(LIKERT_LABELS.length).toBe(5);
+  it("should have exactly 7 Likert labels", () => {
+    expect(LIKERT_LABELS.length).toBe(7);
+  });
+
+  it("Likert labels should include 'Somewhat' options", () => {
+    expect(LIKERT_LABELS).toContain("Somewhat Disagree");
+    expect(LIKERT_LABELS).toContain("Somewhat Agree");
+  });
+
+  it("Likert labels should use 'No/Yes' prefix for extremes", () => {
+    expect(LIKERT_LABELS[0]).toBe("No, Strongly Disagree");
+    expect(LIKERT_LABELS[6]).toBe("Yes, Strongly Agree");
   });
 });
