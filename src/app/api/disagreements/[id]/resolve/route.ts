@@ -14,7 +14,7 @@ import {
   user,
 } from "@/lib/db/schema";
 import { getServerSession } from "@/lib/auth/session";
-import { eq, and, asc, ne } from "drizzle-orm";
+import { eq, and, asc } from "drizzle-orm";
 import { openai, REASONING_MODEL } from "@/lib/ai/client";
 import { DISAGREEMENT_GENERATE_COMMITMENTS_PROMPT } from "@/lib/ai/prompts";
 import {

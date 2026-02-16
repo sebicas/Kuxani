@@ -14,7 +14,7 @@ import {
   user,
 } from "@/lib/db/schema";
 import { getServerSession } from "@/lib/auth/session";
-import { eq, and, asc, sql } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { DISAGREEMENT_STATUS } from "@/lib/socket/events";
 
 export const dynamic = "force-dynamic";

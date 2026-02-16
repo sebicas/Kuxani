@@ -225,7 +225,7 @@ describe("Partner Invitation", () => {
 
   /* ── POST /api/couples/join — third person can't join ── */
   it("should prevent third person from joining a full couple", async () => {
-    const { status, data: _data } = await apiRequest("/api/couples/join", {
+    const { status } = await apiRequest("/api/couples/join", {
       method: "POST",
       headers: thirdHeaders,
       body: { inviteCode },

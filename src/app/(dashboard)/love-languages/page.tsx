@@ -37,7 +37,7 @@ export default function LoveLanguagesPage() {
   );
 
   // Derive scores from answers array
-  const scores = useMemo(() => {
+  const _scores = useMemo(() => {
     const s: Record<LoveLanguageKey, number> = { W: 0, A: 0, G: 0, Q: 0, T: 0 };
     for (const a of answers) {
       if (a) s[a]++;

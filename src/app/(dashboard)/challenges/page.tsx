@@ -60,6 +60,19 @@ export default function ChallengesPage() {
   const [coupleId, setCoupleId] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
+  const fetchChallenges = useCallback(async () => {
+    try {
+      const res = await fetch("/api/challenges");
+      if (res.ok) {
+        setChallenges(await res.json());
+      }
+    } catch (err) {
+      console.error("Failed to load challenges:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchChallenges();
     // Fetch couple info for real-time
@@ -75,20 +88,7 @@ export default function ChallengesPage() {
         if (data?.user?.id) setCurrentUserId(data.user.id);
       })
       .catch(() => {});
-  }, []);
-
-  const fetchChallenges = useCallback(async () => {
-    try {
-      const res = await fetch("/api/challenges");
-      if (res.ok) {
-        setChallenges(await res.json());
-      }
-    } catch (err) {
-      console.error("Failed to load challenges:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  }, [fetchChallenges]);
 
   // Real-time: auto-refresh when partner creates/updates a challenge
   useCoupleSocket(coupleId, CHALLENGE_UPDATED, currentUserId, fetchChallenges);

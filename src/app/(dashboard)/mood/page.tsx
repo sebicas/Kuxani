@@ -45,23 +45,6 @@ export default function MoodPage() {
   const [coupleId, setCoupleId] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchEntries();
-    // Fetch couple + user info for real-time
-    fetch("/api/couples")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.couple?.id) setCoupleId(data.couple.id);
-      })
-      .catch(() => {});
-    fetch("/api/auth/get-session")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data?.user?.id) setCurrentUserId(data.user.id);
-      })
-      .catch(() => {});
-  }, []);
-
   const fetchEntries = useCallback(async () => {
     try {
       const res = await fetch("/api/mood?days=30");
@@ -85,6 +68,23 @@ export default function MoodPage() {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchEntries();
+    // Fetch couple + user info for real-time
+    fetch("/api/couples")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.couple?.id) setCoupleId(data.couple.id);
+      })
+      .catch(() => {});
+    fetch("/api/auth/get-session")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.user?.id) setCurrentUserId(data.user.id);
+      })
+      .catch(() => {});
+  }, [fetchEntries]);
 
   // Real-time: auto-refresh when partner shares a mood
   useCoupleSocket(coupleId, MOOD_UPDATED, currentUserId, fetchEntries);

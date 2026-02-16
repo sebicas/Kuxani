@@ -5,7 +5,7 @@
  * No database required — these test the output format, descriptions,
  * recency tagging, and edge cases directly.
  */
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   recencyTag,
   formatMoodEntries,

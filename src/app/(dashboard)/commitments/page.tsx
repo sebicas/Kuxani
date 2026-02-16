@@ -60,22 +60,6 @@ export default function CommitmentsPage() {
   const [coupleId, setCoupleId] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchAll();
-    fetch("/api/couples")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.couple?.id) setCoupleId(data.couple.id);
-      })
-      .catch(() => {});
-    fetch("/api/auth/get-session")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data?.user?.id) setCurrentUserId(data.user.id);
-      })
-      .catch(() => {});
-  }, []);
-
   const fetchAll = useCallback(async () => {
     try {
       const [reqRes, compRes] = await Promise.all([
@@ -90,6 +74,22 @@ export default function CommitmentsPage() {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchAll();
+    fetch("/api/couples")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.couple?.id) setCoupleId(data.couple.id);
+      })
+      .catch(() => {});
+    fetch("/api/auth/get-session")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.user?.id) setCurrentUserId(data.user.id);
+      })
+      .catch(() => {});
+  }, [fetchAll]);
 
   useCommitmentsSocket(coupleId, currentUserId, fetchAll);
 

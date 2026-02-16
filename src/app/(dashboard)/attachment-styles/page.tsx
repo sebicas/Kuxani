@@ -37,7 +37,7 @@ export default function AttachmentStylesPage() {
   );
 
   // Derive scores from answers array
-  const scores = useMemo(() => {
+  const _scores = useMemo(() => {
     const s: Record<AttachmentStyleKey, number> = { S: 0, N: 0, V: 0, F: 0 };
     for (let i = 0; i < answers.length; i++) {
       if (answers[i] !== null) {

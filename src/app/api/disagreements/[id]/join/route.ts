@@ -9,7 +9,6 @@ import {
   disagreements,
   disagreementInvitations,
   disagreementMessages,
-  coupleMembers,
   user,
 } from "@/lib/db/schema";
 import { getServerSession } from "@/lib/auth/session";

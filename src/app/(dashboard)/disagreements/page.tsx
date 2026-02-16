@@ -50,6 +50,19 @@ export default function DisagreementsPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
 
+  const fetchDisagreements = useCallback(async () => {
+    try {
+      const res = await fetch("/api/disagreements");
+      if (res.ok) {
+        setDisagreements(await res.json());
+      }
+    } catch (err) {
+      console.error("Failed to load disagreements:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchDisagreements();
     fetch("/api/couples")
@@ -64,20 +77,7 @@ export default function DisagreementsPage() {
         if (data?.user?.id) setCurrentUserId(data.user.id);
       })
       .catch(() => {});
-  }, []);
-
-  const fetchDisagreements = useCallback(async () => {
-    try {
-      const res = await fetch("/api/disagreements");
-      if (res.ok) {
-        setDisagreements(await res.json());
-      }
-    } catch (err) {
-      console.error("Failed to load disagreements:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  }, [fetchDisagreements]);
 
   // Real-time updates
   useCoupleSocket(coupleId, DISAGREEMENT_STATUS, currentUserId, fetchDisagreements);
