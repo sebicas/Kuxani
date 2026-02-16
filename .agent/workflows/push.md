@@ -17,7 +17,33 @@ description: Intelligently group uncommitted changes into logical commits and pu
    - Determine if changes belong to a single logical unit or multiple distinct logical units.
    - If there are changes addressing different issues, split them into separate commits.
 
-3. **Commit changes**:
+3. **Pre-push verification gate**:
+   Run each check below **in order**. If any step fails, STOP immediately, report the failure to the user, and do NOT proceed to commit or push.
+   1. **Lint**:
+
+      ```bash
+      npm run lint
+      ```
+
+      Confirm: no errors.
+
+   2. **Unit tests**:
+
+      ```bash
+      npm run test:unit
+      ```
+
+      Confirm: all tests pass.
+
+   3. **Build**:
+      ```bash
+      npm run build
+      ```
+      Confirm: `✓ Compiled successfully` and zero errors.
+
+   If all three pass, proceed to the next step.
+
+4. **Commit changes**:
    - For each identified group of changes:
      1. **Stage**: Run `git add <path/to/files>` for the files in this group.
      2. **Message**: Generate a specific, descriptive commit message using the format `<type>: <description>`.
@@ -25,13 +51,14 @@ description: Intelligently group uncommitted changes into logical commits and pu
         - **Description**: A concise summary of the change (start with uppercase, no period).
      3. **Commit**: Run `git commit -m "<type>: <description>"`.
 
-4. **Push**:
+5. **Push**:
    - Run `git push origin <branch>` where `<branch>` is the current branch.
 
-5. **Report**:
+6. **Report**:
    - Inform the user of:
      - All commits created (with messages).
      - Which branch was pushed.
+     - Verification results (lint ✓, tests ✓, build ✓).
 
 ## Allowed Commit Types
 
@@ -52,3 +79,4 @@ description: Intelligently group uncommitted changes into logical commits and pu
 - **Do not** use generic messages like "fixes" or "updates".
 - **Do not** invent new commit types; use strictly the ones listed above.
 - **Do not** push if `git commit` fails.
+- **Do not** commit or push if the pre-push verification gate fails.
