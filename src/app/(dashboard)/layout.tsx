@@ -10,6 +10,7 @@ import styles from "./dashboard.module.css";
 const navItems = [
   { href: "/dashboard", label: "Home", icon: "🏠" },
   { href: "/challenges", label: "Challenges", icon: "🔮" },
+  { href: "/disagreements", label: "Disagreements", icon: "🗣️" },
   { href: "/personal", label: "Private Therapy", icon: "💬" },
   { href: "/mood", label: "Mood Tracker", icon: "🫶" },
   { href: "/love-languages", label: "Love Languages", icon: "💕" },
@@ -21,6 +22,7 @@ const navItems = [
 ];
 
 const secondaryNavItems = [
+  { href: "/commitments", label: "Commitments", icon: "📝" },
   { href: "/exercises", label: "Exercises", icon: "📚" },
   { href: "/settings", label: "Settings", icon: "⚙️" },
 ];
