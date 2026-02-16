@@ -153,7 +153,93 @@ async function main() {
       }
     });
 
+    // Client requests to join a disagreement room (for real-time chat)
+    socket.on(
+      "join-disagreement",
+      async (disagreementId: string) => {
+        if (!disagreementId || typeof disagreementId !== "string") return;
+
+        try {
+          const cookieHeader = socket.handshake.headers.cookie || "";
+          const sessionData = await auth.api.getSession({
+            headers: new Headers({ cookie: cookieHeader }),
+          });
+
+          if (!sessionData?.user) {
+            socket.emit("error", { message: "Unauthorized" });
+            return;
+          }
+
+          socket.join(`disagreement:${disagreementId}`);
+          // Store for auto-offline on disconnect
+          if (!socket.data.disagreementRooms) {
+            socket.data.disagreementRooms = [];
+          }
+          socket.data.disagreementRooms.push(disagreementId);
+          socket.data.userId = sessionData.user.id;
+
+          // Notify partner that user is online
+          socket.to(`disagreement:${disagreementId}`).emit("partner-activity", {
+            disagreementId,
+            userId: sessionData.user.id,
+            activity: "online",
+          });
+
+          console.log(
+            `[socket.io] ${socket.id} joined room disagreement:${disagreementId}`
+          );
+        } catch (err) {
+          console.error("[socket.io] join-disagreement error:", err);
+        }
+      }
+    );
+
+    // Client leaves a disagreement room
+    socket.on("leave-disagreement", (disagreementId: string) => {
+      if (!disagreementId) return;
+      socket.leave(`disagreement:${disagreementId}`);
+      socket.to(`disagreement:${disagreementId}`).emit("partner-activity", {
+        disagreementId,
+        userId: socket.data.userId,
+        activity: "offline",
+      });
+      // Remove from tracked rooms
+      if (socket.data.disagreementRooms) {
+        socket.data.disagreementRooms = socket.data.disagreementRooms.filter(
+          (id: string) => id !== disagreementId
+        );
+      }
+    });
+
+    // Partner activity broadcasting (typing, reading, speaking, etc.)
+    socket.on(
+      "partner-activity",
+      (payload: {
+        disagreementId: string;
+        activity: string;
+      }) => {
+        if (!payload.disagreementId || !payload.activity) return;
+        socket
+          .to(`disagreement:${payload.disagreementId}`)
+          .emit("partner-activity", {
+            disagreementId: payload.disagreementId,
+            userId: socket.data.userId,
+            activity: payload.activity,
+          });
+      }
+    );
+
     socket.on("disconnect", () => {
+      // Auto-offline for all disagreement rooms this socket was in
+      if (socket.data.disagreementRooms) {
+        for (const roomId of socket.data.disagreementRooms as string[]) {
+          socket.to(`disagreement:${roomId}`).emit("partner-activity", {
+            disagreementId: roomId,
+            userId: socket.data.userId,
+            activity: "offline",
+          });
+        }
+      }
       console.log(`[socket.io] client disconnected: ${socket.id}`);
     });
   });
