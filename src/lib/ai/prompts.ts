@@ -203,10 +203,24 @@ export function buildSystemPrompt(options: {
 }): string {
   const parts = [options.basePrompt];
 
-  // Recency awareness instruction
-  parts.push(
-    `\n## ⚡ Recency Awareness\nItems below marked with "⚡ RECENT" occurred within the last 24 hours. Prioritise these in your responses — they reflect the person's most immediate emotional state and should be acknowledged first.`
-  );
+  const hasContext =
+    options.coupleProfile ||
+    options.partnerProfiles ||
+    options.childhoodWoundsContext ||
+    options.attachmentContext ||
+    options.loveLanguageContext ||
+    (options.pastSummaries && options.pastSummaries.length > 0) ||
+    options.moodContext ||
+    options.deescalationContext ||
+    options.gratitudeContext ||
+    options.personalProfile;
+
+  // Recency awareness instruction (only when context is present)
+  if (hasContext) {
+    parts.push(
+      `\n## ⚡ Recency Awareness\nItems below marked with "⚡ RECENT" occurred within the last 24 hours. Prioritise these in your responses — they reflect the person's most immediate emotional state and should be acknowledged first.`
+    );
+  }
 
   if (options.coupleProfile) {
     parts.push(`\n## Couple Profile\n${options.coupleProfile}`);

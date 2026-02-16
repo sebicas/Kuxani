@@ -1006,7 +1006,10 @@ describe("24-hour recency prioritization", () => {
 
 describe("buildSystemPrompt context integration", () => {
   it("should include recency awareness instruction", () => {
-    const prompt = buildSystemPrompt({ basePrompt: "You are Kuxani." });
+    const prompt = buildSystemPrompt({
+      basePrompt: "You are Kuxani.",
+      moodContext: "Alice — calm (3/10)",
+    });
     expect(prompt).toContain("⚡ Recency Awareness");
     expect(prompt).toContain("Prioritise these in your responses");
   });
