@@ -54,6 +54,7 @@ jobs:
       BETTER_AUTH_SECRET: ci-test-secret-key-not-for-production
       BETTER_AUTH_URL: http://localhost:3000
       NEXT_PUBLIC_APP_URL: http://localhost:3000
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       NODE_ENV: test
 
     steps:

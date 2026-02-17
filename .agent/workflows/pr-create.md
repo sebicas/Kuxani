@@ -77,18 +77,11 @@ description: Commit, push, and create a GitHub Pull Request from the current bra
      gh pr create --base <target-branch> --head <current-branch> --title "<Type> : <Title>" --body '<PR body content>'
      ```
 
-8. **Switch to the target branch**:
-   - Run:
-     ```bash
-     git checkout <target-branch>
-     ```
-
-9. **Report**:
+8. **Report**:
    - Inform the user:
      - Commits created (if any) with messages.
      - PR title and link.
      - Source branch → target branch.
-     - Confirm they are now on the target branch.
 
 ## Allowed Commit Types
 
