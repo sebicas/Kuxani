@@ -23,6 +23,7 @@ import {
   DISAGREEMENT_INVITE_RESPONSE,
   DISAGREEMENT_STATUS,
 } from "@/lib/socket/events";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,9 @@ export async function POST(request: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
+  if (!isValidUUID(id)) {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
   const body = await request.json();
   const { action } = body; // "accept" or "decline"
 
