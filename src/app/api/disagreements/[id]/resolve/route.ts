@@ -22,7 +22,7 @@ import {
   REQUEST_CREATED,
   COMPROMISE_CREATED,
 } from "@/lib/socket/events";
-import { isValidUUID } from "@/lib/utils/uuid";
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
-  if (!isValidUUID(id)) {
+  if (!UUID_RE.test(id)) {
     return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
   }
 
