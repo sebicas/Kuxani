@@ -14,7 +14,7 @@ import { getServerSession } from "@/lib/auth/session";
 import { getOpenAI, TRANSCRIBE_MODEL } from "@/lib/ai/client";
 import { getIO } from "@/lib/socket/socketServer";
 import { PARTNER_ACTIVITY } from "@/lib/socket/events";
-import { isValidUUID } from "@/lib/utils/uuid";
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
-  if (!isValidUUID(id)) {
+  if (!UUID_RE.test(id)) {
     return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
   }
   const userId = session.user.id;

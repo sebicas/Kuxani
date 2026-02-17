@@ -24,7 +24,7 @@ import {
 } from "@/lib/ai/prompts";
 import { loadCoupleContext, loadPersonalContext } from "@/lib/ai/context";
 import { DISAGREEMENT_MESSAGE, DISAGREEMENT_STATUS } from "@/lib/socket/events";
-import { isValidUUID } from "@/lib/utils/uuid";
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const dynamic = "force-dynamic";
 
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
-  if (!isValidUUID(id)) {
+  if (!UUID_RE.test(id)) {
     return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
   }
   const disagreement = await verifyAccess(id, session.user.id);
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
-  if (!isValidUUID(id)) {
+  if (!UUID_RE.test(id)) {
     return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
   }
   const disagreement = await verifyAccess(id, session.user.id);

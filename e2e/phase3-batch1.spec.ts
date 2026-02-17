@@ -8,26 +8,8 @@
  * Run: npm run test:e2e
  */
 import { test, expect } from "@playwright/test";
+import { signUpAndAuth } from "./helpers";
 
-// ── Helper: Sign up and get authenticated context ──
-async function signUpAndAuth(page: import("@playwright/test").Page) {
-  const email = `e2e-b1-${Date.now()}@kuxani.app`;
-  const password = "E2eTest123!";
-
-  await page.goto("/signup");
-  await page.waitForLoadState("networkidle");
-
-  // Fill signup form
-  await page.fill('input[name="name"], input[type="text"]', "E2E Tester");
-  await page.fill('input[name="email"], input[type="email"]', email);
-  await page.fill('input[name="password"], input[type="password"]', password);
-
-  // Submit
-  await page.click('button[type="submit"]');
-
-  // Wait for navigation to dashboard
-  await page.waitForURL("**/dashboard**", { timeout: 10000 });
-}
 
 // ── Gratitude Journal ──
 test.describe("Gratitude Journal", () => {
