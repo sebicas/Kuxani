@@ -49,7 +49,15 @@ description: Commit, push, and create a GitHub Pull Request from the current bra
 5. **Build the PR title and body**:
    - **For feature branch PRs**:
      - Read the **walkthrough.md** artifact from the current conversation's brain directory (`<appDataDir>/brain/<conversation-id>/walkthrough.md`).
-     - If no walkthrough exists, STOP and ask the user to describe the changes first.
+     - If no walkthrough exists, **generate one automatically**:
+       1. Review the current conversation's chat history (task logs and artifacts in `<appDataDir>/brain/<conversation-id>/`) to understand all changes made.
+       2. Also review `git log development..<current-branch> --oneline` and `git diff development..<current-branch> --stat` to understand the full scope of changes.
+       3. Write a comprehensive `walkthrough.md` that includes:
+          - A `# Title` heading summarizing the feature/change.
+          - An **Overview** section with a brief description.
+          - A **Changes** section listing all modified/created files with explanations.
+          - A **Testing** section noting how the changes were verified.
+       4. Save the generated walkthrough as an artifact (`walkthrough.md`) before proceeding.
      - Extract the **title** from the first `# Heading` in the walkthrough (strip the `# ` prefix and any trailing ` — Walkthrough` suffix).
      - Build the PR title as: `<Type> : <Title>` (e.g., `Feature : AI Context Enrichment`).
      - Use the **entire walkthrough content** as the PR body.
