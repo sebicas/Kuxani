@@ -10,6 +10,7 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.integration.ts", "tests/**/*.test.integration.ts"],
     testTimeout: 120_000,
+    fileParallelism: false,
     env: {
       BETTER_AUTH_SILENT: "true",
     },
