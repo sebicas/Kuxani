@@ -85,8 +85,11 @@ kuxani/
 │   │   │   ├── socketClient.ts       # Socket.IO client singleton (getSocket)
 │   │   │   └── events.ts             # Shared event constants (PARTNER_JOINED, CHALLENGE_UPDATED)
 │   │   ├── hooks/
-│   │   │   ├── useChallengeSocket.ts  # React hook for challenge real-time updates
-│   │   │   └── usePartnerSocket.ts   # React hook for partner join notifications
+│   │   │   ├── useCoupleSocket.ts     # Generic couple room hook (mood, gratitude, etc.)
+│   │   │   ├── useChallengeSocket.ts  # Challenge real-time updates
+│   │   │   ├── useDisagreementSocket.ts # Disagreement session updates
+│   │   │   ├── usePartnerSocket.ts    # Partner join notifications
+│   │   │   └── useCommitmentsSocket.ts # Commitment request/compromise updates
 │   │   └── db/
 │   │       ├── index.ts              # Drizzle client initialization
 │   │       └── schema/
@@ -222,7 +225,9 @@ The design system is defined in `src/app/globals.css` with CSS custom properties
 | `mood.ts`              | `mood_entries`, `gratitude_entries`                                                                                             |
 | `love-languages.ts`    | `love_language_results`                                                                                                         |
 | `attachment-styles.ts` | `attachment_style_results`                                                                                                      |
-| `childhood-wounds.ts`  | `childhood_wounds` (cols: id, userId, title, description, source, intensity, suggestedBy, status, timestamps)                   |
+| `childhood-wounds.ts`  | `childhood_wounds` (id, userId, title, description, source, intensity, suggestedBy, status, timestamps)                         |
+| `disagreements.ts`     | `disagreements`, `disagreement_messages`, `disagreement_invitations`                                                            |
+| `commitments.ts`       | `requests`, `compromises`, `commitment_check_ins`                                                                               |
 
 ---
 
