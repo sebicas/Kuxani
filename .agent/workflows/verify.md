@@ -58,7 +58,12 @@ Run this workflow **every time** before telling the user to test a feature.
    - Verify no errors in the page (check for error messages, 500s, etc.)
    - Test the primary user flow (e.g., sign up → lands on dashboard)
 
-8. **Report to user** — Only after ALL above steps pass, notify the user with:
+8. **Commands documentation check** — If any new npm scripts or CLI commands were added during this session:
+   - Open `.agent/commands.md` and verify the new command is listed.
+   - If missing, add it to the appropriate section.
+   - This is **mandatory** — new commands MUST be documented before handoff.
+
+9. **Report to user** — Only after ALL above steps pass, notify the user with:
    - What was built
    - What was verified (build, tests, browser smoke test)
    - Any known limitations or next steps

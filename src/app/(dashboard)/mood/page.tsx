@@ -5,17 +5,118 @@ import styles from "./mood.module.css";
 import { useCoupleSocket } from "@/lib/hooks/useCoupleSocket";
 import { MOOD_UPDATED } from "@/lib/socket/events";
 
-/* ── Plutchik's primary emotions with colors ── */
+/* ── Emotions with colored SVG faces ── */
 const EMOTIONS = [
-  { name: "joy", emoji: "😊", color: "#fbbf24", secondaries: ["serenity", "ecstasy"] },
-  { name: "trust", emoji: "🤝", color: "#34d399", secondaries: ["acceptance", "admiration"] },
-  { name: "fear", emoji: "😰", color: "#60a5fa", secondaries: ["apprehension", "terror"] },
-  { name: "surprise", emoji: "😲", color: "#a78bfa", secondaries: ["distraction", "amazement"] },
-  { name: "sadness", emoji: "😢", color: "#93c5fd", secondaries: ["pensiveness", "grief"] },
-  { name: "disgust", emoji: "🤢", color: "#86efac", secondaries: ["boredom", "loathing"] },
-  { name: "anger", emoji: "😤", color: "#f87171", secondaries: ["annoyance", "rage"] },
-  { name: "anticipation", emoji: "🤔", color: "#fb923c", secondaries: ["interest", "vigilance"] },
+  { name: "calm", color: "#fbbf24" },
+  { name: "happy", color: "#f59e0b" },
+  { name: "sad", color: "#38bdf8" },
+  { name: "angry", color: "#f87171" },
+  { name: "disappointed", color: "#a78bfa" },
+  { name: "worried", color: "#34d399" },
+  { name: "scared", color: "#60a5fa" },
+  { name: "frustrated", color: "#f472b6" },
 ] as const;
+
+/** SVG face for each emotion – draws a colored circle with unique facial features */
+function EmotionFace({ emotion, size = 48 }: { emotion: string; size?: number }) {
+  const data = EMOTIONS.find((e) => e.name === emotion);
+  const color = data?.color || "#94a3b8";
+  const r = size / 2;
+  const cx = r;
+  const cy = r;
+
+  const faces: Record<string, React.ReactNode> = {
+    calm: (
+      <>
+        {/* Eyes – relaxed dots */}
+        <circle cx={cx - r * 0.25} cy={cy - r * 0.1} r={r * 0.08} fill="#1a1a1a" />
+        <circle cx={cx + r * 0.25} cy={cy - r * 0.1} r={r * 0.08} fill="#1a1a1a" />
+        {/* Gentle smile */}
+        <path d={`M${cx - r * 0.3} ${cy + r * 0.2} Q${cx} ${cy + r * 0.5} ${cx + r * 0.3} ${cy + r * 0.2}`} fill="none" stroke="#1a1a1a" strokeWidth={r * 0.07} strokeLinecap="round" />
+      </>
+    ),
+    happy: (
+      <>
+        {/* Eyes – happy lines */}
+        <path d={`M${cx - r * 0.35} ${cy - r * 0.08} Q${cx - r * 0.25} ${cy - r * 0.22} ${cx - r * 0.15} ${cy - r * 0.08}`} fill="none" stroke="#1a1a1a" strokeWidth={r * 0.07} strokeLinecap="round" />
+        <path d={`M${cx + r * 0.15} ${cy - r * 0.08} Q${cx + r * 0.25} ${cy - r * 0.22} ${cx + r * 0.35} ${cy - r * 0.08}`} fill="none" stroke="#1a1a1a" strokeWidth={r * 0.07} strokeLinecap="round" />
+        {/* Wide smile */}
+        <path d={`M${cx - r * 0.35} ${cy + r * 0.15} Q${cx} ${cy + r * 0.55} ${cx + r * 0.35} ${cy + r * 0.15}`} fill="none" stroke="#1a1a1a" strokeWidth={r * 0.07} strokeLinecap="round" />
+      </>
+    ),
+    sad: (
+      <>
+        {/* Eyes – dots */}
+        <circle cx={cx - r * 0.25} cy={cy - r * 0.1} r={r * 0.08} fill="#1a1a1a" />
+        <circle cx={cx + r * 0.25} cy={cy - r * 0.1} r={r * 0.08} fill="#1a1a1a" />
+        {/* Downturned mouth */}
+        <path d={`M${cx - r * 0.3} ${cy + r * 0.3} Q${cx} ${cy + r * 0.05} ${cx + r * 0.3} ${cy + r * 0.3}`} fill="none" stroke="#1a1a1a" strokeWidth={r * 0.07} strokeLinecap="round" />
+      </>
+    ),
+    angry: (
+      <>
+        {/* Furrowed brows */}
+        <path d={`M${cx - r * 0.38} ${cy - r * 0.3} L${cx - r * 0.15} ${cy - r * 0.2}`} fill="none" stroke="#1a1a1a" strokeWidth={r * 0.07} strokeLinecap="round" />
+        <path d={`M${cx + r * 0.38} ${cy - r * 0.3} L${cx + r * 0.15} ${cy - r * 0.2}`} fill="none" stroke="#1a1a1a" strokeWidth={r * 0.07} strokeLinecap="round" />
+        {/* Eyes – dots */}
+        <circle cx={cx - r * 0.25} cy={cy - r * 0.05} r={r * 0.08} fill="#1a1a1a" />
+        <circle cx={cx + r * 0.25} cy={cy - r * 0.05} r={r * 0.08} fill="#1a1a1a" />
+        {/* Frown */}
+        <path d={`M${cx - r * 0.3} ${cy + r * 0.35} Q${cx} ${cy + r * 0.1} ${cx + r * 0.3} ${cy + r * 0.35}`} fill="none" stroke="#1a1a1a" strokeWidth={r * 0.07} strokeLinecap="round" />
+      </>
+    ),
+    disappointed: (
+      <>
+        {/* Closed eyes – lines */}
+        <path d={`M${cx - r * 0.35} ${cy - r * 0.08} L${cx - r * 0.15} ${cy - r * 0.08}`} fill="none" stroke="#1a1a1a" strokeWidth={r * 0.07} strokeLinecap="round" />
+        <path d={`M${cx + r * 0.15} ${cy - r * 0.08} L${cx + r * 0.35} ${cy - r * 0.08}`} fill="none" stroke="#1a1a1a" strokeWidth={r * 0.07} strokeLinecap="round" />
+        {/* Small frown */}
+        <path d={`M${cx - r * 0.2} ${cy + r * 0.3} Q${cx} ${cy + r * 0.15} ${cx + r * 0.2} ${cy + r * 0.3}`} fill="none" stroke="#1a1a1a" strokeWidth={r * 0.07} strokeLinecap="round" />
+      </>
+    ),
+    worried: (
+      <>
+        {/* Worried brows */}
+        <path d={`M${cx - r * 0.35} ${cy - r * 0.25} L${cx - r * 0.15} ${cy - r * 0.3}`} fill="none" stroke="#1a1a1a" strokeWidth={r * 0.06} strokeLinecap="round" />
+        <path d={`M${cx + r * 0.35} ${cy - r * 0.25} L${cx + r * 0.15} ${cy - r * 0.3}`} fill="none" stroke="#1a1a1a" strokeWidth={r * 0.06} strokeLinecap="round" />
+        {/* Eyes – dots */}
+        <circle cx={cx - r * 0.25} cy={cy - r * 0.05} r={r * 0.08} fill="#1a1a1a" />
+        <circle cx={cx + r * 0.25} cy={cy - r * 0.05} r={r * 0.08} fill="#1a1a1a" />
+        {/* Wavy mouth */}
+        <path d={`M${cx - r * 0.3} ${cy + r * 0.25} Q${cx - r * 0.15} ${cy + r * 0.15} ${cx} ${cy + r * 0.25} Q${cx + r * 0.15} ${cy + r * 0.35} ${cx + r * 0.3} ${cy + r * 0.25}`} fill="none" stroke="#1a1a1a" strokeWidth={r * 0.07} strokeLinecap="round" />
+      </>
+    ),
+    scared: (
+      <>
+        {/* Wide eyes */}
+        <circle cx={cx - r * 0.25} cy={cy - r * 0.1} r={r * 0.12} fill="#fff" stroke="#1a1a1a" strokeWidth={r * 0.05} />
+        <circle cx={cx - r * 0.25} cy={cy - r * 0.1} r={r * 0.06} fill="#1a1a1a" />
+        <circle cx={cx + r * 0.25} cy={cy - r * 0.1} r={r * 0.12} fill="#fff" stroke="#1a1a1a" strokeWidth={r * 0.05} />
+        <circle cx={cx + r * 0.25} cy={cy - r * 0.1} r={r * 0.06} fill="#1a1a1a" />
+        {/* Open "O" mouth */}
+        <ellipse cx={cx} cy={cy + r * 0.28} rx={r * 0.15} ry={r * 0.18} fill="#1a1a1a" />
+      </>
+    ),
+    frustrated: (
+      <>
+        {/* Squinting eyes */}
+        <path d={`M${cx - r * 0.35} ${cy - r * 0.15} L${cx - r * 0.15} ${cy - r * 0.05}`} fill="none" stroke="#1a1a1a" strokeWidth={r * 0.07} strokeLinecap="round" />
+        <path d={`M${cx - r * 0.35} ${cy - r * 0.0} L${cx - r * 0.15} ${cy - r * 0.1}`} fill="none" stroke="#1a1a1a" strokeWidth={r * 0.07} strokeLinecap="round" />
+        <path d={`M${cx + r * 0.15} ${cy - r * 0.05} L${cx + r * 0.35} ${cy - r * 0.15}`} fill="none" stroke="#1a1a1a" strokeWidth={r * 0.07} strokeLinecap="round" />
+        <path d={`M${cx + r * 0.15} ${cy - r * 0.1} L${cx + r * 0.35} ${cy - r * 0.0}`} fill="none" stroke="#1a1a1a" strokeWidth={r * 0.07} strokeLinecap="round" />
+        {/* Zigzag mouth */}
+        <path d={`M${cx - r * 0.3} ${cy + r * 0.25} L${cx - r * 0.15} ${cy + r * 0.15} L${cx} ${cy + r * 0.3} L${cx + r * 0.15} ${cy + r * 0.15} L${cx + r * 0.3} ${cy + r * 0.25}`} fill="none" stroke="#1a1a1a" strokeWidth={r * 0.07} strokeLinecap="round" strokeLinejoin="round" />
+      </>
+    ),
+  };
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className={styles.emotionFace}>
+      <circle cx={cx} cy={cy} r={r - 1} fill={color} />
+      {faces[emotion] || null}
+    </svg>
+  );
+}
 
 interface MoodEntry {
   id: string;
@@ -219,7 +320,7 @@ export default function MoodPage() {
                     }}
                     onClick={() => setSelectedEmotion(emotion.name)}
                   >
-                    <span className={styles.emotionEmoji}>{emotion.emoji}</span>
+                    <EmotionFace emotion={emotion.name} size={48} />
                     <span className={styles.emotionLabel}>{emotion.name}</span>
                   </button>
                 ))}
@@ -305,9 +406,9 @@ export default function MoodPage() {
         /* ── Today's Entry ── */
         <div className="card" style={{ marginBottom: "var(--space-2xl)" }}>
           <div className={styles.todayCard}>
-            <span className={styles.todayEmoji}>
-              {getEmotionData(todayEntry.primaryEmotion)?.emoji || "🫶"}
-            </span>
+            <div className={styles.todayEmoji}>
+              <EmotionFace emotion={todayEntry.primaryEmotion} size={80} />
+            </div>
             <div className={styles.todayEmotion}>{todayEntry.primaryEmotion}</div>
             <div className={styles.todayIntensity}>
               Intensity: {todayEntry.intensity}/10
@@ -369,7 +470,7 @@ export default function MoodPage() {
                   }`}
                 >
                   <div className={styles.historyEmoji}>
-                    {emotionData?.emoji || "🫶"}
+                    <EmotionFace emotion={entry.primaryEmotion} size={36} />
                   </div>
                   {entry.isPartnerEntry && (
                     <div className={styles.partnerTag}>
