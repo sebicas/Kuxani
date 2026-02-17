@@ -10,7 +10,8 @@ description: Commit, push, and create a GitHub Pull Request from the current bra
 
 1. **Get the current branch**:
    - Run `git branch --show-current` to get the source branch name.
-   - If the current branch is `main` or `development`, STOP and warn the user — do not create a PR from these branches.
+   - If the current branch is `main`, STOP and warn the user — do not create a PR from `main`.
+   - If the current branch is `development`, this is a **release PR** — target must be `main`. Skip to step 3.
 
 2. **Commit and push uncommitted changes**:
    - Run `git status` and `git diff --stat` to identify all uncommitted changes.
@@ -35,7 +36,8 @@ description: Commit, push, and create a GitHub Pull Request from the current bra
    If the build fails, STOP immediately, report the failure to the user, and do NOT proceed to create the PR.
 
 4. **Determine the PR type**:
-   - Ask the user (or infer from the branch name) what type of PR this is. Common types:
+   - For **release PRs** (`development` → `main`), the type is always `Release`.
+   - For feature branch PRs, ask the user (or infer from the branch name). Common types:
      - `Feature` — new functionality
      - `Fix` — bug fix
      - `Refactor` — code restructuring
@@ -44,23 +46,27 @@ description: Commit, push, and create a GitHub Pull Request from the current bra
      - `Test` — adding/correcting tests
      - `Perf` — performance improvement
 
-5. **Build the PR title**:
-   - Read the **walkthrough.md** artifact from the current conversation's brain directory (`<appDataDir>/brain/<conversation-id>/walkthrough.md`).
-   - If no walkthrough exists, STOP and ask the user to describe the changes first.
-   - Extract the **title** from the first `# Heading` in the walkthrough (strip the `# ` prefix and any trailing ` — Walkthrough` suffix).
-   - Build the PR title as: `<Type> : <Title>`
-     - Example: `Feature : AI Context Enrichment`
+5. **Build the PR title and body**:
+   - **For feature branch PRs**:
+     - Read the **walkthrough.md** artifact from the current conversation's brain directory (`<appDataDir>/brain/<conversation-id>/walkthrough.md`).
+     - If no walkthrough exists, STOP and ask the user to describe the changes first.
+     - Extract the **title** from the first `# Heading` in the walkthrough (strip the `# ` prefix and any trailing ` — Walkthrough` suffix).
+     - Build the PR title as: `<Type> : <Title>` (e.g., `Feature : AI Context Enrichment`).
+     - Use the **entire walkthrough content** as the PR body.
+   - **For release PRs** (`development` → `main`):
+     - Run `git log main..development --oneline` to get the list of commits being merged.
+     - Build the PR title as: `Release : <date>` (e.g., `Release : 2026-02-16`).
+     - Build the PR body from the commit list, formatted as a markdown changelog.
 
 6. **Determine the target branch**:
-   - If the user specifies a target branch, use that.
-   - **Default**: `development`
+   - For **release PRs**: always `main`.
+   - For feature branch PRs: user-specified or default `development`.
 
 7. **Create the PR**:
-   - Use the **entire walkthrough content** as the PR body/description (in markdown).
    - Strip any `file:///` links from the body since they won't work on GitHub.
    - Run:
      ```bash
-     gh pr create --base <target-branch> --head <current-branch> --title "<Type> : <Title>" --body '<walkthrough content>'
+     gh pr create --base <target-branch> --head <current-branch> --title "<Type> : <Title>" --body '<PR body content>'
      ```
 
 8. **Switch to the target branch**:
@@ -95,5 +101,5 @@ description: Commit, push, and create a GitHub Pull Request from the current bra
 - **Do not** use generic messages like "fixes" or "updates".
 - **Do not** invent new commit types; use strictly the ones listed above.
 - **Do not** push if `git commit` fails.
-- **Do not** create a PR from `main` or `development`.
+- **Do not** create a PR from `main`.
 - **Do not** create the PR if the build fails.
