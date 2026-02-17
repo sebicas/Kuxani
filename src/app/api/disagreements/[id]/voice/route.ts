@@ -14,6 +14,7 @@ import { getServerSession } from "@/lib/auth/session";
 import { getOpenAI, TRANSCRIBE_MODEL } from "@/lib/ai/client";
 import { getIO } from "@/lib/socket/socketServer";
 import { PARTNER_ACTIVITY } from "@/lib/socket/events";
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +52,9 @@ export async function POST(req: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
+  if (!UUID_RE.test(id)) {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
   const userId = session.user.id;
 
   const disagreement = await verifyAccess(id, userId);

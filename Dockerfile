@@ -1,7 +1,7 @@
 # ──────────────────────────────────────────────
 # Stage 1: Install dependencies
 # ──────────────────────────────────────────────
-FROM node:22-alpine AS deps
+FROM node:24-alpine AS deps
 WORKDIR /app
 
 COPY package.json package-lock.json ./
@@ -10,7 +10,7 @@ RUN npm ci --ignore-scripts --legacy-peer-deps --no-update-notifier
 # ──────────────────────────────────────────────
 # Stage 2: Build the application
 # ──────────────────────────────────────────────
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
@@ -36,7 +36,7 @@ RUN npx tsc --project tsconfig.server.json
 # ──────────────────────────────────────────────
 # Stage 3: Production runner
 # ──────────────────────────────────────────────
-FROM node:22-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 
 # NODE_ENV must always be production for Next.js standalone mode.

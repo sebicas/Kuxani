@@ -18,6 +18,7 @@ import {
   DISAGREEMENT_INVITE,
   DISAGREEMENT_STATUS,
 } from "@/lib/socket/events";
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,9 @@ export async function POST(request: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
+  if (!UUID_RE.test(id)) {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
 
   // Only creator can invite
   const [disagreement] = await db
@@ -135,6 +139,9 @@ export async function GET(_request: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
+  if (!UUID_RE.test(id)) {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
 
   const invites = await db
     .select()

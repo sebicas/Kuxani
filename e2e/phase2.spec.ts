@@ -8,26 +8,8 @@
  * Run: npm run test:e2e
  */
 import { test, expect } from "@playwright/test";
+import { signUpAndAuth } from "./helpers";
 
-// ── Helper: Sign up and get authenticated context ──
-async function signUpAndAuth(page: import("@playwright/test").Page) {
-  const email = `e2e-${Date.now()}@kuxani.app`;
-  const password = "E2eTest123!";
-
-  await page.goto("/signup");
-  await page.waitForLoadState("networkidle");
-
-  // Fill signup form
-  await page.fill('input[name="name"], input[type="text"]', "E2E Tester");
-  await page.fill('input[name="email"], input[type="email"]', email);
-  await page.fill('input[name="password"], input[type="password"]', password);
-
-  // Submit
-  await page.click('button[type="submit"]');
-
-  // Wait for navigation to dashboard
-  await page.waitForURL("**/dashboard**", { timeout: 10000 });
-}
 
 // ── Personal Therapy Chat ──
 test.describe("Personal Therapy Chat", () => {
@@ -82,11 +64,11 @@ test.describe("Mood Tracker", () => {
     await page.goto("/mood");
     await page.waitForLoadState("networkidle");
 
-    // Should see the emotion buttons (Plutchik's 8)
+    // Should see the emotion buttons (8 emotions)
     await expect(page.locator("text=How are you feeling")).toBeVisible();
 
     // Check that at least some emotions are visible
-    const emotions = ["joy", "trust", "fear", "sadness", "anger"];
+    const emotions = ["calm", "happy", "sad", "angry", "worried"];
     for (const emotion of emotions) {
       await expect(page.locator(`text=${emotion}`).first()).toBeVisible();
     }
@@ -97,8 +79,8 @@ test.describe("Mood Tracker", () => {
     await page.goto("/mood");
     await page.waitForLoadState("networkidle");
 
-    // Click on "Joy" emotion
-    await page.locator("text=joy").first().click();
+    // Click on "happy" emotion
+    await page.locator("text=happy").first().click();
 
     // Should show the intensity slider
     await expect(page.locator("text=Intensity")).toBeVisible();

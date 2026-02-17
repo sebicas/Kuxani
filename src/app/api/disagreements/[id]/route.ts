@@ -15,6 +15,7 @@ import {
 } from "@/lib/db/schema";
 import { getServerSession } from "@/lib/auth/session";
 import { eq, and, sql } from "drizzle-orm";
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 import { DISAGREEMENT_STATUS } from "@/lib/socket/events";
 
 export const dynamic = "force-dynamic";
@@ -53,6 +54,9 @@ export async function GET(_request: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
+  if (!UUID_RE.test(id)) {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
   const disagreement = await verifyAccess(id, session.user.id);
   if (!disagreement) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -86,6 +90,9 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
+  if (!UUID_RE.test(id)) {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
   const disagreement = await verifyAccess(id, session.user.id);
   if (!disagreement) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -154,6 +161,9 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
+  if (!UUID_RE.test(id)) {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
   const [d] = await db
     .select()
     .from(disagreements)
