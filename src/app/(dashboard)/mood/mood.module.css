@@ -54,8 +54,8 @@
   box-shadow: var(--shadow-lg);
 }
 
-.emotionEmoji {
-  font-size: 2rem;
+.emotionFace {
+  display: block;
 }
 
 .emotionLabel {
@@ -199,7 +199,8 @@
 }
 
 .todayEmoji {
-  font-size: 4rem;
+  display: flex;
+  justify-content: center;
   margin-bottom: var(--space-md);
 }
 
@@ -333,7 +334,11 @@
 /* ── Partner Entry ── */
 .historyCardPartner {
   border-color: rgba(168, 85, 247, 0.3);
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.05), rgba(236, 72, 153, 0.05));
+  background: linear-gradient(
+    135deg,
+    rgba(168, 85, 247, 0.05),
+    rgba(236, 72, 153, 0.05)
+  );
 }
 
 .partnerTag {
