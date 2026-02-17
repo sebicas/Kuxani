@@ -47,6 +47,7 @@ A collaborative AI-mediated platform where couples work together to understand e
 | **Rich Text**    | Tiptap (ProseMirror + Yjs)         | Collaborative editor                         |
 | **AI**           | OpenAI (gpt-4.1 family)            | Text reasoning, transcription, TTS           |
 | **Deployment**   | Coolify                            | `kuxani.com` (prod) · `dev.kuxani.com` (dev) |
+| **CI/CD**        | GitHub Actions                     | Lint, test, build, E2E on every PR + push    |
 
 ---
 
@@ -102,6 +103,9 @@ kuxani/
 ├── drizzle/
 │   └── migrations/                   # Auto-generated SQL migrations
 ├── public/                           # Static assets
+├── .node-version                     # Node.js version (used by CI + version managers)
+├── .github/workflows/ci.yml          # CI pipeline (lint, test, build, E2E)
+├── Dockerfile                        # Multi-stage production build (Node 24-alpine)
 ├── docker-compose.yml                # PostgreSQL 17 + MinIO
 ├── drizzle.config.ts                 # Drizzle Kit config
 ├── .env.example                      # Environment variables reference
@@ -117,7 +121,7 @@ kuxani/
 
 ### Prerequisites
 
-- **Node.js** ≥ 20
+- **Node.js** ≥ 24 (pinned in `.node-version`)
 - **Docker** & Docker Compose (for PostgreSQL + MinIO)
 
 ### Setup
@@ -145,20 +149,21 @@ npm run dev
 
 > Full reference with all commands: `.agent/commands.md`
 
-| Script                | Description                          |
-| --------------------- | ------------------------------------ |
-| `npm run dev`         | Start Next.js dev server (Turbopack) |
-| `npm run build`       | Production build                     |
-| `npm run start`       | Start production server              |
-| `npm run lint`        | Run ESLint                           |
-| `npm run db:generate` | Generate Drizzle migrations          |
-| `npm run db:migrate`  | Run Drizzle migrations               |
-| `npm run db:push`     | Push schema directly (dev)           |
-| `npm run db:studio`   | Open Drizzle Studio (DB browser)     |
-| `npm test`            | Run **all** tests (unit + E2E)       |
-| `npm run test:unit`   | Unit/integration tests only (Vitest) |
-| `npm run test:watch`  | Tests in watch mode                  |
-| `npm run test:e2e`    | E2E browser tests only (Playwright)  |
+| Script                     | Description                                  |
+| -------------------------- | -------------------------------------------- |
+| `npm run dev`              | Start Next.js dev server (Turbopack)         |
+| `npm run build`            | Production build                             |
+| `npm run start`            | Start production server                      |
+| `npm run lint`             | Run ESLint                                   |
+| `npm run db:generate`      | Generate Drizzle migrations                  |
+| `npm run db:migrate`       | Run Drizzle migrations                       |
+| `npm run db:push`          | Push schema directly (dev)                   |
+| `npm run db:studio`        | Open Drizzle Studio (DB browser)             |
+| `npm test`                 | Run **all** tests (unit + integration + E2E) |
+| `npm run test:unit`        | Unit tests only (Vitest)                     |
+| `npm run test:integration` | Integration tests only (Vitest)              |
+| `npm run test:watch`       | Tests in watch mode                          |
+| `npm run test:e2e`         | E2E browser tests only (Playwright)          |
 
 ---
 

@@ -1,6 +1,6 @@
 # Kuxani — Project Status
 
-> Last updated: 2026-02-15 (AI Context: centralized memory loader across all AI routes)
+> Last updated: 2026-02-17 (CI/CD: GitHub Actions pipeline with parallel lint, test, build, E2E jobs)
 
 ---
 
@@ -108,15 +108,15 @@
 
 ## Infrastructure Status
 
-| Component           | Status        | Notes                                            |
-| ------------------- | ------------- | ------------------------------------------------ |
-| PostgreSQL 17       | ✅ Configured | Docker Compose, port 5432                        |
-| MinIO (S3)          | ✅ Configured | Docker Compose, ports 9000/9001                  |
-| Socket.IO           | ✅ Configured | Custom server (`server.ts`), same-port           |
-| Hocuspocus (Yjs WS) | ⬜ Pending    | Config in `.env.example`, not yet set up         |
-| Coolify             | ✅ Configured | Dockerfile + deployment guide ready              |
-| Docker Build        | ✅ Fixed      | Lazy OpenAI, force-dynamic, tsconfig.server.json |
-| CI/CD               | ⬜ Pending    | Not yet configured                               |
+| Component           | Status        | Notes                                                              |
+| ------------------- | ------------- | ------------------------------------------------------------------ |
+| PostgreSQL 17       | ✅ Configured | Docker Compose, port 5432                                          |
+| MinIO (S3)          | ✅ Configured | Docker Compose, ports 9000/9001                                    |
+| Socket.IO           | ✅ Configured | Custom server (`server.ts`), same-port                             |
+| Hocuspocus (Yjs WS) | ⬜ Pending    | Config in `.env.example`, not yet set up                           |
+| Coolify             | ✅ Configured | Dockerfile + deployment guide ready                                |
+| Docker Build        | ✅ Fixed      | Lazy OpenAI, force-dynamic, tsconfig.server.json                   |
+| CI/CD               | ✅ Configured | GitHub Actions: parallel lint, test (unit+integration), build, E2E |
 
 ---
 
