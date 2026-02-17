@@ -43,7 +43,7 @@ describe("Mood Tracker", () => {
       .insert(moodEntries)
       .values({
         userId: testUserId,
-        primaryEmotion: "joy",
+        primaryEmotion: "happy",
         secondaryEmotion: "serenity",
         intensity: 7,
         notes: "Had a great morning with my partner.",
@@ -52,7 +52,7 @@ describe("Mood Tracker", () => {
       .returning();
 
     expect(entry).toBeDefined();
-    expect(entry.primaryEmotion).toBe("joy");
+    expect(entry.primaryEmotion).toBe("happy");
     expect(entry.secondaryEmotion).toBe("serenity");
     expect(entry.intensity).toBe(7);
     expect(entry.notes).toBe("Had a great morning with my partner.");
@@ -67,13 +67,13 @@ describe("Mood Tracker", () => {
       .insert(moodEntries)
       .values({
         userId: testUserId,
-        primaryEmotion: "sadness",
+        primaryEmotion: "sad",
         intensity: 4,
       })
       .returning();
 
     expect(entry).toBeDefined();
-    expect(entry.primaryEmotion).toBe("sadness");
+    expect(entry.primaryEmotion).toBe("sad");
     expect(entry.intensity).toBe(4);
     expect(entry.secondaryEmotion).toBeNull();
     expect(entry.notes).toBeNull();
@@ -82,8 +82,8 @@ describe("Mood Tracker", () => {
     createdEntryIds.push(entry.id);
   });
 
-  it("should create entries for all Plutchik emotions", async () => {
-    const emotions = ["trust", "fear", "surprise", "disgust", "anger", "anticipation"];
+  it("should create entries for all tracked emotions", async () => {
+    const emotions = ["calm", "angry", "disappointed", "worried", "scared", "frustrated"];
     for (const emotion of emotions) {
       const [entry] = await db
         .insert(moodEntries)
@@ -139,14 +139,14 @@ describe("Mood Tracker", () => {
   it("should store intensity values correctly", async () => {
     const [low] = await db
       .insert(moodEntries)
-      .values({ userId: testUserId, primaryEmotion: "joy", intensity: 1 })
+      .values({ userId: testUserId, primaryEmotion: "happy", intensity: 1 })
       .returning();
     expect(low.intensity).toBe(1);
     createdEntryIds.push(low.id);
 
     const [high] = await db
       .insert(moodEntries)
-      .values({ userId: testUserId, primaryEmotion: "anger", intensity: 10 })
+      .values({ userId: testUserId, primaryEmotion: "angry", intensity: 10 })
       .returning();
     expect(high.intensity).toBe(10);
     createdEntryIds.push(high.id);
@@ -171,7 +171,7 @@ describe("Mood Tracker", () => {
       .insert(moodEntries)
       .values({
         userId: testUserId,
-        primaryEmotion: "trust",
+        primaryEmotion: "calm",
         intensity: 5,
       })
       .returning();
@@ -188,7 +188,7 @@ describe("Mood Tracker", () => {
       .insert(moodEntries)
       .values({
         userId: testUserId,
-        primaryEmotion: "joy",
+        primaryEmotion: "happy",
         intensity: 5,
         notes: longNotes,
       })
@@ -205,7 +205,7 @@ describe("Mood Tracker", () => {
       .insert(moodEntries)
       .values({
         userId: testUserId,
-        primaryEmotion: "joy",
+        primaryEmotion: "happy",
         intensity: 5,
         notes: specialNotes,
       })
@@ -220,7 +220,7 @@ describe("Mood Tracker", () => {
       .insert(moodEntries)
       .values({
         userId: testUserId,
-        primaryEmotion: "anger",
+        primaryEmotion: "angry",
         intensity: 8,
       })
       .returning();
@@ -240,7 +240,7 @@ describe("Mood Tracker", () => {
       .insert(moodEntries)
       .values({
         userId: testUserId,
-        primaryEmotion: "trust",
+        primaryEmotion: "calm",
         intensity: 6,
       })
       .returning();
@@ -266,11 +266,11 @@ describe("Mood Tracker", () => {
   it("should delete an entry without affecting others", async () => {
     const [entryA] = await db
       .insert(moodEntries)
-      .values({ userId: testUserId, primaryEmotion: "joy", intensity: 7 })
+      .values({ userId: testUserId, primaryEmotion: "happy", intensity: 7 })
       .returning();
     const [entryB] = await db
       .insert(moodEntries)
-      .values({ userId: testUserId, primaryEmotion: "sadness", intensity: 3 })
+      .values({ userId: testUserId, primaryEmotion: "sad", intensity: 3 })
       .returning();
     createdEntryIds.push(entryA.id);
 
@@ -295,7 +295,7 @@ describe("Mood Tracker", () => {
       .insert(moodEntries)
       .values({
         userId: testUserId,
-        primaryEmotion: "fear",
+        primaryEmotion: "scared",
         intensity: -1,
       })
       .returning();
@@ -310,7 +310,7 @@ describe("Mood Tracker", () => {
       .insert(moodEntries)
       .values({
         userId: testUserId,
-        primaryEmotion: "joy",
+        primaryEmotion: "happy",
         intensity: 100,
       })
       .returning();

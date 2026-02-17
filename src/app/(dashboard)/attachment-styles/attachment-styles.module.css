@@ -72,7 +72,11 @@
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+  background: linear-gradient(
+    90deg,
+    var(--accent-primary),
+    var(--accent-secondary)
+  );
   border-radius: var(--radius-full);
   transition: width var(--transition-base);
 }
@@ -118,6 +122,16 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-weight: 500;
+}
+
+.likertLabelDisagree {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+.likertLabelAgree {
+  color: #22c55e;
+  font-weight: 700;
 }
 
 .likertScale {

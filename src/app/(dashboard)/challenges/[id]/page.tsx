@@ -924,28 +924,173 @@ export default function ChallengeWorkspacePage({
       )}
 
       {/* ══════════════════════════════════════
-         Phase: Resolved
+         Phase: Resolved — Full Detail View
          ══════════════════════════════════════ */}
       {challenge.status === "resolved" && (
-        <div className={styles.resolutionCard}>
-          <div className={styles.resolutionIcon}>🕊️</div>
-          <h2 className="heading-2">Challenge Resolved</h2>
-          <p className="text-muted" style={{ marginTop: "var(--space-sm)" }}>
-            Resolved on {challenge.resolvedAt ? new Date(challenge.resolvedAt).toLocaleDateString() : "—"}
-          </p>
-          {challenge.resolutionNotes && (
-            <div className={styles.resolutionNotes}>
-              <strong>Lessons learned:</strong>
-              <p style={{ marginTop: "var(--space-sm)" }}>{challenge.resolutionNotes}</p>
+        <div className={styles.resolvedSections}>
+          {/* Resolution Header */}
+          <div className={styles.resolutionCard}>
+            <div className={styles.resolutionIcon}>🕊️</div>
+            <h2 className="heading-2">Challenge Resolved</h2>
+            <p className="text-muted" style={{ marginTop: "var(--space-sm)" }}>
+              Resolved on {challenge.resolvedAt ? new Date(challenge.resolvedAt).toLocaleDateString() : "—"}
+            </p>
+            {challenge.resolutionNotes && (
+              <div className={styles.resolutionNotes}>
+                <strong>Lessons learned:</strong>
+                <p style={{ marginTop: "var(--space-sm)" }}>{challenge.resolutionNotes}</p>
+              </div>
+            )}
+          </div>
+
+          {/* ── Perspectives ── */}
+          <div className={styles.sectionCard}>
+            <div className={styles.sectionHeader}>
+              <span>✍️</span>
+              <h2 className="heading-3">Perspectives</h2>
+            </div>
+            <div className={styles.perspectiveSection}>
+              {challenge.perspectives.map((p) => {
+                const isA = p.userId === challenge.members[0]?.userId;
+                return (
+                  <div
+                    key={p.id}
+                    className={`${styles.perspectiveCard} ${isA ? styles.perspectiveCardMine : styles.perspectiveCardPartner}`}
+                  >
+                    <div className={`${styles.perspectiveLabel} ${isA ? styles.perspectiveLabelA : styles.perspectiveLabelB}`}>
+                      {isA ? "💜" : "💗"} {p.userName || (isA ? "Partner A" : "Partner B")}
+                    </div>
+                    <div style={{ marginTop: "var(--space-md)", fontSize: "0.9375rem", lineHeight: 1.7 }}>
+                      {p.perspectiveText || <span className="text-muted">No perspective submitted.</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Synthesis ── */}
+          {challenge.aiNeutralDescription && (
+            <div className={styles.synthesisCard}>
+              <div className={styles.synthesisHeader}>
+                <span style={{ fontSize: "1.5rem" }}>🤖</span>
+                <h2 className="heading-3">AI Synthesis</h2>
+              </div>
+              <div className={styles.synthesisContent}>
+                {renderContent(challenge.aiNeutralDescription)}
+              </div>
             </div>
           )}
-          <Link
-            href="/challenges"
-            className="btn btn-secondary"
-            style={{ marginTop: "var(--space-xl)" }}
-          >
-            ← Back to Challenges
-          </Link>
+
+          {/* ── Discussion ── */}
+          {challenge.messages.length > 0 && (
+            <div className={styles.sectionCard}>
+              <div className={styles.sectionHeader}>
+                <span>💬</span>
+                <h2 className="heading-3">Discussion</h2>
+              </div>
+              <div className={styles.resolvedDiscussion}>
+                <div className={styles.messageList}>
+                  {challenge.messages.map((msg) => {
+                    const { label, partner } = getMemberForMessage(msg);
+                    return (
+                      <div
+                        key={msg.id}
+                        className={`${styles.messageWrapper} ${
+                          msg.senderType === "user" && msg.senderId === myUserId ? styles.messageWrapperUser : ""
+                        }`}
+                      >
+                        <div className={`${styles.messageAvatar} ${
+                          partner === "ai" ? styles.messageAvatarAi :
+                          partner === "a" ? styles.messageAvatarA : styles.messageAvatarB
+                        }`}>
+                          {partner === "ai" ? "🌿" : partner === "a" ? "💜" : "💗"}
+                        </div>
+                        <div className={`${styles.messageBubble} ${
+                          partner === "ai" ? styles.messageBubbleAi :
+                          partner === "a" ? styles.messageBubbleA : styles.messageBubbleB
+                        }`}>
+                          <div className={`${styles.messageSenderName} ${
+                            partner === "a" ? styles.messageSenderNameA : styles.messageSenderNameB
+                          }`}>
+                            {msg.senderType === "ai" ? "Kuxani 🌿" : label}
+                          </div>
+                          {msg.senderType === "ai" ? renderContent(msg.content) : msg.content}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Commitments ── */}
+          {challenge.requests.length > 0 && (
+            <div className={styles.sectionCard}>
+              <div className={styles.sectionHeader}>
+                <span>🤝</span>
+                <h2 className="heading-3">Commitments</h2>
+              </div>
+              <div className={styles.requestsSection}>
+                {/* Partner A's Requests */}
+                <div className={`${styles.requestColumn} ${styles.requestColumnA}`}>
+                  <h4 style={{ fontSize: "0.875rem", fontWeight: 600, marginBottom: "var(--space-sm)" }}>
+                    {challenge.members[0]?.userName || "Partner A"}&apos;s Requests
+                  </h4>
+                  {challenge.requests
+                    .filter((r) => r.requestedBy === challenge.members[0]?.userId)
+                    .map((r) => (
+                      <div key={r.id} className={styles.requestItem}>
+                        <div className={styles.requestText}>
+                          {r.requestText}
+                          <br />
+                          <span className={styles.requestCategoryBadge}>{CATEGORY_LABELS[r.category] || r.category}</span>
+                          {r.acceptedByPartner && <span className={styles.requestCategoryBadge} style={{ background: "var(--success-light)", color: "var(--success)" }}>Accepted</span>}
+                          {r.fulfilled && <span className={styles.requestCategoryBadge} style={{ background: "var(--success-light)", color: "var(--success)" }}>Fulfilled ✓</span>}
+                        </div>
+                      </div>
+                    ))}
+                  {challenge.requests.filter((r) => r.requestedBy === challenge.members[0]?.userId).length === 0 && (
+                    <p className="text-muted text-sm">No requests.</p>
+                  )}
+                </div>
+
+                {/* Partner B's Requests */}
+                <div className={`${styles.requestColumn} ${styles.requestColumnB}`}>
+                  <h4 style={{ fontSize: "0.875rem", fontWeight: 600, marginBottom: "var(--space-sm)" }}>
+                    {challenge.members[1]?.userName || "Partner B"}&apos;s Requests
+                  </h4>
+                  {challenge.requests
+                    .filter((r) => r.requestedBy === challenge.members[1]?.userId)
+                    .map((r) => (
+                      <div key={r.id} className={styles.requestItem}>
+                        <div className={styles.requestText}>
+                          {r.requestText}
+                          <br />
+                          <span className={styles.requestCategoryBadge}>{CATEGORY_LABELS[r.category] || r.category}</span>
+                          {r.acceptedByPartner && <span className={styles.requestCategoryBadge} style={{ background: "var(--success-light)", color: "var(--success)" }}>Accepted</span>}
+                          {r.fulfilled && <span className={styles.requestCategoryBadge} style={{ background: "var(--success-light)", color: "var(--success)" }}>Fulfilled ✓</span>}
+                        </div>
+                      </div>
+                    ))}
+                  {challenge.requests.filter((r) => r.requestedBy === challenge.members[1]?.userId).length === 0 && (
+                    <p className="text-muted text-sm">No requests.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div style={{ textAlign: "center" }}>
+            <Link
+              href="/challenges"
+              className="btn btn-secondary"
+              style={{ marginTop: "var(--space-md)" }}
+            >
+              ← Back to Challenges
+            </Link>
+          </div>
         </div>
       )}
     </div>

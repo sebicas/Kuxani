@@ -45,6 +45,35 @@ export default function GratitudePage() {
   const [coupleId, setCoupleId] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
+  const fetchEntries = useCallback(async () => {
+    try {
+      const res = await fetch("/api/gratitude?days=90");
+      if (res.ok) {
+        const data = await res.json();
+        setEntries(data);
+      }
+    } catch (err) {
+      console.error("Failed to load gratitude entries:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchPrompt = useCallback(async () => {
+    try {
+      const res = await fetch("/api/gratitude/prompts");
+      if (res.ok) {
+        const data = await res.json();
+        setDailyPrompt(data.prompt);
+      }
+    } catch (err) {
+      console.error("Failed to load prompt:", err);
+      setDailyPrompt("What's one thing your partner did recently that made you feel loved?");
+    } finally {
+      setPromptLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchEntries();
     fetchPrompt();
@@ -61,39 +90,10 @@ export default function GratitudePage() {
         if (data?.user?.id) setCurrentUserId(data.user.id);
       })
       .catch(() => {});
-  }, []);
-
-  const fetchEntries = useCallback(async () => {
-    try {
-      const res = await fetch("/api/gratitude?days=90");
-      if (res.ok) {
-        const data = await res.json();
-        setEntries(data);
-      }
-    } catch (err) {
-      console.error("Failed to load gratitude entries:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  }, [fetchEntries, fetchPrompt]);
 
   // Real-time: auto-refresh when partner shares an entry
   useCoupleSocket(coupleId, GRATITUDE_UPDATED, currentUserId, fetchEntries);
-
-  async function fetchPrompt() {
-    try {
-      const res = await fetch("/api/gratitude/prompts");
-      if (res.ok) {
-        const data = await res.json();
-        setDailyPrompt(data.prompt);
-      }
-    } catch (err) {
-      console.error("Failed to load prompt:", err);
-      setDailyPrompt("What's one thing your partner did recently that made you feel loved?");
-    } finally {
-      setPromptLoading(false);
-    }
-  }
 
   async function handleSubmit() {
     if (!content.trim()) return;
@@ -151,15 +151,21 @@ export default function GratitudePage() {
   // Only count own entries for the monthly grid
   const ownEntries = useMemo(() => entries.filter((e) => !e.isPartnerEntry), [entries]);
 
-  // Monthly contribution grid (last 28 days)
+  // Monthly contribution grid (last 28 days, descending — today first)
   const monthDays = useMemo(() => {
-    const days: Array<{ date: string; dayNum: number; hasEntry: boolean }> = [];
-    for (let i = 27; i >= 0; i--) {
+    const days: Array<{ date: string; dayNum: number; month: string; hasEntry: boolean; isToday: boolean }> = [];
+    for (let i = 0; i < 28; i++) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const dateStr = d.toDateString();
       const hasEntry = ownEntries.some((e) => new Date(e.createdAt).toDateString() === dateStr);
-      days.push({ date: dateStr, dayNum: d.getDate(), hasEntry });
+      days.push({
+        date: dateStr,
+        dayNum: d.getDate(),
+        month: d.toLocaleDateString("en-US", { month: "short" }),
+        hasEntry,
+        isToday: i === 0,
+      });
     }
     return days;
   }, [ownEntries]);
@@ -274,21 +280,17 @@ export default function GratitudePage() {
       {/* ── Monthly Grid ── */}
       <div className={styles.monthlySection}>
         <h2 className="heading-3">Last 28 Days</h2>
-        <div className={styles.monthDayLabels}>
-          {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-            <span key={i} className={styles.monthDayLabel}>{d}</span>
-          ))}
-        </div>
         <div className={styles.monthGrid}>
           {monthDays.map((day) => (
             <div
               key={day.date}
               className={`${styles.monthDay} ${
                 day.hasEntry ? styles.monthDayFilled : styles.monthDayEmpty
-              }`}
+              } ${day.isToday ? styles.monthDayToday : ""}`}
               title={day.hasEntry ? `Entry on day ${day.dayNum}` : `No entry on day ${day.dayNum}`}
             >
-              {day.dayNum}
+              <span className={styles.monthDayMonth}>{day.month}</span>
+              <span className={styles.monthDayNum}>{day.dayNum}</span>
             </div>
           ))}
         </div>

@@ -117,3 +117,42 @@
 | Coolify             | ✅ Configured | Dockerfile + deployment guide ready              |
 | Docker Build        | ✅ Fixed      | Lazy OpenAI, force-dynamic, tsconfig.server.json |
 | CI/CD               | ⬜ Pending    | Not yet configured                               |
+
+---
+
+## Relationship & Personality Assessments
+
+> Future assessments to be included in the app. These tests will help couples understand themselves, each other, and their relationship dynamics.
+
+### Relationship-Specific Assessments
+
+- [x] **Love Languages** — 5 Love Languages quiz, results visualization, AI integration.
+- [ ] **Gottman's Four Horsemen Assessment** — Identifies destructive communication patterns (criticism, contempt, defensiveness, stonewalling) based on John Gottman's research.
+- [ ] **Relationship Satisfaction Scales (DAS, CSI)** — The Dyadic Adjustment Scale and Couples Satisfaction Index measure overall relationship quality.
+- [ ] **Conflict Resolution Style Inventory** — Identifies how partners handle disagreements (competing, collaborating, compromising, avoiding, accommodating — based on Thomas-Kilmann's model).
+- [ ] **Prepare/Enrich** — A widely used premarital and marriage assessment covering communication, conflict resolution, financial management, and more. Often administered by counselors.
+
+### Personality & Interpersonal Style
+
+- [ ] **Enneagram** — Nine personality types, each with distinct motivations, fears, and relational patterns. Very popular in relationship coaching.
+- [ ] **Myers-Briggs (MBTI)** — 16 personality types based on four dichotomies (introversion/extraversion, sensing/intuition, thinking/feeling, judging/perceiving).
+- [ ] **Big Five (OCEAN)** — The most empirically validated personality model: Openness, Conscientiousness, Extraversion, Agreeableness, Neuroticism.
+- [ ] **DISC Assessment** — Measures Dominance, Influence, Steadiness, and Conscientiousness in communication and behavior.
+
+### Emotional & Psychological
+
+- [x] **Attachment Styles** — 40-question Likert quiz identifying attachment patterns (secure, anxious, avoidant, disorganized), results visualization, real-time partner updates.
+- [ ] **Emotional Intelligence (EQ) Tests** — Measures self-awareness, empathy, emotional regulation, and social skills (e.g., the Mayer-Salovey-Caruso test).
+- [ ] **Adverse Childhood Experiences (ACEs)** — A 10-question screener measuring childhood trauma, which strongly correlates with adult relationship patterns.
+- [ ] **Differentiation of Self Inventory** — Based on Murray Bowen's family systems theory; measures emotional reactivity, ability to maintain a sense of self while in close relationships.
+- [ ] **Codependency Assessments** — Various instruments measuring over-reliance on a partner for identity and self-worth.
+
+### Sexuality & Intimacy
+
+- [ ] **Erotic Blueprints** — Categorizes arousal patterns into five types (energetic, sensual, sexual, kinky, shapeshifter).
+- [ ] **Desire Discrepancy Scales** — Measures differences in sexual desire between partners.
+
+### Values & Compatibility
+
+- [ ] **VIA Character Strengths Survey** — Identifies 24 character strengths; useful for understanding what each partner values most.
+- [ ] **Schwartz Values Survey** — Maps personal values across dimensions like self-transcendence vs. self-enhancement.

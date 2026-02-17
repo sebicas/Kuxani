@@ -6,12 +6,12 @@ All available CLI commands and scripts for the Kuxani project.
 
 ## Development
 
-| Command         | Description                          |
-| --------------- | ------------------------------------ |
-| `npm run dev`   | Start Next.js dev server (Turbopack) |
-| `npm run build` | Production build                     |
-| `npm run start` | Start production server              |
-| `npm run lint`  | Run ESLint                           |
+| Command         | Description                                           |
+| --------------- | ----------------------------------------------------- |
+| `npm run dev`   | Start dev server (`tsx server.ts` with custom Socket) |
+| `npm run build` | Production build (`next build`)                       |
+| `npm run start` | Start production server (`node server.js`)            |
+| `npm run lint`  | Run ESLint                                            |
 
 ## Database (Drizzle)
 
@@ -24,12 +24,13 @@ All available CLI commands and scripts for the Kuxani project.
 
 ## Testing
 
-| Command              | Description                                                     |
-| -------------------- | --------------------------------------------------------------- |
-| `npm test`           | Run **all** tests (unit + integration + E2E)                    |
-| `npm run test:unit`  | Run unit/integration tests only (Vitest, no server needed)      |
-| `npm run test:watch` | Run unit tests in watch mode (Vitest)                           |
-| `npm run test:e2e`   | Run E2E browser tests only (Playwright, auto-starts dev server) |
+| Command                    | Description                                                     |
+| -------------------------- | --------------------------------------------------------------- |
+| `npm test`                 | Run **all** tests (unit + integration + E2E)                    |
+| `npm run test:unit`        | Run unit tests only (Vitest)                                    |
+| `npm run test:integration` | Run integration tests only (Vitest, separate config)            |
+| `npm run test:watch`       | Run unit tests in watch mode (Vitest)                           |
+| `npm run test:e2e`         | Run E2E browser tests only (Playwright, auto-starts dev server) |
 
 ## Infrastructure
 

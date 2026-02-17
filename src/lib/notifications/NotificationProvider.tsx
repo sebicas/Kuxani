@@ -18,6 +18,11 @@ import {
   MOOD_UPDATED,
   LOVE_LANGUAGE_UPDATED,
   CHALLENGE_UPDATED,
+  DISAGREEMENT_INVITE,
+  DISAGREEMENT_INVITE_RESPONSE,
+  DISAGREEMENT_STATUS,
+  REQUEST_CREATED,
+  COMPROMISE_CREATED,
 } from "@/lib/socket/events";
 import styles from "./notifications.module.css";
 
@@ -46,6 +51,11 @@ const EVENT_CONFIG: Record<string, { message: string; emoji: string }> = {
   [MOOD_UPDATED]: { message: "Your partner shared a mood check-in", emoji: "🫶" },
   [LOVE_LANGUAGE_UPDATED]: { message: "Your partner completed the Love Languages quiz!", emoji: "💕" },
   [CHALLENGE_UPDATED]: { message: "Your partner made progress on a challenge", emoji: "🔮" },
+  [DISAGREEMENT_INVITE]: { message: "Your partner wants to talk through something with you", emoji: "💬" },
+  [DISAGREEMENT_INVITE_RESPONSE]: { message: "Your partner responded to your invitation", emoji: "📩" },
+  [DISAGREEMENT_STATUS]: { message: "A disagreement conversation was updated", emoji: "🗣️" },
+  [REQUEST_CREATED]: { message: "A new request was created", emoji: "📋" },
+  [COMPROMISE_CREATED]: { message: "A new compromise was proposed", emoji: "🤝" },
 };
 
 const TOAST_DURATION = 5000;
@@ -124,8 +134,9 @@ export function NotificationProvider({
 
   // Cleanup timers on unmount
   useEffect(() => {
+    const timers = timersRef.current;
     return () => {
-      for (const timer of timersRef.current.values()) {
+      for (const timer of timers.values()) {
         clearTimeout(timer);
       }
     };
