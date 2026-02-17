@@ -24,6 +24,7 @@ import {
 } from "@/lib/ai/prompts";
 import { loadCoupleContext, loadPersonalContext } from "@/lib/ai/context";
 import { DISAGREEMENT_MESSAGE, DISAGREEMENT_STATUS } from "@/lib/socket/events";
+import { isValidUUID } from "@/lib/utils/uuid";
 
 export const dynamic = "force-dynamic";
 
@@ -83,6 +84,9 @@ export async function GET(request: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
+  if (!isValidUUID(id)) {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
   const disagreement = await verifyAccess(id, session.user.id);
   if (!disagreement) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -123,6 +127,9 @@ export async function POST(request: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
+  if (!isValidUUID(id)) {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
   const disagreement = await verifyAccess(id, session.user.id);
   if (!disagreement) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
