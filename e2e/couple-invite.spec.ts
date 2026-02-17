@@ -22,7 +22,7 @@ test.describe("Couple Invite/Join Flow", () => {
   });
 
   test("should show couple creation CTA", async ({ page }) => {
-    await signUpFresh(page);
+    await signUpAndAuth(page, "inv");
 
     // Should see the "Create Couple & Get Invite Code" button
     await expect(
@@ -31,7 +31,7 @@ test.describe("Couple Invite/Join Flow", () => {
   });
 
   test("should create couple and display invite code", async ({ page }) => {
-    await signUpFresh(page);
+    await signUpAndAuth(page, "inv");
 
     // Click the create couple button
     await page.locator("text=Create Couple & Get Invite Code").first().click();
