@@ -24,7 +24,17 @@ description: Commit, push, and create a GitHub Pull Request from the current bra
    - If there are no uncommitted changes, ensure the branch is pushed:
      - Run `git push origin <current-branch>` (safe to run even if already up-to-date).
 
-3. **Determine the PR type**:
+3. **Pre-PR build verification**:
+   Run the production build to ensure the code compiles without errors before creating the PR.
+
+   ```bash
+   npm run build
+   ```
+
+   Confirm: `✓ Compiled successfully` and zero errors.
+   If the build fails, STOP immediately, report the failure to the user, and do NOT proceed to create the PR.
+
+4. **Determine the PR type**:
    - Ask the user (or infer from the branch name) what type of PR this is. Common types:
      - `Feature` — new functionality
      - `Fix` — bug fix
@@ -34,18 +44,18 @@ description: Commit, push, and create a GitHub Pull Request from the current bra
      - `Test` — adding/correcting tests
      - `Perf` — performance improvement
 
-4. **Build the PR title**:
+5. **Build the PR title**:
    - Read the **walkthrough.md** artifact from the current conversation's brain directory (`<appDataDir>/brain/<conversation-id>/walkthrough.md`).
    - If no walkthrough exists, STOP and ask the user to describe the changes first.
    - Extract the **title** from the first `# Heading` in the walkthrough (strip the `# ` prefix and any trailing ` — Walkthrough` suffix).
    - Build the PR title as: `<Type> : <Title>`
      - Example: `Feature : AI Context Enrichment`
 
-5. **Determine the target branch**:
+6. **Determine the target branch**:
    - If the user specifies a target branch, use that.
    - **Default**: `development`
 
-6. **Create the PR**:
+7. **Create the PR**:
    - Use the **entire walkthrough content** as the PR body/description (in markdown).
    - Strip any `file:///` links from the body since they won't work on GitHub.
    - Run:
@@ -53,13 +63,13 @@ description: Commit, push, and create a GitHub Pull Request from the current bra
      gh pr create --base <target-branch> --head <current-branch> --title "<Type> : <Title>" --body '<walkthrough content>'
      ```
 
-7. **Switch to the target branch**:
+8. **Switch to the target branch**:
    - Run:
      ```bash
      git checkout <target-branch>
      ```
 
-8. **Report**:
+9. **Report**:
    - Inform the user:
      - Commits created (if any) with messages.
      - PR title and link.
@@ -86,3 +96,4 @@ description: Commit, push, and create a GitHub Pull Request from the current bra
 - **Do not** invent new commit types; use strictly the ones listed above.
 - **Do not** push if `git commit` fails.
 - **Do not** create a PR from `main` or `development`.
+- **Do not** create the PR if the build fails.

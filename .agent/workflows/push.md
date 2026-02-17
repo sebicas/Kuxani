@@ -35,13 +35,7 @@ description: Intelligently group uncommitted changes into logical commits and pu
 
       Confirm: all tests pass.
 
-   3. **Build**:
-      ```bash
-      npm run build
-      ```
-      Confirm: `✓ Compiled successfully` and zero errors.
-
-   If all three pass, proceed to the next step.
+   If all checks pass, proceed to the next step.
 
 4. **Commit changes**:
    - For each identified group of changes:
@@ -58,7 +52,7 @@ description: Intelligently group uncommitted changes into logical commits and pu
    - Inform the user of:
      - All commits created (with messages).
      - Which branch was pushed.
-     - Verification results (lint ✓, tests ✓, build ✓).
+     - Verification results (lint ✓, tests ✓).
 
 ## Allowed Commit Types
 
