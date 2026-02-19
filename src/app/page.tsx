@@ -1,5 +1,6 @@
 import Link from "next/link";
 import styles from "./page.module.css";
+import FooterPhrase from "./FooterPhrase";
 
 export default function LandingPage() {
   return (
@@ -155,8 +156,7 @@ export default function LandingPage() {
       {/* ── Footer ── */}
       <footer className={styles.landingFooter}>
         <p>
-          Built with <span className={styles.footerHeart}>♥</span> for couples
-          who want to grow together.
+          <FooterPhrase />
         </p>
       </footer>
     </div>
