@@ -106,7 +106,7 @@ try {
   const { execSync } = await import("node:child_process");
   execSync("npx drizzle-kit migrate", {
     stdio: "inherit",
-    env: { ...process.env, NODE_ENV: env || "development" },
+    env: { ...process.env, NODE_ENV: (env || "development") as NodeJS.ProcessEnv["NODE_ENV"] },
   });
 
   console.log("\n✅  Database flushed and migrations applied successfully.\n");
