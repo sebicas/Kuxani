@@ -84,11 +84,11 @@ test.describe("Gratitude Journal", () => {
 
 // ── Emergency De-escalation ──
 test.describe("Emergency De-escalation", () => {
-  test("should navigate to de-escalation from FAB button", async ({ page }) => {
+  test("should navigate to de-escalation from sidebar link", async ({ page }) => {
     await signUpAndAuth(page);
 
-    // Click the emergency FAB
-    await page.locator('[aria-label="Emergency De-escalation Mode"]').click();
+    // Click the sidebar nav link
+    await page.locator("nav >> text=De-escalation").click();
     await page.waitForURL("**/deescalation**", { timeout: 10000 });
 
     // Should see the de-escalation title
