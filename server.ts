@@ -262,7 +262,7 @@ async function main() {
   });
 
   httpServer.listen(port, () => {
-    console.log(`> Ready on http://${hostname}:${port} (${appEnv})`);
+    console.log(`> Ready on http://localhost:${port} (${appEnv})`);
   });
 }
 

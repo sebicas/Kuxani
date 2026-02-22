@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const validModules: RealtimeModule[] = ["personal", "disagreement", "challenge"];
+  const validModules: RealtimeModule[] = ["personal", "disagreement", "challenge", "intake"];
   if (!validModules.includes(moduleName)) {
     return NextResponse.json(
       { error: `Invalid module: ${moduleName}` },

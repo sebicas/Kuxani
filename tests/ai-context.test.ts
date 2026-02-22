@@ -19,6 +19,7 @@ import {
   childhoodWounds,
   loveLanguageResults,
   attachmentStyleResults,
+  intakeResponses,
 } from "@/lib/db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { auth } from "@/lib/auth";
@@ -72,7 +73,29 @@ describe("AI Context Loader", () => {
       commonTriggers: ["criticism", "dismissiveness"],
       effectiveStrategies: ["time-outs", "I-statements"],
       recentWins: ["resolved finances discussion"],
+      // Intake fields
+      relationshipStage: "married",
+      livingSituation: "together",
+      therapyGoals: ["Better communication", "Rebuild trust"],
     });
+
+    // Intake dual-perspective responses
+    await db.insert(intakeResponses).values([
+      {
+        userId: userIdA,
+        coupleId,
+        phase: 2,
+        field: "presentingProblem",
+        value: "We argue about finances constantly",
+      },
+      {
+        userId: userIdB,
+        coupleId,
+        phase: 2,
+        field: "presentingProblem",
+        value: "Communication breaks down during stress",
+      },
+    ]);
 
     await db.insert(childhoodWounds).values([
       {
@@ -179,6 +202,7 @@ describe("AI Context Loader", () => {
 
   afterAll(async () => {
     // Clean up in dependency order
+    await db.delete(intakeResponses).where(inArray(intakeResponses.userId, [userIdA, userIdB]));
     await db.delete(deescalationSessions).where(eq(deescalationSessions.coupleId, coupleId));
     await db.delete(gratitudeEntries).where(inArray(gratitudeEntries.userId, [userIdA, userIdB, soloUserId]));
     await db.delete(moodEntries).where(inArray(moodEntries.userId, [userIdA, userIdB, soloUserId]));
@@ -235,6 +259,17 @@ describe("AI Context Loader", () => {
       expect(ctx.loveLanguageContext).toBeDefined();
       expect(ctx.loveLanguageContext).toContain("Words 10");
       expect(ctx.loveLanguageContext).toContain("Dominant:");
+      // Intake context
+      expect(ctx.intakeContext).toBeDefined();
+      expect(ctx.intakeContext).toContain("married");
+      expect(ctx.intakeContext).toContain("Better communication");
+    });
+
+    it("should include intake context with relationship data", async () => {
+      const ctx = await loadCoupleContext(coupleId);
+      expect(ctx.intakeContext).toBeDefined();
+      expect(ctx.intakeContext).toContain("together");
+      expect(ctx.intakeContext).toContain("Rebuild trust");
     });
 
     it("should exclude dismissed childhood wounds", async () => {

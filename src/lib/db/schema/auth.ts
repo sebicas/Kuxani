@@ -23,6 +23,27 @@ export const user = pgTable("user", {
     phone?: string | null;
     description?: string | null;
     voicePreference?: string;
+    /* ── Intake: Family of Origin (Phase 3) ── */
+    familyOfOrigin?: {
+      parentsRelationship?: string;
+      familyConflictStyle?: string;
+      emotionalEnvironment?: string;
+      familyRole?: string;
+      unspokenRules?: string[];
+      significantLosses?: string[];
+      culturalContext?: string;
+    };
+    /* ── Intake: Attachment History (Phase 4) ── */
+    attachmentHistory?: {
+      childhoodComfortSource?: string;
+      wasComfortAvailable?: boolean;
+      selfSoothingPatterns?: string[];
+      previousRelationships?: string;
+      vulnerabilityComfort?: string;
+    };
+    /* ── Intake: Life Context (Phase 6) ── */
+    externalStressors?: string[];
+    mentalHealthContext?: string;
   }>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")

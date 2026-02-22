@@ -9,6 +9,7 @@ import styles from "./dashboard.module.css";
 
 const navItems = [
   { href: "/dashboard", label: "Home", icon: "🏠" },
+  { href: "/intake", label: "Intake", icon: "📋" },
   { href: "/challenges", label: "Challenges", icon: "🔮" },
   { href: "/disagreements", label: "Disagreements", icon: "🗣️" },
   { href: "/personal", label: "Private Therapy", icon: "💬" },
@@ -17,6 +18,7 @@ const navItems = [
   { href: "/attachment-styles", label: "Attachment Styles", icon: "🔗" },
   { href: "/childhood-wounds", label: "Childhood Wounds", icon: "🩹" },
   { href: "/gratitude", label: "Gratitude", icon: "✨" },
+  { href: "/deescalation", label: "De-escalation", icon: "🚨" },
   { href: "/checkins", label: "Weekly Check-In", icon: "📋" },
   { href: "/insights", label: "Insights", icon: "📊" },
 ];
@@ -128,16 +130,6 @@ export default function DashboardLayout({
           {children}
         </NotificationProvider>
       </main>
-
-      {/* ── Emergency De-escalation Button ── */}
-      <Link
-        href="/deescalation"
-        className={styles.emergencyBtn}
-        title="Emergency De-escalation"
-        aria-label="Emergency De-escalation Mode"
-      >
-        🚨
-      </Link>
     </div>
   );
 }

@@ -3,11 +3,13 @@ import {
   uuid,
   text,
   timestamp,
+  date,
   jsonb,
   pgEnum,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { user } from "./auth";
+import { relationshipStageEnum, livingSituationEnum } from "./intake";
 
 /* ── Enums ── */
 export const coupleStatusEnum = pgEnum("couple_status", [
@@ -44,7 +46,7 @@ export const coupleMembers = pgTable("couple_members", {
   colorCode: text("color_code").default("#6366f1").notNull(),
 });
 
-/* ── Couple Profile (AI-maintained) ── */
+/* ── Couple Profile (AI-maintained + intake data) ── */
 export const coupleProfiles = pgTable("couple_profiles", {
   id: uuid("id").primaryKey().defaultRandom(),
   coupleId: uuid("couple_id")
@@ -56,6 +58,21 @@ export const coupleProfiles = pgTable("couple_profiles", {
   loveLanguages: jsonb("love_languages"),
   effectiveStrategies: jsonb("effective_strategies"),
   recentWins: jsonb("recent_wins"),
+  /* ── Intake: Relationship Context (couple-level facts) ── */
+  relationshipStage: relationshipStageEnum("relationship_stage"),
+  togetherSince: date("together_since"),
+  currentStageSince: date("current_stage_since"),
+  livingSituation: livingSituationEnum("living_situation"),
+  children: jsonb("children").$type<
+    { name: string; age: number; relationship: "bio" | "step" | "adopted" }[]
+  >(),
+  therapyGoals: jsonb("therapy_goals").$type<string[]>(),
+  previousTherapy: jsonb("previous_therapy").$type<{
+    type?: string;
+    duration?: string;
+    whatHelped?: string;
+    whatDidnt?: string;
+  }>(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
