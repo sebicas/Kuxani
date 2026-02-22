@@ -295,6 +295,32 @@ All features that involve partner collaboration **MUST** use Socket.IO to push l
 - Event constants live in `src/lib/socket/events.ts`
 - Skip own events with `userId` filtering in the client hook
 
+### Couple Quiz/Test Pages — Partner Result Fetch (MANDATORY)
+
+When creating any couple quiz or test page (love languages, attachment styles, childhood wounds, etc.), the `submitQuiz` function **MUST** do a follow-up GET fetch after the POST save to retrieve the partner's results. This ensures the partner comparison section is populated immediately on save — not just via the socket real-time path.
+
+**Pattern:**
+
+```ts
+if (res.ok) {
+  const result = await res.json();
+  setUserResult(result);
+  // MANDATORY: Fetch partner result — they may have already completed the quiz
+  try {
+    const fullRes = await fetch("/api/<test-endpoint>");
+    if (fullRes.ok) {
+      const data = await fullRes.json();
+      if (data.partnerResult) setPartnerResult(data.partnerResult);
+    }
+  } catch {
+    /* partner result is optional */
+  }
+  setView("results");
+}
+```
+
+> **Why:** The POST response only returns the current user's result. Without this second fetch, the partner comparison section shows "waiting" even if the partner already completed the quiz.
+
 ### Code Style
 
 - TypeScript strict mode
