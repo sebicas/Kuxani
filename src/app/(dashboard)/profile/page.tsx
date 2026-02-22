@@ -46,7 +46,7 @@ export default function ProfilePage() {
   const [previewingVoice, setPreviewingVoice] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const voiceCacheRef = useRef<Map<string, Blob>>(new Map());
-  const [preloadProgress, setPreloadProgress] = useState(0);
+  const [_preloadProgress, setPreloadProgress] = useState(0);
 
   const showToast = useCallback((message: string, error = false) => {
     setToast({ message, error });

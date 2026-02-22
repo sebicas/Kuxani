@@ -25,10 +25,10 @@ export async function POST(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
-  const module = searchParams.get("module") as RealtimeModule | null;
+  const moduleName = searchParams.get("module") as RealtimeModule | null;
   const resourceId = searchParams.get("id");
 
-  if (!module || !resourceId) {
+  if (!moduleName || !resourceId) {
     return NextResponse.json(
       { error: "Missing required params: module, id" },
       { status: 400 }
@@ -36,9 +36,9 @@ export async function POST(request: NextRequest) {
   }
 
   const validModules: RealtimeModule[] = ["personal", "disagreement", "challenge"];
-  if (!validModules.includes(module)) {
+  if (!validModules.includes(moduleName)) {
     return NextResponse.json(
-      { error: `Invalid module: ${module}` },
+      { error: `Invalid module: ${moduleName}` },
       { status: 400 }
     );
   }
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
   try {
     // 1. Resolve the system prompt and voice for this module
     const { systemPrompt, voice } = await resolveRealtimeContext(
-      module,
+      moduleName,
       resourceId,
       session.user.id
     );

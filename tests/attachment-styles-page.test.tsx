@@ -126,7 +126,7 @@ async function fillOutAndSubmitQuiz(user: ReturnType<typeof userEvent.setup>) {
 }
 
 /** Helper: check if the partner comparison grid is visible (not the waiting message) */
-function partnerComparisonIsVisible() {
+function _partnerComparisonIsVisible() {
   // The comparison grid shows "Anxious" for partner's top style with our mock data
   return screen.queryByText("Partner Comparison") !== null
     && screen.queryByText(/partner hasn.t taken the quiz yet/i) === null;
