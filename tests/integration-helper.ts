@@ -43,12 +43,17 @@ export async function getTestServerUrl(): Promise<string> {
 
   // 2) Start a fresh Next.js server
   originalStdoutWrite = process.stdout.write.bind(process.stdout);
-  process.stdout.write = ((chunk: unknown, ...args: unknown[]) => {
+  process.stdout.write = (function (
+    this: typeof process.stdout,
+    chunk: string | Uint8Array,
+    encodingOrCb?: BufferEncoding | ((err?: Error | null) => void),
+    cb?: (err?: Error | null) => void,
+  ): boolean {
     if (typeof chunk === "string" && /^\s*(GET|POST|PUT|DELETE|PATCH)\s+\//.test(chunk)) {
       return true;
     }
-    return originalStdoutWrite(chunk, ...args);
-  }) as typeof process.stdout.write;
+    return originalStdoutWrite.call(this, chunk, encodingOrCb as BufferEncoding, cb);
+  } as typeof process.stdout.write).bind(process.stdout);
 
   const app = next({ dev: true, dir: process.cwd(), quiet: true });
   const handle = app.getRequestHandler();
@@ -63,7 +68,7 @@ export async function getTestServerUrl(): Promise<string> {
     });
   });
 
-  return sharedBaseUrl;
+  return sharedBaseUrl!;
 }
 
 /** Decrement ref count; close server when last suite finishes */
