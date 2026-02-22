@@ -1,20 +1,7 @@
-/**
- * Wellness API Integration Tests
- *
- * Covers:
- * - Mood tracker: create/list, validation, partner visibility
- * - Gratitude journal: create/list, validation
- * - Love Languages: quiz submission, score validation
- *
- * Requires: Docker (PostgreSQL) running + local Next.js server
- */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { createServer, type Server } from "http";
-import type { AddressInfo } from "net";
-import next from "next";
 import { auth } from "@/lib/auth";
+import { getTestServerUrl, releaseTestServer } from "./integration-helper";
 
-let server: Server;
 let baseUrl: string;
 
 // ── Helper: create user & get session cookie ──
@@ -69,30 +56,8 @@ describe("Wellness APIs", () => {
   let userBHeaders: Headers;
   let soloHeaders: Headers;
 
-  let originalStdoutWrite: typeof process.stdout.write;
-
   beforeAll(async () => {
-    // Suppress Next.js request logs
-    originalStdoutWrite = process.stdout.write.bind(process.stdout);
-    process.stdout.write = ((chunk: unknown, ...args: unknown[]) => {
-      if (typeof chunk === "string" && /^\s*(GET|POST|PUT|DELETE|PATCH)\s+\//.test(chunk)) {
-        return true;
-      }
-      return originalStdoutWrite(chunk, ...args);
-    }) as typeof process.stdout.write;
-
-    const app = next({ dev: true, dir: process.cwd(), quiet: true });
-    const handle = app.getRequestHandler();
-    await app.prepare();
-
-    server = createServer((req, res) => handle(req, res));
-    await new Promise<void>((resolve) => {
-      server.listen(0, () => {
-        const addr = server.address() as AddressInfo;
-        baseUrl = `http://localhost:${addr.port}`;
-        resolve();
-      });
-    });
+    baseUrl = await getTestServerUrl();
 
     // Create test users
     userAHeaders = await createUserAndGetCookie(userAEmail, "WellnessA Test");
@@ -112,8 +77,7 @@ describe("Wellness APIs", () => {
   }, 120_000);
 
   afterAll(() => {
-    process.stdout.write = originalStdoutWrite;
-    server?.close();
+    releaseTestServer();
   });
 
   // ── Mood Tracker ──

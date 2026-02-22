@@ -1,22 +1,7 @@
-/**
- * Partner Invitation Integration Tests
- *
- * Tests the full partner invitation flow:
- * - Creating a couple + invite code
- * - Looking up invite info
- * - Joining a couple via invite code
- * - Edge cases (duplicates, self-join, full couple)
- *
- * Requires: Docker (PostgreSQL) running
- * Automatically starts a Next.js server on a random port.
- */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { createServer, type Server } from "http";
-import type { AddressInfo } from "net";
-import next from "next";
 import { auth } from "@/lib/auth";
+import { getTestServerUrl, releaseTestServer } from "./integration-helper";
 
-let server: Server;
 let baseUrl: string;
 
 // ── Helper: create user & get session cookie ──
@@ -73,41 +58,17 @@ describe("Partner Invitation", () => {
   let inviteCode: string;
   let coupleId: string;
 
-  // Start Next.js server on a random port
-  let originalStdoutWrite: typeof process.stdout.write;
-
   beforeAll(async () => {
-    // Suppress Next.js request logs (GET /api/... 200 in 125ms ...)
-    originalStdoutWrite = process.stdout.write.bind(process.stdout);
-    process.stdout.write = ((chunk: unknown, ...args: unknown[]) => {
-      if (typeof chunk === "string" && /^\s*(GET|POST|PUT|DELETE|PATCH)\s+\//.test(chunk)) {
-        return true;
-      }
-      return originalStdoutWrite(chunk, ...args);
-    }) as typeof process.stdout.write;
-
-    const app = next({ dev: true, dir: process.cwd(), quiet: true });
-    const handle = app.getRequestHandler();
-    await app.prepare();
-
-    server = createServer((req, res) => handle(req, res));
-    await new Promise<void>((resolve) => {
-      server.listen(0, () => {
-        const addr = server.address() as AddressInfo;
-        baseUrl = `http://localhost:${addr.port}`;
-        resolve();
-      });
-    });
+    baseUrl = await getTestServerUrl();
 
     // Create test users
     creatorHeaders = await createUserAndGetCookie(creatorEmail, "Alice Creator");
     partnerHeaders = await createUserAndGetCookie(partnerEmail, "Bob Partner");
     thirdHeaders = await createUserAndGetCookie(thirdEmail, "Charlie Third");
-  }, 120_000); // 2 min for first-time Next.js compilation
+  }, 120_000);
 
   afterAll(() => {
-    process.stdout.write = originalStdoutWrite;
-    server?.close();
+    releaseTestServer();
   });
 
   /* ── GET /api/couples — no couple yet ── */

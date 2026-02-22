@@ -10,6 +10,7 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.ts", "src/**/*.test.tsx", "tests/**/*.test.ts", "tests/**/*.test.tsx"],
     testTimeout: 15000,
+    fileParallelism: false,
     env: {
       BETTER_AUTH_SILENT: "true",
     },
