@@ -3,7 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import styles from "../personal.module.css";
+
+const VoiceSession = dynamic(() => import("./VoiceSession"), { ssr: false });
 
 interface Message {
   id: string;
@@ -39,6 +42,7 @@ export default function PersonalChatPage({
   const [streamingText, setStreamingText] = useState("");
   const [loading, setLoading] = useState(true);
   const [chatId, setChatId] = useState<string>("");
+  const [mode, setMode] = useState<"text" | "voice">("text");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -367,29 +371,67 @@ export default function PersonalChatPage({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* ── Input ── */}
-      <div className={styles.inputArea}>
-        <div className={styles.inputWrapper}>
-          <textarea
-            ref={textareaRef}
-            className={styles.chatInput}
-            value={input}
-            onChange={autoResize}
-            onKeyDown={handleKeyDown}
-            placeholder="Share what's on your mind…"
-            rows={1}
-            disabled={streaming}
-          />
+      {/* ── Input or Voice Session ── */}
+      {mode === "voice" ? (
+        <VoiceSession
+          chatId={chatId}
+          lastAIMessage={
+            [...messages].reverse().find((m) => m.role === "assistant")?.content
+          }
+          onTranscript={(role, content) => {
+            // Add to chat messages in real time
+            const newMsg: Message = {
+              id: `voice-${Date.now()}-${Math.random()}`,
+              role,
+              content,
+              createdAt: new Date().toISOString(),
+            };
+            setMessages((prev) => [...prev, newMsg]);
+
+            // Save to DB immediately
+            fetch(`/api/personal/chats/${chatId}/messages`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                messages: [{ role, content }],
+              }),
+            }).catch(() => {});
+          }}
+          onDisconnect={() => {
+            setMode("text");
+          }}
+        />
+      ) : (
+        <div className={styles.inputArea}>
+          <div className={styles.inputWrapper}>
+            <textarea
+              ref={textareaRef}
+              className={styles.chatInput}
+              value={input}
+              onChange={autoResize}
+              onKeyDown={handleKeyDown}
+              placeholder="Share what's on your mind…"
+              rows={1}
+              disabled={streaming}
+            />
+          </div>
+          <button
+            className={styles.sendBtn}
+            onClick={() => sendMessage(input)}
+            disabled={!input.trim() || streaming}
+            title="Send message"
+          >
+            ↑
+          </button>
+          <button
+            className={styles.callBtn}
+            onClick={() => setMode("voice")}
+            title="Start voice call"
+          >
+            📞
+          </button>
         </div>
-        <button
-          className={styles.sendBtn}
-          onClick={() => sendMessage(input)}
-          disabled={!input.trim() || streaming}
-          title="Send message"
-        >
-          ↑
-        </button>
-      </div>
+      )}
     </div>
   );
 }
