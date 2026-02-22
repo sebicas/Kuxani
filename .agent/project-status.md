@@ -1,6 +1,6 @@
 # Kuxani — Project Status
 
-> Last updated: 2026-02-22 (Attachment styles partner toggle + answers, integration test infrastructure, quiz-standards workflow)
+> Last updated: 2026-02-22 (Intake Interview feature — 3-modality wizard with AI chat/voice, data extraction, progress tracking)
 
 ---
 
@@ -63,6 +63,7 @@
 - [x] **Live Voice Sessions** — Real-time voice conversations with AI via OpenAI Realtime API, transcript saving
 - [x] **User Profile & Voice Settings** — Profile page with voice preference settings, voice preview
 - [x] **AI Context / Memory** — Centralized `loadCoupleContext()` / `loadPersonalContext()` feeding 8 data sources into all 5 AI routes
+- [x] **Intake Interview** — 6-phase intake wizard with 3 modalities (form, chat, voice), AI `intake_data` extraction, progress tracking, dual-perspective responses, childhood wounds detection
 
 ### ⬜ Pending
 
@@ -106,9 +107,10 @@
 | 17  | Live Voice Sessions             | 3     | ✅ Done    |
 | 18  | User Profile & Voice Settings   | 3     | ✅ Done    |
 | 19  | AI Context / Memory             | 3     | ✅ Done    |
-| 20  | Milestone Timeline              | 4     | ⬜ Pending |
-| 21  | Resource Library                | 4     | ⬜ Pending |
-| 22  | Session Notes & Insights Export | 4     | ⬜ Pending |
+| 20  | Intake Interview                | 3     | ✅ Done    |
+| 21  | Milestone Timeline              | 4     | ⬜ Pending |
+| 22  | Resource Library                | 4     | ⬜ Pending |
+| 23  | Session Notes & Insights Export | 4     | ⬜ Pending |
 
 ---
 
