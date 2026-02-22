@@ -20,6 +20,9 @@ export const user = pgTable("user", {
     copingMechanisms?: string[];
     growthAreas?: string[];
     loveLanguage?: string;
+    phone?: string | null;
+    description?: string | null;
+    voicePreference?: string;
   }>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
