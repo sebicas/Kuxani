@@ -385,10 +385,23 @@ export default function IntakeWizardPage() {
   }, [currentIndex, totalQuestions, loadPhaseData, markPhaseInProgress]);
 
   const startInterview = useCallback(async () => {
-    await markPhaseInProgress(1);
-    await loadPhaseData(1);
+    if (isReturning) {
+      // Find the first unanswered question across all loaded data
+      const firstUnanswered = INTAKE_QUESTIONS.findIndex(
+        (q) => answers[q.id] === undefined || answers[q.id] === null || answers[q.id] === ""
+      );
+      if (firstUnanswered >= 0) {
+        const targetPhase = INTAKE_QUESTIONS[firstUnanswered].phase;
+        await loadPhaseData(targetPhase);
+        await markPhaseInProgress(targetPhase);
+        setCurrentIndex(firstUnanswered);
+      }
+    } else {
+      await markPhaseInProgress(1);
+      await loadPhaseData(1);
+    }
     setView("interview");
-  }, [markPhaseInProgress, loadPhaseData]);
+  }, [isReturning, answers, markPhaseInProgress, loadPhaseData]);
 
   /* ── Render helpers ── */
 
