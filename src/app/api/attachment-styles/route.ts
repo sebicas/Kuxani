@@ -1,12 +1,12 @@
 /**
  * Attachment Styles API — Get Results & Save Results
  *
- * GET  /api/attachment-styles — Get user's results (+ partner's if available)
- * POST /api/attachment-styles — Save quiz results + emit real-time event
+ * GET  /api/attachment-styles — Get user's results (+ partner's if available) with names
+ * POST /api/attachment-styles — Save quiz results + answers + emit real-time event
  */
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { attachmentStyleResults, coupleMembers } from "@/lib/db/schema";
+import { attachmentStyleResults, coupleMembers, user } from "@/lib/db/schema";
 import { getServerSession } from "@/lib/auth/session";
 import { eq, desc, and, ne } from "drizzle-orm";
 
@@ -24,8 +24,15 @@ export async function GET() {
     .orderBy(desc(attachmentStyleResults.createdAt))
     .limit(1);
 
-  // Try to get partner's result
+  // Get user's name
+  const [currentUser] = await db
+    .select({ name: user.name })
+    .from(user)
+    .where(eq(user.id, session.user.id));
+
+  // Try to get partner's result + name
   let partnerResult = null;
+  let partnerName: string | null = null;
   const userMemberships = await db
     .select({ coupleId: coupleMembers.coupleId })
     .from(coupleMembers)
@@ -45,6 +52,13 @@ export async function GET() {
       );
 
     if (partner) {
+      // Get partner name
+      const [partnerUser] = await db
+        .select({ name: user.name })
+        .from(user)
+        .where(eq(user.id, partner.userId));
+      partnerName = partnerUser?.name || "Partner";
+
       const [result] = await db
         .select()
         .from(attachmentStyleResults)
@@ -59,6 +73,8 @@ export async function GET() {
   return NextResponse.json({
     userResult: userResult || null,
     partnerResult,
+    userName: currentUser?.name || "You",
+    partnerName,
   });
 }
 
@@ -69,7 +85,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { secure, anxious, avoidant, fearfulAvoidant } = body;
+  const { secure, anxious, avoidant, fearfulAvoidant, answers } = body;
 
   // Validate all scores are present and in range (10 questions × 1–7 rating = 10–70)
   const scores = [secure, anxious, avoidant, fearfulAvoidant];
@@ -88,6 +104,7 @@ export async function POST(request: NextRequest) {
       anxious,
       avoidant,
       fearfulAvoidant,
+      answers: answers || null,
     })
     .returning();
 
