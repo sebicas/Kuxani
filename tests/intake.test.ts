@@ -549,5 +549,106 @@ describe("Intake Interview", () => {
         expect(row.coupleId).toBe(coupleId);
       }
     });
+
+    it("should reject null JSONB value (NOT NULL constraint)", async () => {
+      await expect(
+        db
+          .insert(intakeResponses)
+          .values({
+            userId: userAId,
+            coupleId,
+            phase: 3,
+            field: "nullField",
+            value: null as unknown as string,
+          })
+          .returning()
+      ).rejects.toThrow();
+    });
+
+    it("should handle deeply nested JSONB objects", async () => {
+      const nested = {
+        level1: {
+          level2: {
+            level3: { data: [1, 2, { inner: true }] },
+          },
+        },
+      };
+      const [response] = await db
+        .insert(intakeResponses)
+        .values({
+          userId: userBId,
+          coupleId,
+          phase: 4,
+          field: "deepNested",
+          value: nested,
+        })
+        .returning();
+
+      expect(response.value).toEqual(nested);
+      createdResponseIds.push(response.id);
+    });
+
+    it("should handle very large text values", async () => {
+      const largeText = "A".repeat(10_000);
+      const [response] = await db
+        .insert(intakeResponses)
+        .values({
+          userId: userAId,
+          coupleId,
+          phase: 3,
+          field: "largeField",
+          value: largeText,
+        })
+        .returning();
+
+      expect(response.value).toBe(largeText);
+      createdResponseIds.push(response.id);
+    });
+
+    it("should accept boundary phase values (1 and 7)", async () => {
+      for (const phase of [1, 7]) {
+        const [p] = await db
+          .insert(intakeProgress)
+          .values({
+            userId: userBId,
+            coupleId,
+            phase,
+            status: "not_started",
+            modalityUsed: "form",
+          })
+          .returning();
+
+        expect(p.phase).toBe(phase);
+        createdProgressIds.push(p.id);
+      }
+    });
+
+    it("should merge profileData when existing data is null", async () => {
+      // Clear profileData first
+      await db
+        .update(user)
+        .set({ profileData: null })
+        .where(eq(user.id, userBId));
+
+      // Fetch current (should be null)
+      const [current] = await db
+        .select({ profileData: user.profileData })
+        .from(user)
+        .where(eq(user.id, userBId))
+        .limit(1);
+
+      const merged = {
+        ...(current.profileData || {}),
+        familyOfOrigin: { familyRole: "Scapegoat" },
+      };
+
+      const [updated] = await db
+        .update(user)
+        .set({ profileData: merged })
+        .where(eq(user.id, userBId))
+        .returning();
+
+      expect(updated.profileData?.familyOfOrigin?.familyRole).toBe("Scapegoat");
+    });
   });
 });

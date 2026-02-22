@@ -108,4 +108,53 @@ describe("Intake Questions Data", () => {
     const q: IntakeQuestion = INTAKE_QUESTIONS[0];
     expect(q).toBeDefined();
   });
+
+  it("should not have duplicate field names within the same storage bucket", () => {
+    // Each field+storage combination should be unique
+    const seen = new Set<string>();
+    for (const q of INTAKE_QUESTIONS) {
+      const key = `${q.storage}:${q.field}`;
+      expect(seen.has(key)).toBe(false);
+      seen.add(key);
+    }
+  });
+
+  it("should not have empty options arrays (use undefined instead)", () => {
+    for (const q of INTAKE_QUESTIONS) {
+      if (q.options !== undefined) {
+        expect(q.options.length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("question IDs should not contain special characters", () => {
+    for (const q of INTAKE_QUESTIONS) {
+      // IDs should be alphanumeric with underscores/hyphens only
+      expect(q.id).toMatch(/^[a-zA-Z0-9_-]+$/);
+    }
+  });
+
+  it("every phase should have at least one question", () => {
+    const phases = new Set(INTAKE_QUESTIONS.map((q) => q.phase));
+    // Phases should be consecutive starting from 1
+    const maxPhase = Math.max(...phases);
+    for (let i = 1; i <= maxPhase; i++) {
+      const questionsInPhase = INTAKE_QUESTIONS.filter((q) => q.phase === i);
+      expect(questionsInPhase.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("select questions should have options with non-empty value and label", () => {
+    const selectQuestions = INTAKE_QUESTIONS.filter(
+      (q) => q.type === "select" || q.type === "multi_select",
+    );
+    for (const q of selectQuestions) {
+      for (const opt of q.options!) {
+        expect(typeof opt.value).toBe("string");
+        expect(opt.value.trim().length).toBeGreaterThan(0);
+        expect(typeof opt.label).toBe("string");
+        expect(opt.label.trim().length).toBeGreaterThan(0);
+      }
+    }
+  });
 });

@@ -172,3 +172,76 @@ test.describe("Intake Wizard — Direct URL", () => {
     await expect(page.locator("h1")).toContainText("Get to Know You");
   });
 });
+
+test.describe("Intake Wizard — Edge Cases", () => {
+  test("should preserve interview state after page refresh", async ({
+    page,
+  }) => {
+    await signUpAndAuth(page, "in");
+    await page.goto("/intake");
+    await page.waitForLoadState("networkidle");
+
+    // Start interview
+    await page.locator("#start-interview").click();
+    await page.waitForTimeout(500);
+
+    // Answer first question and go to Q2
+    await page.locator('button:has-text("Married")').first().click();
+    await page.locator("#nav-next").click();
+    await page.waitForTimeout(500);
+
+    // Refresh the page
+    await page.reload();
+    await page.waitForLoadState("networkidle");
+
+    // Should either show Welcome Back or resume the interview (not reset to intro)
+    const hasWelcomeBack = await page
+      .locator("text=Welcome Back!")
+      .isVisible()
+      .catch(() => false);
+    const hasQuestion = await page
+      .locator("text=Question")
+      .isVisible()
+      .catch(() => false);
+
+    // Either welcome back (returning user) or resumed question is acceptable
+    expect(hasWelcomeBack || hasQuestion).toBe(true);
+  });
+
+  test("should render correctly on mobile viewport", async ({ page }) => {
+    await signUpAndAuth(page, "in");
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto("/intake");
+    await page.waitForLoadState("networkidle");
+
+    // Should still show the main heading and start button
+    await expect(page.locator("h1")).toContainText("Get to Know You");
+    await expect(page.locator("#start-interview")).toBeVisible();
+
+    // Start interview should work
+    await page.locator("#start-interview").click();
+    await page.waitForTimeout(500);
+
+    // Question should still be visible
+    await expect(page.locator("text=Question 1 of")).toBeVisible();
+  });
+
+  test("should redirect unauthenticated users from /intake", async ({
+    page,
+  }) => {
+    await page.goto("/intake");
+    await page.waitForLoadState("networkidle");
+
+    // Should redirect to login or show auth-required message
+    const url = page.url();
+    const isRedirected = url.includes("/login") || url.includes("/signup");
+    const hasAuthPrompt = await page
+      .locator("text=Sign")
+      .isVisible()
+      .catch(() => false);
+
+    // Either redirected to login or shows sign-in prompt
+    expect(isRedirected || hasAuthPrompt).toBe(true);
+  });
+});
+
