@@ -137,7 +137,7 @@ test.describe("Intake Wizard — Interview Flow", () => {
 });
 
 test.describe("Intake Wizard — Modality Toggle", () => {
-  test("should show modality toggle with Type active", async ({ page }) => {
+  test("should show modality toggle with all options enabled", async ({ page }) => {
     await signUpAndAuth(page, "in");
     await page.goto("/intake");
     await page.waitForLoadState("networkidle");
@@ -149,9 +149,17 @@ test.describe("Intake Wizard — Modality Toggle", () => {
     await expect(page.locator("#modality-chat")).toBeVisible();
     await expect(page.locator("#modality-voice")).toBeVisible();
 
-    // Chat and Voice should be disabled
-    await expect(page.locator("#modality-chat")).toBeDisabled();
-    await expect(page.locator("#modality-voice")).toBeDisabled();
+    // All modality buttons should be enabled
+    await expect(page.locator("#modality-chat")).toBeEnabled();
+    await expect(page.locator("#modality-voice")).toBeEnabled();
+
+    // Click Chat — should switch to chat view
+    await page.locator("#modality-chat").click();
+    await expect(page.locator("#chat-start")).toBeVisible();
+
+    // Click back to Type
+    await page.locator("#modality-type").click();
+    await expect(page.locator("#nav-next")).toBeVisible();
   });
 });
 

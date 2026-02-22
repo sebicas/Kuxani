@@ -1,16 +1,23 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import dynamic from "next/dynamic";
 import styles from "./intake.module.css";
 import {
   INTAKE_QUESTIONS,
   INTAKE_CATEGORIES,
   type IntakeQuestion,
 } from "@/lib/data/intake-questions";
+import IntakeChatView from "./IntakeChatView";
+
+const IntakeVoiceSession = dynamic(() => import("./IntakeVoiceSession"), {
+  ssr: false,
+});
 
 /* ── Types ── */
 
 type ViewState = "loading" | "intro" | "interview" | "complete";
+type Modality = "form" | "chat" | "voice";
 
 interface Child {
   name: string;
@@ -27,6 +34,7 @@ export default function IntakeWizardPage() {
   const [tagInputs, setTagInputs] = useState<Record<string, string>>({});
   const [direction, setDirection] = useState<"forward" | "backward">("forward");
   const [saving, setSaving] = useState(false);
+  const [modality, setModality] = useState<Modality>("form");
 
   // Track which phases we've already loaded
   const loadedPhases = useRef(new Set<number>());
@@ -733,88 +741,114 @@ export default function IntakeWizardPage() {
           </div>
         )}
 
-        {/* Question card */}
-        <div
-          className={`${styles.questionCard} ${
-            direction === "forward"
-              ? styles.slideInRight
-              : styles.slideInLeft
-          }`}
-          key={question.id}
-        >
-          <p className={styles.questionText}>{question.question}</p>
-          {question.helpText && question.type !== "textarea" && question.type !== "text" && (
-            <p className={styles.helpText}>{question.helpText}</p>
-          )}
-          <div className={styles.inputArea}>{renderInput(question)}</div>
-        </div>
+        {/* Question card / Chat view / Voice view */}
+        {modality === "form" && (
+          <div
+            className={`${styles.questionCard} ${
+              direction === "forward"
+                ? styles.slideInRight
+                : styles.slideInLeft
+            }`}
+            key={question.id}
+          >
+            <p className={styles.questionText}>{question.question}</p>
+            {question.helpText && question.type !== "textarea" && question.type !== "text" && (
+              <p className={styles.helpText}>{question.helpText}</p>
+            )}
+            <div className={styles.inputArea}>{renderInput(question)}</div>
+          </div>
+        )}
+
+        {modality === "chat" && (
+          <IntakeChatView
+            onComplete={() => {
+              // Mark all phases complete
+              for (let p = 1; p <= 6; p++) markPhaseComplete(p);
+              setView("complete");
+            }}
+          />
+        )}
+
+        {modality === "voice" && (
+          <IntakeVoiceSession
+            onComplete={() => {
+              // Mark all phases complete
+              for (let p = 1; p <= 6; p++) markPhaseComplete(p);
+              setView("complete");
+            }}
+            onDisconnect={() => setModality("form")}
+          />
+        )}
 
         {/* Modality toggle */}
         <div className={styles.modalityBar}>
           <button
-            className={`${styles.modalityBtn} ${styles.modalityBtnActive}`}
+            className={`${styles.modalityBtn} ${modality === "form" ? styles.modalityBtnActive : ""}`}
+            onClick={() => setModality("form")}
             id="modality-type"
           >
             📝 Type
           </button>
           <button
-            className={`${styles.modalityBtn} ${styles.modalityBtnDisabled}`}
-            disabled
+            className={`${styles.modalityBtn} ${modality === "chat" ? styles.modalityBtnActive : ""}`}
+            onClick={() => setModality("chat")}
             id="modality-chat"
           >
             💬 Chat
           </button>
           <button
-            className={`${styles.modalityBtn} ${styles.modalityBtnDisabled}`}
-            disabled
+            className={`${styles.modalityBtn} ${modality === "voice" ? styles.modalityBtnActive : ""}`}
+            onClick={() => setModality("voice")}
             id="modality-voice"
           >
             🎙️ Voice
           </button>
         </div>
 
-        {/* Navigation */}
-        <div className={styles.wizardNav}>
-          <button
-            className={`${styles.navBtn} ${
-              currentIndex === 0 ? styles.navBtnDisabled : ""
-            }`}
-            onClick={goBackward}
-            disabled={currentIndex === 0}
-            id="nav-back"
-          >
-            ← Back
-          </button>
-
-          <button
-            className={styles.skipBtn}
-            onClick={skipQuestion}
-            disabled={isLast}
-            id="nav-skip"
-          >
-            Skip
-          </button>
-
-          {isLast ? (
+        {/* Navigation (form modality only) */}
+        {modality === "form" && (
+          <div className={styles.wizardNav}>
             <button
-              className="btn btn-primary"
-              onClick={goForward}
-              id="nav-finish"
-            >
-              Finish ✓
-            </button>
-          ) : (
-            <button
-              className={`${styles.navBtn} ${styles.navBtnForward} ${
-                !hasAnswer ? styles.navBtnSubtle : ""
+              className={`${styles.navBtn} ${
+                currentIndex === 0 ? styles.navBtnDisabled : ""
               }`}
-              onClick={goForward}
-              id="nav-next"
+              onClick={goBackward}
+              disabled={currentIndex === 0}
+              id="nav-back"
             >
-              Next →
+              ← Back
             </button>
-          )}
-        </div>
+
+            <button
+              className={styles.skipBtn}
+              onClick={skipQuestion}
+              disabled={isLast}
+              id="nav-skip"
+            >
+              Skip
+            </button>
+
+            {isLast ? (
+              <button
+                className="btn btn-primary"
+                onClick={goForward}
+                id="nav-finish"
+              >
+                Finish ✓
+              </button>
+            ) : (
+              <button
+                className={`${styles.navBtn} ${styles.navBtnForward} ${
+                  !hasAnswer ? styles.navBtnSubtle : ""
+                }`}
+                onClick={goForward}
+                id="nav-next"
+              >
+                Next →
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
