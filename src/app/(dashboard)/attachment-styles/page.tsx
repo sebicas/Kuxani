@@ -20,21 +20,27 @@ interface AttachmentStyleResult {
   anxious: number;
   avoidant: number;
   fearfulAvoidant: number;
+  answers?: number[] | null;
   createdAt: string;
 }
 
 type ViewState = "loading" | "start" | "quiz" | "results";
+type SelectedPartner = "user" | "partner";
 
 export default function AttachmentStylesPage() {
   const [view, setView] = useState<ViewState>("loading");
   const [userResult, setUserResult] = useState<AttachmentStyleResult | null>(null);
   const [partnerResult, setPartnerResult] = useState<AttachmentStyleResult | null>(null);
+  const [userName, setUserName] = useState("You");
+  const [partnerName, setPartnerName] = useState<string | null>(null);
+  const [selectedPartner, setSelectedPartner] = useState<SelectedPartner>("user");
 
   // Quiz state
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>(
     () => Array(QUIZ_STATEMENTS.length).fill(null)
   );
+  const [shuffledOrder, setShuffledOrder] = useState<number[]>([]);
 
   // Derive scores from answers array
   const _scores = useMemo(() => {
@@ -56,6 +62,8 @@ export default function AttachmentStylesPage() {
       const res = await fetch("/api/attachment-styles");
       if (res.ok) {
         const data = await res.json();
+        if (data.userName) setUserName(data.userName);
+        if (data.partnerName) setPartnerName(data.partnerName);
         if (data.userResult) {
           setUserResult(data.userResult);
           setPartnerResult(data.partnerResult);
@@ -73,12 +81,14 @@ export default function AttachmentStylesPage() {
   }, [view]);
 
   useEffect(() => {
-    // Initial data fetch
+    // Initial data fetch — inline async IIFE to avoid calling setState synchronously via fetchResults
     (async () => {
       try {
         const res = await fetch("/api/attachment-styles");
         if (res.ok) {
           const data = await res.json();
+          if (data.userName) setUserName(data.userName);
+          if (data.partnerName) setPartnerName(data.partnerName);
           if (data.userResult) {
             setUserResult(data.userResult);
             setPartnerResult(data.partnerResult);
@@ -115,12 +125,20 @@ export default function AttachmentStylesPage() {
   function startQuiz() {
     setAnswers(Array(QUIZ_STATEMENTS.length).fill(null));
     setCurrentQuestion(0);
+    // Fisher-Yates shuffle for random question order
+    const order = Array.from({ length: QUIZ_STATEMENTS.length }, (_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    setShuffledOrder(order);
     setView("quiz");
   }
 
   function selectRating(rating: number) {
+    const originalIdx = shuffledOrder[currentQuestion];
     const updated = [...answers];
-    updated[currentQuestion] = rating;
+    updated[originalIdx] = rating;
     setAnswers(updated);
 
     if (currentQuestion < QUIZ_STATEMENTS.length - 1) {
@@ -133,7 +151,8 @@ export default function AttachmentStylesPage() {
   }
 
   function goForward() {
-    if (currentQuestion < QUIZ_STATEMENTS.length - 1 && answers[currentQuestion] !== null) {
+    const originalIdx = shuffledOrder[currentQuestion];
+    if (currentQuestion < QUIZ_STATEMENTS.length - 1 && answers[originalIdx] !== null) {
       setCurrentQuestion(currentQuestion + 1);
     }
   }
@@ -155,18 +174,21 @@ export default function AttachmentStylesPage() {
           anxious: finalScores.N,
           avoidant: finalScores.V,
           fearfulAvoidant: finalScores.F,
+          answers: answers.filter((a): a is number => a !== null),
         }),
       });
 
       if (res.ok) {
         const result = await res.json();
         setUserResult(result);
-        // Fetch partner result — they may have already completed the quiz
+        // MANDATORY: Fetch partner result — they may have already completed the quiz
         try {
           const fullRes = await fetch("/api/attachment-styles");
           if (fullRes.ok) {
             const data = await fullRes.json();
             if (data.partnerResult) setPartnerResult(data.partnerResult);
+            if (data.userName) setUserName(data.userName);
+            if (data.partnerName) setPartnerName(data.partnerName);
           }
         } catch { /* partner result is optional */ }
         setView("results");
@@ -187,26 +209,25 @@ export default function AttachmentStylesPage() {
     return entries.sort((a, b) => b.score - a.score);
   }
 
-  const rankedUser = useMemo(
-    () => (userResult ? getRankedStyles(userResult) : []),
-    [userResult]
-  );
+  // Active result = whichever partner is selected
+  const activeResult = selectedPartner === "user" ? userResult : partnerResult;
+  const activeName = selectedPartner === "user" ? userName : (partnerName || "Partner");
 
-  const rankedPartner = useMemo(
-    () => (partnerResult ? getRankedStyles(partnerResult) : []),
-    [partnerResult]
+  const rankedActive = useMemo(
+    () => (activeResult ? getRankedStyles(activeResult) : []),
+    [activeResult]
   );
 
   const maxScore = useMemo(() => {
-    if (!userResult) return 1;
+    if (!activeResult) return 1;
     return Math.max(
-      userResult.secure,
-      userResult.anxious,
-      userResult.avoidant,
-      userResult.fearfulAvoidant,
+      activeResult.secure,
+      activeResult.anxious,
+      activeResult.avoidant,
+      activeResult.fearfulAvoidant,
       1
     );
-  }, [userResult]);
+  }, [activeResult]);
 
   if (view === "loading") {
     return (
@@ -253,9 +274,10 @@ export default function AttachmentStylesPage() {
 
   // ── Quiz State ──
   if (view === "quiz") {
-    const statement = QUIZ_STATEMENTS[currentQuestion];
+    const originalIdx = shuffledOrder[currentQuestion];
+    const statement = QUIZ_STATEMENTS[originalIdx];
     const progress = ((currentQuestion + 1) / QUIZ_STATEMENTS.length) * 100;
-    const currentAnswer = answers[currentQuestion];
+    const currentAnswer = answers[originalIdx];
     const allAnswered = answers.every((a) => a !== null);
     const isLast = currentQuestion === QUIZ_STATEMENTS.length - 1;
 
@@ -328,7 +350,8 @@ export default function AttachmentStylesPage() {
   }
 
   // ── Results State ──
-  const topStyle = rankedUser[0];
+  const topStyle = rankedActive[0];
+  const activeAnswers = activeResult?.answers as number[] | null | undefined;
 
   return (
     <div>
@@ -337,79 +360,129 @@ export default function AttachmentStylesPage() {
       </div>
 
       <div className={styles.resultsContainer}>
-        {/* Top Result */}
-        <div className={`card ${styles.resultsSummary}`}>
-          <span className={styles.resultsTopEmoji}>
-            {topStyle ? ATTACHMENT_STYLE_EMOJIS[topStyle.key] : "🔗"}
-          </span>
-          <div className={styles.resultsTopLabel}>Your primary attachment style</div>
-          <div
-            className={styles.resultsTopName}
-            style={{ color: topStyle ? ATTACHMENT_STYLE_COLORS[topStyle.key] : undefined }}
+        {/* Partner Toggle */}
+        <div className={styles.partnerToggle}>
+          <button
+            className={`${styles.partnerTab}${selectedPartner === "user" ? ` ${styles.partnerTabActive}` : ""}`}
+            onClick={() => setSelectedPartner("user")}
           >
-            {topStyle ? ATTACHMENT_STYLE_NAMES[topStyle.key] : ""}
-          </div>
-          <p className={styles.resultsDescription}>
-            {topStyle ? ATTACHMENT_STYLE_DESCRIPTIONS[topStyle.key] : ""}
-          </p>
+            <span className={styles.partnerTabEmoji}>👤</span>
+            <span>{userName}</span>
+            {userResult && (
+              <span className={styles.partnerTabBadge} style={{ background: ATTACHMENT_STYLE_COLORS[getRankedStyles(userResult)[0].key] }}>
+                {ATTACHMENT_STYLE_EMOJIS[getRankedStyles(userResult)[0].key]}
+              </span>
+            )}
+          </button>
+          <button
+            className={`${styles.partnerTab}${selectedPartner === "partner" ? ` ${styles.partnerTabActive}` : ""}${!partnerResult ? ` ${styles.partnerTabDisabled}` : ""}`}
+            onClick={() => partnerResult && setSelectedPartner("partner")}
+            disabled={!partnerResult}
+          >
+            <span className={styles.partnerTabEmoji}>💑</span>
+            <span>{partnerName || "Partner"}</span>
+            {partnerResult ? (
+              <span className={styles.partnerTabBadge} style={{ background: ATTACHMENT_STYLE_COLORS[getRankedStyles(partnerResult)[0].key] }}>
+                {ATTACHMENT_STYLE_EMOJIS[getRankedStyles(partnerResult)[0].key]}
+              </span>
+            ) : (
+              <span className={styles.partnerTabPending}>Pending</span>
+            )}
+          </button>
         </div>
 
-        {/* Bar Chart */}
-        <div className={styles.barChart}>
-          {rankedUser.map((style) => (
-            <div key={style.key} className={styles.barRow}>
-              <div className={styles.barLabel}>
-                <span>{ATTACHMENT_STYLE_EMOJIS[style.key]}</span>
-                {ATTACHMENT_STYLE_NAMES[style.key]}
+        {/* Active Result Content */}
+        {activeResult ? (
+          <>
+            {/* Top Result */}
+            <div className={`card ${styles.resultsSummary}`}>
+              <span className={styles.resultsTopEmoji}>
+                {topStyle ? ATTACHMENT_STYLE_EMOJIS[topStyle.key] : "🔗"}
+              </span>
+              <div className={styles.resultsTopLabel}>{activeName}&apos;s primary attachment style</div>
+              <div
+                className={styles.resultsTopName}
+                style={{ color: topStyle ? ATTACHMENT_STYLE_COLORS[topStyle.key] : undefined }}
+              >
+                {topStyle ? ATTACHMENT_STYLE_NAMES[topStyle.key] : ""}
               </div>
-              <div className={styles.barTrack}>
-                <div
-                  className={styles.barFill}
-                  style={{
-                    width: `${(style.score / Math.max(maxScore, 1)) * 100}%`,
-                    background: ATTACHMENT_STYLE_COLORS[style.key],
-                  }}
-                >
-                  <span className={styles.barScore}>{style.score}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Partner Comparison */}
-        <div className={styles.comparisonSection}>
-          <h2 className="heading-3">Partner Comparison</h2>
-          {partnerResult ? (
-            <div className={`card ${styles.comparisonGrid}`}>
-              <div className={styles.comparisonCard}>
-                <div className={styles.comparisonLabel}>You</div>
-                <div className={styles.comparisonEmoji}>
-                  {topStyle ? ATTACHMENT_STYLE_EMOJIS[topStyle.key] : "🔗"}
-                </div>
-                <div className={styles.comparisonName}>
-                  {topStyle ? ATTACHMENT_STYLE_NAMES[topStyle.key] : ""}
-                </div>
-              </div>
-              <div className={styles.comparisonCard}>
-                <div className={styles.comparisonLabel}>Your Partner</div>
-                <div className={styles.comparisonEmoji}>
-                  {ATTACHMENT_STYLE_EMOJIS[rankedPartner[0]?.key || "S"]}
-                </div>
-                <div className={styles.comparisonName}>
-                  {ATTACHMENT_STYLE_NAMES[rankedPartner[0]?.key || "S"]}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className={`card ${styles.comparisonWaiting}`}>
-              <p>
-                Your partner hasn&apos;t taken the quiz yet. Once they do,
-                you&apos;ll see a side-by-side comparison here.
+              <p className={styles.resultsDescription}>
+                {topStyle ? ATTACHMENT_STYLE_DESCRIPTIONS[topStyle.key] : ""}
               </p>
             </div>
-          )}
-        </div>
+
+            {/* Bar Chart */}
+            <div className={styles.barChart}>
+              {rankedActive.map((style) => (
+                <div key={style.key} className={styles.barRow}>
+                  <div className={styles.barLabel}>
+                    <span>{ATTACHMENT_STYLE_EMOJIS[style.key]}</span>
+                    {ATTACHMENT_STYLE_NAMES[style.key]}
+                  </div>
+                  <div className={styles.barTrack}>
+                    <div
+                      className={styles.barFill}
+                      style={{
+                        width: `${(style.score / Math.max(maxScore, 1)) * 100}%`,
+                        background: ATTACHMENT_STYLE_COLORS[style.key],
+                      }}
+                    >
+                      <span className={styles.barScore}>{style.score}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Quiz Answers */}
+            {activeAnswers && activeAnswers.length > 0 && (
+              <div className={styles.answersSection}>
+                <h2 className="heading-3">Quiz Answers</h2>
+                <div className={styles.answersList}>
+                  {QUIZ_STATEMENTS.map((stmt, idx) => {
+                    const rating = activeAnswers[idx];
+
+                    return (
+                      <div key={stmt.id} className={styles.answerItem}>
+                        <div className={styles.answerNumber}>Q{stmt.id}</div>
+                        <div className={styles.answerContent}>
+                          <div className={styles.answerStatement}>{stmt.text}</div>
+                          <div className={styles.answerRatingRow}>
+                            <span
+                              className={styles.answerStyleTag}
+                              style={{ color: ATTACHMENT_STYLE_COLORS[stmt.style] }}
+                            >
+                              {ATTACHMENT_STYLE_EMOJIS[stmt.style]} {ATTACHMENT_STYLE_NAMES[stmt.style]}
+                            </span>
+                            <div className={styles.answerLikert}>
+                              {LIKERT_LABELS.map((label, i) => (
+                                <span
+                                  key={i}
+                                  className={`${styles.answerDot}${rating === i + 1 ? ` ${styles.answerDotSelected}` : ""}`}
+                                  style={rating === i + 1 ? { background: ATTACHMENT_STYLE_COLORS[stmt.style], borderColor: ATTACHMENT_STYLE_COLORS[stmt.style] } : undefined}
+                                  title={label}
+                                >
+                                  {i + 1}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className={`card ${styles.comparisonWaiting}`}>
+            <p>
+              {partnerName || "Your partner"} hasn&apos;t taken the quiz yet. Once they do,
+              you&apos;ll see their results here.
+            </p>
+          </div>
+        )}
 
         {/* Retake */}
         <div className={styles.retakeRow}>

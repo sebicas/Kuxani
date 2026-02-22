@@ -81,6 +81,16 @@
       <p>Quick-access during heated moments: guided breathing, cooling timer, and immediate AI de-escalation prompts.</p>
     </td>
   </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>💕 Love Languages & Attachment Styles</h3>
+      <p>Research-backed quizzes with partner comparison, answer review, and AI-integrated insights for deeper understanding.</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>🤝 Disagreements & Commitments</h3>
+      <p>AI-mediated disagreement sessions with structured resolution, plus request tracking and compromise check-ins.</p>
+    </td>
+  </tr>
 </table>
 
 <br />
@@ -111,7 +121,8 @@
 | **Auth**         | Better Auth                        | Self-hosted, TypeScript-native authentication |
 | **Database**     | PostgreSQL 17 + Drizzle ORM        | Type-safe queries, auto-generated migrations  |
 | **File Storage** | MinIO (S3-compatible)              | Self-hosted object storage                    |
-| **Real-time**    | Yjs + Hocuspocus                   | CRDT-based collaborative editing              |
+| **Real-time**    | Socket.IO                          | Live partner updates across all features      |
+| **Collab Edit**  | Yjs + Hocuspocus                   | CRDT-based collaborative editing              |
 | **Rich Text**    | Tiptap (ProseMirror + Yjs)         | Collaborative rich-text editor                |
 | **AI**           | OpenAI (GPT-4.1 family)            | Text reasoning, transcription, TTS            |
 | **Deployment**   | Coolify                            | Self-hosted deployment platform               |
@@ -162,7 +173,7 @@ kuxani/
 
 ### Prerequisites
 
-- **Node.js** ≥ 20
+- **Node.js** ≥ 24 (pinned in `.node-version`)
 - **Docker** & Docker Compose (for PostgreSQL + MinIO)
 
 ### Setup
@@ -192,16 +203,18 @@ Open [http://localhost:3000](http://localhost:3000) to see the app. ✨
 
 ### Available Scripts
 
-| Script              | Description                          |
-| :------------------ | :----------------------------------- |
-| `npm run dev`       | Start Next.js dev server (Turbopack) |
-| `npm run build`     | Production build                     |
-| `npm run lint`      | Run ESLint                           |
-| `npm run db:push`   | Push schema to database (dev)        |
-| `npm run db:studio` | Open Drizzle Studio (DB browser)     |
-| `npm test`          | Run all tests (unit + E2E)           |
-| `npm run test:unit` | Unit/integration tests (Vitest)      |
-| `npm run test:e2e`  | E2E browser tests (Playwright)       |
+| Script                     | Description                                                |
+| :------------------------- | :--------------------------------------------------------- |
+| `npm run dev`              | Start Next.js dev server (Turbopack)                       |
+| `npm run build`            | Production build                                           |
+| `npm run lint`             | Run ESLint                                                 |
+| `npm run db:push`          | Push schema to database (dev)                              |
+| `npm run db:studio`        | Open Drizzle Studio (DB browser)                           |
+| `npm run db:flush`         | ⚠️ Drop all tables & re-migrate (never runs in production) |
+| `npm test`                 | Run all tests (unit + integration + E2E)                   |
+| `npm run test:unit`        | Unit/integration tests (Vitest)                            |
+| `npm run test:integration` | Integration tests only (Vitest)                            |
+| `npm run test:e2e`         | E2E browser tests (Playwright)                             |
 
 <br />
 

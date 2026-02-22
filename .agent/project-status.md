@@ -1,6 +1,6 @@
 # Kuxani — Project Status
 
-> Last updated: 2026-02-17 (CI/CD: GitHub Actions pipeline with parallel lint, test, build, E2E jobs)
+> Last updated: 2026-02-22 (Attachment styles partner toggle + answers, integration test infrastructure, quiz-standards workflow)
 
 ---
 
@@ -57,13 +57,16 @@
 - [x] **Gratitude journal** — Daily prompt, category system, optional sharing, AI prompts
 - [x] **Emergency de-escalation mode** — Breathing exercise, cooling timer, AI prompts, reflection
 - [x] **Childhood Wounds** — CRUD wounds, partner suggestions, AI suggestions, intensity rating (1-10), two-column partner view
-- [x] **Attachment Styles** — 20-question Likert quiz, results visualization, real-time partner updates
+- [x] **Attachment Styles** — 40-question Likert quiz, results with partner toggle, per-partner answer display, real-time partner updates
+- [x] **Disagreements** — AI-mediated disagreement sessions with invite/join, structured messages, voice sessions, resolution
+- [x] **Commitments** — Request/compromise system with check-ins, partner acceptance, status tracking
+- [x] **Live Voice Sessions** — Real-time voice conversations with AI via OpenAI Realtime API, transcript saving
+- [x] **User Profile & Voice Settings** — Profile page with voice preference settings, voice preview
 - [x] **AI Context / Memory** — Centralized `loadCoupleContext()` / `loadPersonalContext()` feeding 8 data sources into all 5 AI routes
 
 ### ⬜ Pending
 
 - [ ] **Weekly relationship check-in** — Guided questionnaire (private first, then shared), AI summary
-- [ ] **Conflict pattern recognition** — AI analysis of recurring patterns, triggers, growth areas
 - [ ] **Guided exercises & homework** — AI-curated exercises (Gottman, EFT), tracking, reflection
 
 ---
@@ -96,13 +99,16 @@
 | 10  | Conflict Pattern Recognition    | 3     | ⬜ Pending |
 | 11  | Guided Exercises & Homework     | 3     | ⬜ Pending |
 | 12  | Emergency De-escalation Mode    | 3     | ✅ Done    |
-| 17  | Childhood Wounds                | 3     | ✅ Done    |
-| 18  | Attachment Styles               | 2     | ✅ Done    |
+| 13  | Childhood Wounds                | 3     | ✅ Done    |
+| 14  | Attachment Styles               | 3     | ✅ Done    |
+| 15  | Disagreements                   | 3     | ✅ Done    |
+| 16  | Commitments                     | 3     | ✅ Done    |
+| 17  | Live Voice Sessions             | 3     | ✅ Done    |
+| 18  | User Profile & Voice Settings   | 3     | ✅ Done    |
 | 19  | AI Context / Memory             | 3     | ✅ Done    |
-| 13  | Milestone Timeline              | 4     | ⬜ Pending |
-| 14  | Resource Library                | 4     | ⬜ Pending |
-| 15  | Session Notes & Insights Export | 4     | ⬜ Pending |
-| 16  | Live Voice Sessions             | 4     | ⬜ Pending |
+| 20  | Milestone Timeline              | 4     | ⬜ Pending |
+| 21  | Resource Library                | 4     | ⬜ Pending |
+| 22  | Session Notes & Insights Export | 4     | ⬜ Pending |
 
 ---
 
@@ -141,7 +147,7 @@
 
 ### Emotional & Psychological
 
-- [x] **Attachment Styles** — 40-question Likert quiz identifying attachment patterns (secure, anxious, avoidant, disorganized), results visualization, real-time partner updates.
+- [x] **Attachment Styles** — 40-question Likert quiz identifying attachment patterns (secure, anxious, avoidant, disorganized), partner toggle, per-partner answer display, real-time partner updates.
 - [ ] **Emotional Intelligence (EQ) Tests** — Measures self-awareness, empathy, emotional regulation, and social skills (e.g., the Mayer-Salovey-Caruso test).
 - [ ] **Adverse Childhood Experiences (ACEs)** — A 10-question screener measuring childhood trauma, which strongly correlates with adult relationship patterns.
 - [ ] **Differentiation of Self Inventory** — Based on Murray Bowen's family systems theory; measures emotional reactivity, ability to maintain a sense of self while in close relationships.

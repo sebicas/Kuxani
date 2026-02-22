@@ -15,6 +15,8 @@
 
 # next.js
 /.next/
+/.next-test/
+tests/.test-server-url
 /out/
 
 # production
