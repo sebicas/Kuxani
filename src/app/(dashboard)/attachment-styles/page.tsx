@@ -161,6 +161,14 @@ export default function AttachmentStylesPage() {
       if (res.ok) {
         const result = await res.json();
         setUserResult(result);
+        // Fetch partner result — they may have already completed the quiz
+        try {
+          const fullRes = await fetch("/api/attachment-styles");
+          if (fullRes.ok) {
+            const data = await fullRes.json();
+            if (data.partnerResult) setPartnerResult(data.partnerResult);
+          }
+        } catch { /* partner result is optional */ }
         setView("results");
       }
     } catch (err) {
