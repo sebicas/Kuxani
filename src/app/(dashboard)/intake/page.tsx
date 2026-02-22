@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import styles from "./intake.module.css";
 import {
@@ -30,6 +31,7 @@ interface Child {
 const MODALITY_STORAGE_KEY = "kuxani-intake-modality";
 
 export default function IntakeWizardPage() {
+  const router = useRouter();
   const [view, setView] = useState<ViewState>("loading");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
@@ -185,7 +187,6 @@ export default function IntakeWizardPage() {
         setView("intro");
       }
     })();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadPhaseData]);
 
   /* ── Save logic ── */
@@ -385,6 +386,21 @@ export default function IntakeWizardPage() {
   }, [currentIndex, totalQuestions, loadPhaseData, markPhaseInProgress]);
 
   const startInterview = useCallback(async () => {
+    // If returning user selected Chat modality, create a new personal chat
+    // and navigate to it with an auto-message
+    if (isReturning && modality === "chat") {
+      try {
+        const res = await fetch("/api/personal/chats", { method: "POST" });
+        if (res.ok) {
+          const chat = await res.json();
+          router.push(`/personal/${chat.id}?intake=1`);
+          return;
+        }
+      } catch (err) {
+        console.error("Failed to create intake chat:", err);
+      }
+    }
+
     if (isReturning) {
       // Find the first unanswered question across all loaded data
       const firstUnanswered = INTAKE_QUESTIONS.findIndex(
@@ -401,7 +417,7 @@ export default function IntakeWizardPage() {
       await loadPhaseData(1);
     }
     setView("interview");
-  }, [isReturning, answers, markPhaseInProgress, loadPhaseData]);
+  }, [isReturning, modality, answers, markPhaseInProgress, loadPhaseData, router]);
 
   /* ── Render helpers ── */
 

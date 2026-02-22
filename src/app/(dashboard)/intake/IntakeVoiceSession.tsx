@@ -200,7 +200,6 @@ export default function IntakeVoiceSession({
       pcRef.current?.close();
       audioRef.current?.remove();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /**

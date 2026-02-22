@@ -450,7 +450,7 @@
 /* ── Modality Toggle ── */
 .modalityBar {
   display: flex;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
   justify-content: center;
   padding: var(--space-sm);
   background: var(--bg-secondary);
@@ -459,12 +459,12 @@
 }
 
 .modalityBtn {
-  padding: var(--space-xs) var(--space-md);
+  padding: var(--space-sm) var(--space-xl);
   border: 1.5px solid transparent;
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--text-muted);
-  font-size: 0.8125rem;
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
