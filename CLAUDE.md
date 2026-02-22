@@ -26,8 +26,9 @@ A collaborative AI-mediated platform where couples work together to understand e
 
 **Every time you create an Implementation Plan, you MUST:**
 
-1. **Wait for user approval** before writing any code. Do NOT start coding until the user explicitly approves the plan.
-2. **Last task item = `/verify`** — The final item in the task checklist must always be running the `.agent/workflows/verify.md` workflow.
+1. **Start with a feature branch** — The plan must begin by stating that a new feature branch will be created from `development` (e.g., `feat/voice-conversation`). Create the branch before writing any code.
+2. **Wait for user approval** before writing any code. Do NOT start coding until the user explicitly approves the plan.
+3. **Last task item = `/verify`** — The final item in the task checklist must always be running the `.agent/workflows/verify.md` workflow.
 
 > **No exceptions.** Plans without user approval and a closing `/verify` step are incomplete.
 

@@ -14,8 +14,8 @@ const phrases = [
 ];
 
 const emptySubscribe = () => () => {};
-const getClientPhrase = () =>
-  phrases[Math.floor(Math.random() * phrases.length)];
+const clientPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+const getClientPhrase = () => clientPhrase;
 const getServerPhrase = () => "\u00A0";
 
 export default function FooterPhrase() {
