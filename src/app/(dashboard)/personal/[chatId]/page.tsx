@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import styles from "../personal.module.css";
@@ -77,6 +77,7 @@ export default function PersonalChatPage({
     scrollToBottom();
   }, [messages, streamingText]);
 
+
   function scrollToBottom() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }
@@ -141,11 +142,26 @@ export default function PersonalChatPage({
           }
         }
 
-        // Add the complete AI message
+        // Log any intake_data blocks to browser console for debugging
+        const intakeRegex = /```intake_data\s*\n([\s\S]*?)```/g;
+        let intakeMatch;
+        while ((intakeMatch = intakeRegex.exec(fullText)) !== null) {
+          try {
+            const parsed = JSON.parse(intakeMatch[1].trim());
+            console.log("[Intake Data Extracted]", parsed);
+          } catch {
+            console.log("[Intake Data Raw]", intakeMatch[1].trim());
+          }
+        }
+
+        // Strip intake_data blocks from visible content
+        const cleanedText = fullText.replace(/```intake_data\s*\n[\s\S]*?```/g, "").trim();
+
+        // Add the complete AI message (with intake_data stripped)
         const aiMessage: Message = {
           id: `ai-${Date.now()}`,
           role: "assistant",
-          content: fullText,
+          content: cleanedText,
           createdAt: new Date().toISOString(),
         };
         setMessages((prev) => [...prev, aiMessage]);
@@ -159,10 +175,30 @@ export default function PersonalChatPage({
         console.error("Failed to send message:", err);
       } finally {
         setStreaming(false);
+        // Auto-focus the input so the user can type immediately
+        setTimeout(() => textareaRef.current?.focus(), 100);
       }
     },
     [chatId, streaming, chat, fetchChat]
   );
+
+  // Auto-send intake message when arriving from intake Welcome Back flow
+  const intakeSent = useRef(false);
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    if (
+      chatId &&
+      !loading &&
+      chat &&
+      searchParams.get("intake") === "1" &&
+      !intakeSent.current &&
+      messages.length === 0 &&
+      !streaming
+    ) {
+      intakeSent.current = true;
+      sendMessage("Hi, I'm ready to continue with my intake interview.");
+    }
+  }, [chatId, loading, chat, searchParams, messages.length, streaming, sendMessage]);
 
   async function toggleShare() {
     if (!chat) return;
@@ -205,10 +241,21 @@ export default function PersonalChatPage({
     setInput(textarea.value);
   }
 
+  /** Strip intake_data blocks from visible text (both complete and in-progress) */
+  function stripIntakeData(text: string): string {
+    // Strip complete blocks
+    let cleaned = text.replace(/```intake_data\s*\n[\s\S]*?```/g, "");
+    // Also strip incomplete/in-progress blocks (opening marker arrived but no closing yet)
+    cleaned = cleaned.replace(/```intake_data[\s\S]*$/g, "");
+    return cleaned.trim();
+  }
+
   /** Simple markdown-like renderer for bold, italic, lists */
   function renderContent(text: string) {
+    // Strip intake_data blocks before rendering
+    const cleaned = stripIntakeData(text);
     // Split into paragraphs
-    const paragraphs = text.split("\n\n");
+    const paragraphs = cleaned.split("\n\n");
     return paragraphs.map((para, i) => {
       // Check for list items
       if (para.match(/^[-*•]\s/m)) {

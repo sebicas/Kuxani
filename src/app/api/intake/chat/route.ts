@@ -185,19 +185,19 @@ async function loadAlreadyAnswered(
       if (fo.familyConflictStyle) lines.push(`- familyConflictStyle: "${fo.familyConflictStyle}"`);
       if (fo.emotionalEnvironment) lines.push(`- emotionalEnvironment: "${fo.emotionalEnvironment}"`);
       if (fo.familyRole) lines.push(`- familyRole: "${fo.familyRole}"`);
-      if (fo.unspokenRules?.length) lines.push(`- unspokenRules: [${fo.unspokenRules.join(", ")}]`);
-      if (fo.significantLosses?.length) lines.push(`- significantLosses: [${fo.significantLosses.join(", ")}]`);
+      if (fo.unspokenRules?.length) lines.push(`- unspokenRules: [${Array.isArray(fo.unspokenRules) ? fo.unspokenRules.join(", ") : fo.unspokenRules}]`);
+      if (fo.significantLosses?.length) lines.push(`- significantLosses: [${Array.isArray(fo.significantLosses) ? fo.significantLosses.join(", ") : fo.significantLosses}]`);
       if (fo.culturalContext) lines.push(`- culturalContext: "${fo.culturalContext}"`);
     }
     const ah = pd.attachmentHistory;
     if (ah) {
       if (ah.childhoodComfortSource) lines.push(`- childhoodComfortSource: "${ah.childhoodComfortSource}"`);
       if (ah.wasComfortAvailable !== undefined) lines.push(`- wasComfortAvailable: ${ah.wasComfortAvailable}`);
-      if (ah.selfSoothingPatterns?.length) lines.push(`- selfSoothingPatterns: [${ah.selfSoothingPatterns.join(", ")}]`);
+      if (ah.selfSoothingPatterns?.length) lines.push(`- selfSoothingPatterns: [${Array.isArray(ah.selfSoothingPatterns) ? ah.selfSoothingPatterns.join(", ") : ah.selfSoothingPatterns}]`);
       if (ah.previousRelationships) lines.push(`- previousRelationships: "${ah.previousRelationships}"`);
       if (ah.vulnerabilityComfort) lines.push(`- vulnerabilityComfort: "${ah.vulnerabilityComfort}"`);
     }
-    if (pd.externalStressors?.length) lines.push(`- externalStressors: [${pd.externalStressors.join(", ")}]`);
+    if (pd.externalStressors?.length) lines.push(`- externalStressors: [${Array.isArray(pd.externalStressors) ? pd.externalStressors.join(", ") : pd.externalStressors}]`);
     if (pd.mentalHealthContext) lines.push(`- mentalHealthContext: "${pd.mentalHealthContext}"`);
   }
 

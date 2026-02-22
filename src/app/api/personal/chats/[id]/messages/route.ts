@@ -15,8 +15,28 @@ import { personalChats, personalMessages } from "@/lib/db/schema";
 import { getServerSession } from "@/lib/auth/session";
 import { eq, and, asc } from "drizzle-orm";
 import { openai, REASONING_MODEL } from "@/lib/ai/client";
-import { PERSONAL_THERAPY_PROMPT, buildSystemPrompt } from "@/lib/ai/prompts";
+import { PERSONAL_THERAPY_PROMPT, INTAKE_INTERVIEW_PROMPT, buildSystemPrompt } from "@/lib/ai/prompts";
 import { loadPersonalContext } from "@/lib/ai/context";
+
+const INTAKE_TRIGGER = "Hi, I'm ready to continue with my intake interview.";
+
+/** Strip intake_data blocks from text */
+function stripIntakeData(text: string): string {
+  return text.replace(/```intake_data\s*\n[\s\S]*?```/g, "").trim();
+}
+
+/** Parse intake_data blocks from AI response */
+function parseIntakeData(text: string): Array<Record<string, unknown>> {
+  const blocks: Array<Record<string, unknown>> = [];
+  const regex = /```intake_data\s*\n([\s\S]*?)```/g;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    try {
+      blocks.push(JSON.parse(match[1].trim()));
+    } catch { /* skip malformed JSON */ }
+  }
+  return blocks;
+}
 
 export const dynamic = "force-dynamic";
 
@@ -29,8 +49,14 @@ export async function POST(request: NextRequest, { params }: Params) {
   }
 
   const { id } = await params;
-  const body = await request.json();
-  const { content } = body;
+
+  let content: string;
+  try {
+    const body = await request.json();
+    content = body.content;
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
 
   if (!content || typeof content !== "string") {
     return NextResponse.json({ error: "Message content required" }, { status: 400 });
@@ -65,9 +91,15 @@ export async function POST(request: NextRequest, { params }: Params) {
   // Load full personal context from all data sources
   const ctx = await loadPersonalContext(session.user.id);
 
+  // Determine if this is an intake chat session
+  // (first message in the conversation is the intake trigger)
+  const isIntakeChat =
+    history.length > 0 && history[0].content.trim() === INTAKE_TRIGGER;
+
   // Build system prompt with enriched context
+  const basePrompt = isIntakeChat ? INTAKE_INTERVIEW_PROMPT : PERSONAL_THERAPY_PROMPT;
   const systemPrompt = buildSystemPrompt({
-    basePrompt: PERSONAL_THERAPY_PROMPT,
+    basePrompt,
     ...ctx,
   });
 
@@ -102,20 +134,33 @@ export async function POST(request: NextRequest, { params }: Params) {
           }
         }
 
-        // Save AI response to DB
+        // For intake chats, parse and save extracted data, then strip blocks
+        if (isIntakeChat) {
+          const intakeBlocks = parseIntakeData(fullResponse);
+          if (intakeBlocks.length > 0) {
+            // Dynamically import the intake data saver to avoid circular deps
+            const { saveIntakeDataFromChat } = await import("@/lib/ai/intake-data-saver");
+            for (const block of intakeBlocks) {
+              await saveIntakeDataFromChat(session.user.id, block);
+            }
+          }
+        }
+
+        // Save AI response to DB (strip intake_data blocks from visible content)
+        const cleanedResponse = isIntakeChat ? stripIntakeData(fullResponse) : fullResponse;
         await db.insert(personalMessages).values({
           chatId: id,
           role: "assistant",
-          content: fullResponse,
+          content: cleanedResponse,
         });
 
         // Auto-title the chat if it's still "New Chat" and this is the first exchange
         if (chat.title === "New Chat" && history.length <= 1) {
-          // Generate a short title from the user's message
-          const titleContent = content.slice(0, 60);
-          const title = titleContent.length < content.length
-            ? titleContent + "…"
-            : titleContent;
+          const title = isIntakeChat
+            ? "Intake Interview"
+            : content.length > 60
+              ? content.slice(0, 60) + "…"
+              : content;
 
           await db
             .update(personalChats)

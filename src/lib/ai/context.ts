@@ -456,11 +456,11 @@ export async function loadPersonalContext(userId: string): Promise<AIContext> {
         const ahLines: string[] = [];
         if (ah.childhoodComfortSource) ahLines.push(`Comfort source: ${ah.childhoodComfortSource}`);
         if (ah.wasComfortAvailable !== undefined) ahLines.push(`Comfort available: ${ah.wasComfortAvailable ? "Yes" : "No"}`);
-        if (ah.selfSoothingPatterns?.length) ahLines.push(`Self-soothing: ${ah.selfSoothingPatterns.join(", ")}`);
+        if (ah.selfSoothingPatterns?.length) ahLines.push(`Self-soothing: ${Array.isArray(ah.selfSoothingPatterns) ? ah.selfSoothingPatterns.join(", ") : ah.selfSoothingPatterns}`);
         if (ah.vulnerabilityComfort) ahLines.push(`Vulnerability comfort: ${ah.vulnerabilityComfort}`);
         if (ahLines.length) parts.push(`Attachment History:\n${ahLines.join("\n")}`);
       }
-      if (pd.externalStressors?.length) parts.push(`External stressors: ${pd.externalStressors.join(", ")}`);
+      if (pd.externalStressors?.length) parts.push(`External stressors: ${Array.isArray(pd.externalStressors) ? pd.externalStressors.join(", ") : pd.externalStressors}`);
       if (pd.mentalHealthContext) parts.push(`Mental health context: ${pd.mentalHealthContext}`);
       intakeCtx = parts.join("\n\n");
     }
@@ -866,7 +866,7 @@ async function formatIntakeContext(
       if (fo.familyConflictStyle) foLines.push(`Family conflict style: ${fo.familyConflictStyle}`);
       if (fo.emotionalEnvironment) foLines.push(`Emotional environment: ${fo.emotionalEnvironment}`);
       if (fo.familyRole) foLines.push(`Family role: ${fo.familyRole}`);
-      if (fo.unspokenRules?.length) foLines.push(`Unspoken rules: ${fo.unspokenRules.join(", ")}`);
+      if (fo.unspokenRules?.length) foLines.push(`Unspoken rules: ${Array.isArray(fo.unspokenRules) ? fo.unspokenRules.join(", ") : fo.unspokenRules}`);
       if (fo.culturalContext) foLines.push(`Cultural context: ${fo.culturalContext}`);
       if (foLines.length) indParts.push(`Family of Origin:\n${foLines.join("\n")}`);
     }
@@ -876,12 +876,12 @@ async function formatIntakeContext(
       const ahLines: string[] = [];
       if (ah.childhoodComfortSource) ahLines.push(`Comfort source: ${ah.childhoodComfortSource}`);
       if (ah.wasComfortAvailable !== undefined) ahLines.push(`Comfort available: ${ah.wasComfortAvailable ? "Yes" : "No"}`);
-      if (ah.selfSoothingPatterns?.length) ahLines.push(`Self-soothing: ${ah.selfSoothingPatterns.join(", ")}`);
+      if (ah.selfSoothingPatterns?.length) ahLines.push(`Self-soothing: ${Array.isArray(ah.selfSoothingPatterns) ? ah.selfSoothingPatterns.join(", ") : ah.selfSoothingPatterns}`);
       if (ah.vulnerabilityComfort) ahLines.push(`Vulnerability comfort: ${ah.vulnerabilityComfort}`);
       if (ahLines.length) indParts.push(`Attachment History:\n${ahLines.join("\n")}`);
     }
 
-    if (pd.externalStressors?.length) indParts.push(`External stressors: ${pd.externalStressors.join(", ")}`);
+    if (pd.externalStressors?.length) indParts.push(`External stressors: ${Array.isArray(pd.externalStressors) ? pd.externalStressors.join(", ") : pd.externalStressors}`);
     if (pd.mentalHealthContext) indParts.push(`Mental health context: ${pd.mentalHealthContext}`);
 
     if (indParts.length) {
