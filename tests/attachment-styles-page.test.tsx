@@ -3,8 +3,7 @@
  *
  * Tests the quiz submission and results-loading flow, specifically
  * verifying that partner results are fetched after quiz submission
- * (fixes: partner comparison section showed "partner hasn't taken
- * the quiz yet" even when they had).
+ * and that the partner toggle works correctly.
  *
  * Uses RTL + jsdom with mocked fetch and socket.
  */
@@ -66,7 +65,12 @@ function createMockFetch(opts: {
     if (urlStr === "/api/attachment-styles" && (!init || init.method !== "POST")) {
       getCallCount++;
       if (getCallCount === 1 && !opts.initialHasResults) {
-        return new Response(JSON.stringify({ userResult: null, partnerResult: null }), {
+        return new Response(JSON.stringify({
+          userResult: null,
+          partnerResult: null,
+          userName: "Test User",
+          partnerName: "Test Partner",
+        }), {
           status: 200,
           headers: { "Content-Type": "application/json" },
         });
@@ -75,6 +79,8 @@ function createMockFetch(opts: {
         JSON.stringify({
           userResult: MOCK_USER_RESULT,
           partnerResult: opts.partnerAvailableAfterSubmit ? MOCK_PARTNER_RESULT : null,
+          userName: "Test User",
+          partnerName: "Test Partner",
         }),
         { status: 200, headers: { "Content-Type": "application/json" } },
       );
@@ -125,13 +131,6 @@ async function fillOutAndSubmitQuiz(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("button", { name: /Submit/i }));
 }
 
-/** Helper: check if the partner comparison grid is visible (not the waiting message) */
-function _partnerComparisonIsVisible() {
-  // The comparison grid shows "Anxious" for partner's top style with our mock data
-  return screen.queryByText("Partner Comparison") !== null
-    && screen.queryByText(/partner hasn.t taken the quiz yet/i) === null;
-}
-
 describe("Attachment Styles Page — Partner Results on Submit", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -161,31 +160,31 @@ describe("Attachment Styles Page — Partner Results on Submit", () => {
     // Fill out and submit the quiz
     await fillOutAndSubmitQuiz(user);
 
-    // After submit, the page should show results with partner comparison (NOT waiting message)
+    // After submit, the partner tab should be enabled (not disabled)
     await waitFor(() => {
-      expect(screen.getByText("Partner Comparison")).toBeDefined();
+      expect(screen.getByText("Test Partner")).toBeDefined();
     });
 
-    // The waiting message should NOT appear since partner has results
-    expect(screen.queryByText(/partner hasn.t taken the quiz yet/i)).toBeNull();
+    // The "Pending" label should NOT appear since partner has results
+    expect(screen.queryByText("Pending")).toBeNull();
 
     // Verify a GET fetch was made AFTER the POST (this is the fix)
     const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
-    const calls = fetchMock.mock.calls;
+    const calls = fetchMock.mock.calls as Array<[string, RequestInit?]>;
     const attachmentCalls = calls.filter(
-      ([url]: [string]) => url === "/api/attachment-styles",
+      ([url]) => url === "/api/attachment-styles",
     );
     const postIndex = attachmentCalls.findIndex(
-      ([, init]: [string, RequestInit?]) => init?.method === "POST",
+      ([, init]) => init?.method === "POST",
     );
     const getAfterPost = attachmentCalls.slice(postIndex + 1).some(
-      ([, init]: [string, RequestInit?]) => !init || init.method !== "POST",
+      ([, init]) => !init || init.method !== "POST",
     );
     expect(postIndex).toBeGreaterThanOrEqual(0);
     expect(getAfterPost).toBe(true);
   });
 
-  it("should show waiting message when partner has NOT completed the quiz", async () => {
+  it("should show Pending when partner has NOT completed the quiz", async () => {
     const user = userEvent.setup();
     global.fetch = createMockFetch({
       initialHasResults: false,
@@ -202,13 +201,13 @@ describe("Attachment Styles Page — Partner Results on Submit", () => {
 
     await fillOutAndSubmitQuiz(user);
 
-    // Partner hasn't taken the quiz — waiting message should appear
+    // Partner hasn't taken the quiz — "Pending" should appear on the partner tab
     await waitFor(() => {
-      expect(screen.getByText(/partner hasn.t taken the quiz yet/i)).toBeDefined();
+      expect(screen.getByText("Pending")).toBeDefined();
     });
   });
 
-  it("should show partner results immediately on page load when both completed", async () => {
+  it("should show partner toggle on page load when both completed", async () => {
     global.fetch = createMockFetch({
       initialHasResults: true,
       partnerAvailableAfterSubmit: true,
@@ -218,13 +217,14 @@ describe("Attachment Styles Page — Partner Results on Submit", () => {
       render(<AttachmentStylesPage />);
     });
 
-    // Should jump straight to results with partner comparison visible
+    // Should jump straight to results with partner toggle visible
     await waitFor(() => {
-      expect(screen.getByText("Partner Comparison")).toBeDefined();
+      expect(screen.getByText("Test User")).toBeDefined();
+      expect(screen.getByText("Test Partner")).toBeDefined();
     });
 
-    // No waiting message
-    expect(screen.queryByText(/partner hasn.t taken the quiz yet/i)).toBeNull();
+    // No "Pending" label since both have results
+    expect(screen.queryByText("Pending")).toBeNull();
   });
 
   it("should handle GET failure gracefully after POST and still show results", async () => {
@@ -238,7 +238,12 @@ describe("Attachment Styles Page — Partner Results on Submit", () => {
       if (urlStr === "/api/attachment-styles" && (!init || init.method !== "POST")) {
         getCallCount++;
         if (getCallCount === 1) {
-          return new Response(JSON.stringify({ userResult: null, partnerResult: null }), {
+          return new Response(JSON.stringify({
+            userResult: null,
+            partnerResult: null,
+            userName: "Test User",
+            partnerName: "Test Partner",
+          }), {
             status: 200,
             headers: { "Content-Type": "application/json" },
           });
@@ -283,7 +288,7 @@ describe("Attachment Styles Page — Partner Results on Submit", () => {
 
     // Even if the follow-up GET fails, user's own results should still display
     await waitFor(() => {
-      expect(screen.getByText(/Your primary attachment style/i)).toBeDefined();
+      expect(screen.getByText(/primary attachment style/i)).toBeDefined();
     });
   });
 });
