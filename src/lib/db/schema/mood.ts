@@ -5,6 +5,7 @@ import {
   timestamp,
   boolean,
   integer,
+  jsonb,
   pgEnum,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
@@ -59,6 +60,7 @@ export const loveLanguageResults = pgTable("love_language_results", {
   receivingGifts: integer("receiving_gifts").notNull(),
   qualityTime: integer("quality_time").notNull(),
   physicalTouch: integer("physical_touch").notNull(),
+  answers: jsonb("answers"), // Raw quiz answers: ["W","A","Q",...] (30 elements)
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -104,6 +106,7 @@ export const attachmentStyleResults = pgTable("attachment_style_results", {
   anxious: integer("anxious").notNull(),
   avoidant: integer("avoidant").notNull(),
   fearfulAvoidant: integer("fearful_avoidant").notNull(),
+  answers: jsonb("answers"), // Raw quiz answers: [4,6,2,...] (40 elements, 1-7 Likert scale)
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

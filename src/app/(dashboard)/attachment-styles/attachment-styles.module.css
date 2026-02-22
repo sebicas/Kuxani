@@ -300,44 +300,164 @@
   color: white;
 }
 
-/* ── Partner Comparison ── */
-.comparisonSection {
-  margin-top: var(--space-2xl);
+/* ── Partner Toggle ── */
+.partnerToggle {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xl);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: 4px;
 }
 
-.comparisonGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-lg);
-  margin-top: var(--space-md);
+.partnerTab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+  position: relative;
 }
 
-.comparisonCard {
-  text-align: center;
+.partnerTab:hover:not(:disabled) {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
 }
 
-.comparisonLabel {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: var(--space-sm);
-}
-
-.comparisonEmoji {
-  font-size: 2.5rem;
-  margin-bottom: var(--space-xs);
-}
-
-.comparisonName {
+.partnerTabActive {
+  background: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+  box-shadow: var(--shadow-sm);
   font-weight: 600;
-  font-family: var(--font-display);
 }
 
+.partnerTabDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.partnerTabEmoji {
+  font-size: 1.125rem;
+}
+
+.partnerTabBadge {
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  line-height: 1;
+}
+
+.partnerTabPending {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-weight: 400;
+}
+
+/* ── Partner Comparison (waiting) ── */
 .comparisonWaiting {
   text-align: center;
   padding: var(--space-xl);
   color: var(--text-muted);
+}
+
+/* ── Quiz Answers ── */
+.answersSection {
+  margin-top: var(--space-2xl);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-xl);
+}
+
+.answersList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+.answerItem {
+  display: flex;
+  gap: var(--space-md);
+  align-items: flex-start;
+}
+
+.answerNumber {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.answerContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.answerStatement {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.answerRatingRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.answerStyleTag {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.answerLikert {
+  display: flex;
+  gap: 4px;
+}
+
+.answerDot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-subtle);
+  background: var(--bg-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.answerDotSelected {
+  color: white !important;
+  font-weight: 700;
+  border-color: transparent !important;
 }
 
 /* ── Retake ── */
@@ -355,10 +475,6 @@
     font-size: 0.75rem;
   }
 
-  .comparisonGrid {
-    grid-template-columns: 1fr;
-  }
-
   .stylePreview {
     flex-direction: column;
     align-items: center;
@@ -372,5 +488,27 @@
 
   .likertScale {
     gap: var(--space-sm);
+  }
+
+  .partnerToggle {
+    flex-direction: column;
+  }
+
+  .answerItem {
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .answerNumber {
+    width: auto;
+    height: auto;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+  }
+
+  .answerRatingRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-xs);
   }
 }

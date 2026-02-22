@@ -24,7 +24,7 @@ const navItems = [
 const secondaryNavItems = [
   { href: "/commitments", label: "Commitments", icon: "📝" },
   { href: "/exercises", label: "Exercises", icon: "📚" },
-  { href: "/settings", label: "Settings", icon: "⚙️" },
+  { href: "/profile", label: "Profile", icon: "👤" },
 ];
 
 export default function DashboardLayout({

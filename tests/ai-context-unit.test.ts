@@ -489,6 +489,7 @@ describe("getDominantLoveLanguage", () => {
   const baseLLResult = {
     id: "ll-1",
     userId: "user-a",
+    answers: null,
     createdAt: new Date(),
   };
 
@@ -579,6 +580,7 @@ describe("getDominantAttachmentStyle", () => {
   const baseAttResult = {
     id: "att-1",
     userId: "user-a",
+    answers: null,
     createdAt: new Date(),
   };
 
@@ -659,6 +661,7 @@ describe("formatLoveLanguages", () => {
           receivingGifts: 3,
           qualityTime: 8,
           physicalTouch: 4,
+          answers: null,
           createdAt: new Date(),
         },
       ],
@@ -686,6 +689,7 @@ describe("formatLoveLanguages", () => {
           receivingGifts: 5,
           qualityTime: 4,
           physicalTouch: 2,
+          answers: null,
           createdAt: new Date(),
         },
       ],
@@ -706,6 +710,7 @@ describe("formatLoveLanguages", () => {
           receivingGifts: 3,
           qualityTime: 8,
           physicalTouch: 4,
+          answers: null,
           createdAt: new Date(),
         },
         {
@@ -716,6 +721,7 @@ describe("formatLoveLanguages", () => {
           receivingGifts: 1,
           qualityTime: 1,
           physicalTouch: 1,
+          answers: null,
           createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
         },
       ],
@@ -746,6 +752,7 @@ describe("formatAttachmentStyles", () => {
           anxious: 12,
           avoidant: 5,
           fearfulAvoidant: 3,
+          answers: null,
           createdAt: new Date(),
         },
       ],
@@ -770,6 +777,7 @@ describe("formatAttachmentStyles", () => {
           anxious: 22,
           avoidant: 8,
           fearfulAvoidant: 3,
+          answers: null,
           createdAt: new Date(),
         },
       ],
@@ -789,6 +797,7 @@ describe("formatAttachmentStyles", () => {
           anxious: 8,
           avoidant: 20,
           fearfulAvoidant: 3,
+          answers: null,
           createdAt: new Date(),
         },
       ],
@@ -808,6 +817,7 @@ describe("formatAttachmentStyles", () => {
           anxious: 8,
           avoidant: 6,
           fearfulAvoidant: 22,
+          answers: null,
           createdAt: new Date(),
         },
       ],
@@ -883,6 +893,7 @@ describe("formatPartnerProfiles", () => {
           receivingGifts: 3,
           qualityTime: 8,
           physicalTouch: 4,
+          answers: null,
           createdAt: new Date(),
         },
       ],
@@ -894,6 +905,7 @@ describe("formatPartnerProfiles", () => {
           anxious: 12,
           avoidant: 5,
           fearfulAvoidant: 3,
+          answers: null,
           createdAt: new Date(),
         },
       ],
@@ -1155,6 +1167,7 @@ describe("Edge cases", () => {
           receivingGifts: 3,
           qualityTime: 8,
           physicalTouch: 4,
+          answers: null,
           createdAt: new Date(),
         },
         {
@@ -1165,6 +1178,7 @@ describe("Edge cases", () => {
           receivingGifts: 3,
           qualityTime: 4,
           physicalTouch: 1,
+          answers: null,
           createdAt: new Date(),
         },
       ],

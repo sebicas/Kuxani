@@ -26,8 +26,9 @@ A collaborative AI-mediated platform where couples work together to understand e
 
 **Every time you create an Implementation Plan, you MUST:**
 
-1. **Wait for user approval** before writing any code. Do NOT start coding until the user explicitly approves the plan.
-2. **Last task item = `/verify`** — The final item in the task checklist must always be running the `.agent/workflows/verify.md` workflow.
+1. **Start with a feature branch** — The plan must begin by stating that a new feature branch will be created from `development` (e.g., `feat/voice-conversation`). Create the branch before writing any code.
+2. **Wait for user approval** before writing any code. Do NOT start coding until the user explicitly approves the plan.
+3. **Last task item = `/verify`** — The final item in the task checklist must always be running the `.agent/workflows/verify.md` workflow.
 
 > **No exceptions.** Plans without user approval and a closing `/verify` step are incomplete.
 
@@ -68,13 +69,39 @@ kuxani/
 │   │   ├── (dashboard)/
 │   │   │   ├── layout.tsx            # Authenticated layout (sidebar + header)
 │   │   │   ├── dashboard.module.css  # Dashboard styles
-│   │   │   └── dashboard/page.tsx    # Dashboard home
+│   │   │   ├── dashboard/page.tsx    # Dashboard home
+│   │   │   ├── attachment-styles/    # Attachment styles quiz + partner results
+│   │   │   ├── challenges/           # Challenge workspace (create, view, discuss)
+│   │   │   ├── childhood-wounds/     # Wound tracking, partner suggestions
+│   │   │   ├── commitments/          # Requests & compromises
+│   │   │   ├── deescalation/         # Emergency de-escalation mode
+│   │   │   ├── disagreements/        # Mediated disagreement sessions
+│   │   │   ├── gratitude/            # Gratitude journal
+│   │   │   ├── love-languages/       # Love languages quiz + partner results
+│   │   │   ├── mood/                 # Mood & emotion tracker
+│   │   │   ├── personal/             # Private therapy chat (list + detail)
+│   │   │   └── profile/              # User profile + voice settings
 │   │   └── api/
-│   │       └── auth/[...all]/route.ts # Better Auth API catch-all
+│   │       ├── auth/[...all]/route.ts # Better Auth API catch-all
+│   │       ├── attachment-styles/     # Attachment styles quiz API
+│   │       ├── challenges/            # Challenge CRUD + AI synthesis
+│   │       ├── childhood-wounds/      # Wounds CRUD + AI suggestions
+│   │       ├── commitments/           # Requests & compromises API
+│   │       ├── couples/               # Couple management + invite/join
+│   │       ├── deescalation/          # De-escalation sessions + prompts
+│   │       ├── disagreements/         # Disagreement sessions + mediation
+│   │       ├── gratitude/             # Gratitude entries + AI prompts
+│   │       ├── health/                # Health check endpoint
+│   │       ├── love-languages/        # Love languages quiz API
+│   │       ├── mood/                  # Mood entries API
+│   │       ├── personal/              # Private therapy chat API
+│   │       ├── profile/               # User profile + voice settings
+│   │       └── realtime/session/      # OpenAI Realtime API session tokens
 │   ├── middleware.ts                   # Route protection (redirects unauthenticated → /, authenticated on login/signup → /dashboard)
 │   ├── lib/
 │   │   ├── ai/
 │   │   │   ├── client.ts             # OpenAI client + model constants
+│   │   │   ├── context.ts            # AI context loader (couple + personal)
 │   │   │   └── prompts.ts            # Therapeutic prompts (Gottman/EFT/Attachment)
 │   │   ├── auth/
 │   │   │   ├── index.ts              # Better Auth server config (Drizzle adapter)
@@ -89,7 +116,8 @@ kuxani/
 │   │   │   ├── useChallengeSocket.ts  # Challenge real-time updates
 │   │   │   ├── useDisagreementSocket.ts # Disagreement session updates
 │   │   │   ├── usePartnerSocket.ts    # Partner join notifications
-│   │   │   └── useCommitmentsSocket.ts # Commitment request/compromise updates
+│   │   │   ├── useCommitmentsSocket.ts # Commitment request/compromise updates
+│   │   │   └── useVoiceSession.ts    # OpenAI Realtime voice session hook
 │   │   └── db/
 │   │       ├── index.ts              # Drizzle client initialization
 │   │       └── schema/
@@ -99,15 +127,20 @@ kuxani/
 │   │           ├── challenges.ts     # challenges, perspectives, messages, requests,
 │   │           │                     # attachments, summaries, voice_sessions, segments
 │   │           ├── chats.ts          # personal_chats, personal_messages
+│   │           ├── commitments.ts    # commitment_requests, compromises, commitment_check_ins
 │   │           ├── mood.ts           # mood_entries, gratitude_entries,
 │   │           │                     # love_language_results, attachment_style_results
 │   │           ├── deescalation.ts   # deescalation_sessions
+│   │           ├── disagreements.ts  # disagreements, disagreement_messages, disagreement_invitations
 │   │           └── childhood-wounds.ts # childhood_wounds
+├── tests/                            # Vitest unit + integration tests
+├── e2e/                              # Playwright E2E tests
 ├── drizzle/
 │   └── migrations/                   # Auto-generated SQL migrations
 ├── public/                           # Static assets
 ├── .node-version                     # Node.js version (used by CI + version managers)
 ├── .github/workflows/ci.yml          # CI pipeline (lint, test, build, E2E)
+├── .agent/                           # AI agent docs, workflows, commands
 ├── Dockerfile                        # Multi-stage production build (Node 24-alpine)
 ├── docker-compose.yml                # PostgreSQL 17 + MinIO
 ├── drizzle.config.ts                 # Drizzle Kit config
@@ -152,21 +185,22 @@ npm run dev
 
 > Full reference with all commands: `.agent/commands.md`
 
-| Script                     | Description                                  |
-| -------------------------- | -------------------------------------------- |
-| `npm run dev`              | Start Next.js dev server (Turbopack)         |
-| `npm run build`            | Production build                             |
-| `npm run start`            | Start production server                      |
-| `npm run lint`             | Run ESLint                                   |
-| `npm run db:generate`      | Generate Drizzle migrations                  |
-| `npm run db:migrate`       | Run Drizzle migrations                       |
-| `npm run db:push`          | Push schema directly (dev)                   |
-| `npm run db:studio`        | Open Drizzle Studio (DB browser)             |
-| `npm test`                 | Run **all** tests (unit + integration + E2E) |
-| `npm run test:unit`        | Unit tests only (Vitest)                     |
-| `npm run test:integration` | Integration tests only (Vitest)              |
-| `npm run test:watch`       | Tests in watch mode                          |
-| `npm run test:e2e`         | E2E browser tests only (Playwright)          |
+| Script                     | Description                                                |
+| -------------------------- | ---------------------------------------------------------- |
+| `npm run dev`              | Start Next.js dev server (Turbopack)                       |
+| `npm run build`            | Production build                                           |
+| `npm run start`            | Start production server                                    |
+| `npm run lint`             | Run ESLint                                                 |
+| `npm run db:generate`      | Generate Drizzle migrations                                |
+| `npm run db:migrate`       | Run Drizzle migrations                                     |
+| `npm run db:push`          | Push schema directly (dev)                                 |
+| `npm run db:studio`        | Open Drizzle Studio (DB browser)                           |
+| `npm run db:flush`         | ⚠️ Drop all tables & re-migrate (never runs in production) |
+| `npm test`                 | Run **all** tests (unit + integration + E2E)               |
+| `npm run test:unit`        | Unit tests only (Vitest)                                   |
+| `npm run test:integration` | Integration tests only (Vitest)                            |
+| `npm run test:watch`       | Tests in watch mode                                        |
+| `npm run test:e2e`         | E2E browser tests only (Playwright)                        |
 
 ---
 
@@ -216,18 +250,17 @@ The design system is defined in `src/app/globals.css` with CSS custom properties
 
 ### Tables Overview
 
-| Schema File            | Tables                                                                                                                          |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `auth.ts`              | `user`, `session`, `account`, `verification` (Better Auth CLI-generated, includes `profile_data` JSONB)                         |
-| `couples.ts`           | `couples`, `couple_members`, `couple_profiles`                                                                                  |
-| `challenges.ts`        | `challenges`, `perspectives`, `messages`, `requests`, `attachments`, `summaries`, `voice_sessions`, `voice_transcript_segments` |
-| `chats.ts`             | `personal_chats`, `personal_messages`                                                                                           |
-| `mood.ts`              | `mood_entries`, `gratitude_entries`                                                                                             |
-| `love-languages.ts`    | `love_language_results`                                                                                                         |
-| `attachment-styles.ts` | `attachment_style_results`                                                                                                      |
-| `childhood-wounds.ts`  | `childhood_wounds` (id, userId, title, description, source, intensity, suggestedBy, status, timestamps)                         |
-| `disagreements.ts`     | `disagreements`, `disagreement_messages`, `disagreement_invitations`                                                            |
-| `commitments.ts`       | `requests`, `compromises`, `commitment_check_ins`                                                                               |
+| Schema File           | Tables                                                                                                                          |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `auth.ts`             | `user`, `session`, `account`, `verification` (Better Auth CLI-generated, includes `profile_data` JSONB)                         |
+| `couples.ts`          | `couples`, `couple_members`, `couple_profiles`                                                                                  |
+| `challenges.ts`       | `challenges`, `perspectives`, `messages`, `requests`, `attachments`, `summaries`, `voice_sessions`, `voice_transcript_segments` |
+| `chats.ts`            | `personal_chats`, `personal_messages`                                                                                           |
+| `commitments.ts`      | `commitment_requests`, `compromises`, `commitment_check_ins`                                                                    |
+| `mood.ts`             | `mood_entries`, `gratitude_entries`, `love_language_results`, `attachment_style_results`                                        |
+| `deescalation.ts`     | `deescalation_sessions`                                                                                                         |
+| `disagreements.ts`    | `disagreements`, `disagreement_messages`, `disagreement_invitations`                                                            |
+| `childhood-wounds.ts` | `childhood_wounds` (id, userId, title, description, source, intensity, suggestedBy, status, timestamps)                         |
 
 ---
 
@@ -294,6 +327,32 @@ All features that involve partner collaboration **MUST** use Socket.IO to push l
 - Event constants live in `src/lib/socket/events.ts`
 - Skip own events with `userId` filtering in the client hook
 
+### Couple Quiz/Test Pages — Partner Result Fetch (MANDATORY)
+
+When creating any couple quiz or test page (love languages, attachment styles, childhood wounds, etc.), the `submitQuiz` function **MUST** do a follow-up GET fetch after the POST save to retrieve the partner's results. This ensures the partner comparison section is populated immediately on save — not just via the socket real-time path.
+
+**Pattern:**
+
+```ts
+if (res.ok) {
+  const result = await res.json();
+  setUserResult(result);
+  // MANDATORY: Fetch partner result — they may have already completed the quiz
+  try {
+    const fullRes = await fetch("/api/<test-endpoint>");
+    if (fullRes.ok) {
+      const data = await fullRes.json();
+      if (data.partnerResult) setPartnerResult(data.partnerResult);
+    }
+  } catch {
+    /* partner result is optional */
+  }
+  setView("results");
+}
+```
+
+> **Why:** The POST response only returns the current user's result. Without this second fetch, the partner comparison section shows "waiting" even if the partner already completed the quiz.
+
 ### Code Style
 
 - TypeScript strict mode
@@ -346,7 +405,9 @@ A Challenge represents a conflict or issue the couple wants to work through:
 ## Additional Documentation
 
 - **Project status & feature tracker**: `.agent/project-status.md`
-- **Git workflow**: `.agent/skills/git-helpers/SKILL.md`
+- **Commands reference**: `.agent/commands.md`
+- **Coolify deployment guide**: `.agent/coolify-deploy.md`
 - **Pre-handoff verification**: `.agent/workflows/verify.md`
 - **Post-feature QA**: `.agent/workflows/post-feature-qa.md`
-- **Commands reference**: `.agent/commands.md`
+- **Quiz standards**: `.agent/workflows/quiz-standards.md`
+- **All workflows**: `.agent/workflows/` (push, merge, cleanup, pr-create, qa-tests, qa-infra, qa-docs)
