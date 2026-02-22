@@ -20,15 +20,20 @@ interface LoveLanguageResult {
   receivingGifts: number;
   qualityTime: number;
   physicalTouch: number;
+  answers?: LoveLanguageKey[] | null;
   createdAt: string;
 }
 
 type ViewState = "loading" | "start" | "quiz" | "results";
+type SelectedPartner = "user" | "partner";
 
 export default function LoveLanguagesPage() {
   const [view, setView] = useState<ViewState>("loading");
   const [userResult, setUserResult] = useState<LoveLanguageResult | null>(null);
   const [partnerResult, setPartnerResult] = useState<LoveLanguageResult | null>(null);
+  const [userName, setUserName] = useState("You");
+  const [partnerName, setPartnerName] = useState<string | null>(null);
+  const [selectedPartner, setSelectedPartner] = useState<SelectedPartner>("user");
 
   // Quiz state
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -54,6 +59,8 @@ export default function LoveLanguagesPage() {
       const res = await fetch("/api/love-languages");
       if (res.ok) {
         const data = await res.json();
+        if (data.userName) setUserName(data.userName);
+        if (data.partnerName) setPartnerName(data.partnerName);
         if (data.userResult) {
           setUserResult(data.userResult);
           setPartnerResult(data.partnerResult);
@@ -77,6 +84,8 @@ export default function LoveLanguagesPage() {
         const res = await fetch("/api/love-languages");
         if (res.ok) {
           const data = await res.json();
+          if (data.userName) setUserName(data.userName);
+          if (data.partnerName) setPartnerName(data.partnerName);
           if (data.userResult) {
             setUserResult(data.userResult);
             setPartnerResult(data.partnerResult);
@@ -152,12 +161,23 @@ export default function LoveLanguagesPage() {
           receivingGifts: finalScores.G,
           qualityTime: finalScores.Q,
           physicalTouch: finalScores.T,
+          answers: answers.filter((a): a is LoveLanguageKey => a !== null),
         }),
       });
 
       if (res.ok) {
         const result = await res.json();
         setUserResult(result);
+        // MANDATORY: Fetch partner result — they may have already completed the quiz
+        try {
+          const fullRes = await fetch("/api/love-languages");
+          if (fullRes.ok) {
+            const data = await fullRes.json();
+            if (data.partnerResult) setPartnerResult(data.partnerResult);
+            if (data.userName) setUserName(data.userName);
+            if (data.partnerName) setPartnerName(data.partnerName);
+          }
+        } catch { /* partner result is optional */ }
         setView("results");
       }
     } catch (err) {
@@ -177,27 +197,26 @@ export default function LoveLanguagesPage() {
     return entries.sort((a, b) => b.score - a.score);
   }
 
-  const rankedUser = useMemo(
-    () => (userResult ? getRankedLanguages(userResult) : []),
-    [userResult]
-  );
+  // Active result = whichever partner is selected
+  const activeResult = selectedPartner === "user" ? userResult : partnerResult;
+  const activeName = selectedPartner === "user" ? userName : (partnerName || "Partner");
 
-  const rankedPartner = useMemo(
-    () => (partnerResult ? getRankedLanguages(partnerResult) : []),
-    [partnerResult]
+  const rankedActive = useMemo(
+    () => (activeResult ? getRankedLanguages(activeResult) : []),
+    [activeResult]
   );
 
   const maxScore = useMemo(() => {
-    if (!userResult) return 1;
+    if (!activeResult) return 1;
     return Math.max(
-      userResult.wordsOfAffirmation,
-      userResult.actsOfService,
-      userResult.receivingGifts,
-      userResult.qualityTime,
-      userResult.physicalTouch,
+      activeResult.wordsOfAffirmation,
+      activeResult.actsOfService,
+      activeResult.receivingGifts,
+      activeResult.qualityTime,
+      activeResult.physicalTouch,
       1
     );
-  }, [userResult]);
+  }, [activeResult]);
 
   if (view === "loading") {
     return (
@@ -316,7 +335,8 @@ export default function LoveLanguagesPage() {
   }
 
   // ── Results State ──
-  const topLanguage = rankedUser[0];
+  const topLanguage = rankedActive[0];
+  const activeAnswers = activeResult?.answers as LoveLanguageKey[] | null | undefined;
 
   return (
     <div>
@@ -325,79 +345,130 @@ export default function LoveLanguagesPage() {
       </div>
 
       <div className={styles.resultsContainer}>
-        {/* Top Result */}
-        <div className={`card ${styles.resultsSummary}`}>
-          <span className={styles.resultsTopEmoji}>
-            {topLanguage ? LOVE_LANGUAGE_EMOJIS[topLanguage.key] : "💕"}
-          </span>
-          <div className={styles.resultsTopLabel}>Your primary love language</div>
-          <div
-            className={styles.resultsTopName}
-            style={{ color: topLanguage ? LOVE_LANGUAGE_COLORS[topLanguage.key] : undefined }}
+        {/* Partner Toggle */}
+        <div className={styles.partnerToggle}>
+          <button
+            className={`${styles.partnerTab}${selectedPartner === "user" ? ` ${styles.partnerTabActive}` : ""}`}
+            onClick={() => setSelectedPartner("user")}
           >
-            {topLanguage ? LOVE_LANGUAGE_NAMES[topLanguage.key] : ""}
-          </div>
-          <p className={styles.resultsDescription}>
-            {topLanguage ? LOVE_LANGUAGE_DESCRIPTIONS[topLanguage.key] : ""}
-          </p>
+            <span className={styles.partnerTabEmoji}>👤</span>
+            <span>{userName}</span>
+            {userResult && (
+              <span className={styles.partnerTabBadge} style={{ background: LOVE_LANGUAGE_COLORS[getRankedLanguages(userResult)[0].key] }}>
+                {LOVE_LANGUAGE_EMOJIS[getRankedLanguages(userResult)[0].key]}
+              </span>
+            )}
+          </button>
+          <button
+            className={`${styles.partnerTab}${selectedPartner === "partner" ? ` ${styles.partnerTabActive}` : ""}${!partnerResult ? ` ${styles.partnerTabDisabled}` : ""}`}
+            onClick={() => partnerResult && setSelectedPartner("partner")}
+            disabled={!partnerResult}
+          >
+            <span className={styles.partnerTabEmoji}>💑</span>
+            <span>{partnerName || "Partner"}</span>
+            {partnerResult ? (
+              <span className={styles.partnerTabBadge} style={{ background: LOVE_LANGUAGE_COLORS[getRankedLanguages(partnerResult)[0].key] }}>
+                {LOVE_LANGUAGE_EMOJIS[getRankedLanguages(partnerResult)[0].key]}
+              </span>
+            ) : (
+              <span className={styles.partnerTabPending}>Pending</span>
+            )}
+          </button>
         </div>
 
-        {/* Bar Chart */}
-        <div className={styles.barChart}>
-          {rankedUser.map((lang) => (
-            <div key={lang.key} className={styles.barRow}>
-              <div className={styles.barLabel}>
-                <span>{LOVE_LANGUAGE_EMOJIS[lang.key]}</span>
-                {LOVE_LANGUAGE_NAMES[lang.key]}
+        {/* Active Result Content */}
+        {activeResult ? (
+          <>
+            {/* Top Result */}
+            <div className={`card ${styles.resultsSummary}`}>
+              <span className={styles.resultsTopEmoji}>
+                {topLanguage ? LOVE_LANGUAGE_EMOJIS[topLanguage.key] : "💕"}
+              </span>
+              <div className={styles.resultsTopLabel}>{activeName}&apos;s primary love language</div>
+              <div
+                className={styles.resultsTopName}
+                style={{ color: topLanguage ? LOVE_LANGUAGE_COLORS[topLanguage.key] : undefined }}
+              >
+                {topLanguage ? LOVE_LANGUAGE_NAMES[topLanguage.key] : ""}
               </div>
-              <div className={styles.barTrack}>
-                <div
-                  className={styles.barFill}
-                  style={{
-                    width: `${(lang.score / Math.max(maxScore, 1)) * 100}%`,
-                    background: LOVE_LANGUAGE_COLORS[lang.key],
-                  }}
-                >
-                  <span className={styles.barScore}>{lang.score}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Partner Comparison */}
-        <div className={styles.comparisonSection}>
-          <h2 className="heading-3">Partner Comparison</h2>
-          {partnerResult ? (
-            <div className={`card ${styles.comparisonGrid}`}>
-              <div className={styles.comparisonCard}>
-                <div className={styles.comparisonLabel}>You</div>
-                <div className={styles.comparisonEmoji}>
-                  {topLanguage ? LOVE_LANGUAGE_EMOJIS[topLanguage.key] : "💕"}
-                </div>
-                <div className={styles.comparisonName}>
-                  {topLanguage ? LOVE_LANGUAGE_NAMES[topLanguage.key] : ""}
-                </div>
-              </div>
-              <div className={styles.comparisonCard}>
-                <div className={styles.comparisonLabel}>Your Partner</div>
-                <div className={styles.comparisonEmoji}>
-                  {LOVE_LANGUAGE_EMOJIS[rankedPartner[0]?.key || "W"]}
-                </div>
-                <div className={styles.comparisonName}>
-                  {LOVE_LANGUAGE_NAMES[rankedPartner[0]?.key || "W"]}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className={`card ${styles.comparisonWaiting}`}>
-              <p>
-                Your partner hasn&apos;t taken the quiz yet. Once they do,
-                you&apos;ll see a side-by-side comparison here.
+              <p className={styles.resultsDescription}>
+                {topLanguage ? LOVE_LANGUAGE_DESCRIPTIONS[topLanguage.key] : ""}
               </p>
             </div>
-          )}
-        </div>
+
+            {/* Bar Chart */}
+            <div className={styles.barChart}>
+              {rankedActive.map((lang) => (
+                <div key={lang.key} className={styles.barRow}>
+                  <div className={styles.barLabel}>
+                    <span>{LOVE_LANGUAGE_EMOJIS[lang.key]}</span>
+                    {LOVE_LANGUAGE_NAMES[lang.key]}
+                  </div>
+                  <div className={styles.barTrack}>
+                    <div
+                      className={styles.barFill}
+                      style={{
+                        width: `${(lang.score / Math.max(maxScore, 1)) * 100}%`,
+                        background: LOVE_LANGUAGE_COLORS[lang.key],
+                      }}
+                    >
+                      <span className={styles.barScore}>{lang.score}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Quiz Answers */}
+            {activeAnswers && activeAnswers.length > 0 && (
+              <div className={styles.answersSection}>
+                <h2 className="heading-3">Quiz Answers</h2>
+                <div className={styles.answersList}>
+                  {QUIZ_QUESTIONS.map((q, idx) => {
+                    const answer = activeAnswers[idx];
+                    const choseA = answer === q.optionA.language;
+                    const choseB = answer === q.optionB.language;
+
+                    return (
+                      <div key={q.id} className={styles.answerItem}>
+                        <div className={styles.answerNumber}>Q{q.id}</div>
+                        <div className={styles.answerOptions}>
+                          <div
+                            className={`${styles.answerOption}${choseA ? ` ${styles.answerChosen}` : ""}`}
+                            style={choseA ? { borderColor: LOVE_LANGUAGE_COLORS[q.optionA.language], background: `${LOVE_LANGUAGE_COLORS[q.optionA.language]}15` } : undefined}
+                          >
+                            <span className={styles.answerLanguageTag} style={{ color: LOVE_LANGUAGE_COLORS[q.optionA.language] }}>
+                              {LOVE_LANGUAGE_EMOJIS[q.optionA.language]} {LOVE_LANGUAGE_NAMES[q.optionA.language]}
+                            </span>
+                            <span className={styles.answerText}>{q.optionA.text}</span>
+                            {choseA && <span className={styles.answerCheck}>✓</span>}
+                          </div>
+                          <div
+                            className={`${styles.answerOption}${choseB ? ` ${styles.answerChosen}` : ""}`}
+                            style={choseB ? { borderColor: LOVE_LANGUAGE_COLORS[q.optionB.language], background: `${LOVE_LANGUAGE_COLORS[q.optionB.language]}15` } : undefined}
+                          >
+                            <span className={styles.answerLanguageTag} style={{ color: LOVE_LANGUAGE_COLORS[q.optionB.language] }}>
+                              {LOVE_LANGUAGE_EMOJIS[q.optionB.language]} {LOVE_LANGUAGE_NAMES[q.optionB.language]}
+                            </span>
+                            <span className={styles.answerText}>{q.optionB.text}</span>
+                            {choseB && <span className={styles.answerCheck}>✓</span>}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className={`card ${styles.comparisonWaiting}`}>
+            <p>
+              {partnerName || "Your partner"} hasn&apos;t taken the quiz yet. Once they do,
+              you&apos;ll see their results here.
+            </p>
+          </div>
+        )}
 
         {/* Retake */}
         <div className={styles.retakeRow}>
