@@ -7,3 +7,4 @@ export * from "./deescalation";
 export * from "./childhood-wounds";
 export * from "./disagreements";
 export * from "./commitments";
+export * from "./intake";

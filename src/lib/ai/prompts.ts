@@ -200,6 +200,7 @@ export function buildSystemPrompt(options: {
   deescalationContext?: string;
   gratitudeContext?: string;
   loveLanguageContext?: string;
+  intakeContext?: string;
 }): string {
   const parts = [options.basePrompt];
 
@@ -213,7 +214,8 @@ export function buildSystemPrompt(options: {
     options.moodContext ||
     options.deescalationContext ||
     options.gratitudeContext ||
-    options.personalProfile;
+    options.personalProfile ||
+    options.intakeContext;
 
   // Recency awareness instruction (only when context is present)
   if (hasContext) {
@@ -264,6 +266,10 @@ export function buildSystemPrompt(options: {
 
   if (options.personalProfile) {
     parts.push(`\n## Personal Profile\n${options.personalProfile}`);
+  }
+
+  if (options.intakeContext) {
+    parts.push(`\n## Intake Profile\n${options.intakeContext}`);
   }
 
   return parts.join("\n");

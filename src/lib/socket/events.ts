@@ -31,3 +31,6 @@ export const REQUEST_UPDATED = "request-updated";
 export const COMPROMISE_CREATED = "compromise-created";
 export const COMPROMISE_UPDATED = "compromise-updated";
 
+/* ── Intake events ── */
+export const INTAKE_UPDATED = "intake-updated";
+

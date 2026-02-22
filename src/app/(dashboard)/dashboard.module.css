@@ -183,32 +183,6 @@
   margin-bottom: var(--space-2xl);
 }
 
-/* ── Emergency Button ── */
-.emergencyBtn {
-  position: fixed;
-  bottom: var(--space-xl);
-  right: var(--space-xl);
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-full);
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
-  font-size: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
-  transition: all var(--transition-fast);
-  z-index: var(--z-dropdown);
-}
-
-.emergencyBtn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
-}
-
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .sidebar {

@@ -21,6 +21,7 @@ import {
   loveLanguageResults,
   attachmentStyleResults,
   childhoodWounds,
+  intakeResponses,
 } from "@/lib/db/schema";
 import { eq, desc, and, gte, inArray } from "drizzle-orm";
 import {
@@ -50,6 +51,7 @@ export interface AIContext {
   deescalationContext?: string;
   gratitudeContext?: string;
   loveLanguageContext?: string;
+  intakeContext?: string;
 }
 
 /* ──────────────────────────────────────────────────
@@ -216,6 +218,9 @@ export async function loadCoupleContext(coupleId: string): Promise<AIContext> {
           .limit(20)
       : [];
 
+  // ── Intake data ──
+  const intakeCtx = await formatIntakeContext(coupleId, memberIds, userProfiles);
+
   // ── Format context strings ──
   return {
     coupleProfile: formatCoupleProfile(profile),
@@ -231,6 +236,7 @@ export async function loadCoupleContext(coupleId: string): Promise<AIContext> {
     deescalationContext: formatDeescalation(deescSessions),
     gratitudeContext: formatGratitudeEntries(gratitude, userProfiles),
     loveLanguageContext: formatLoveLanguages(llRows, userProfiles),
+    intakeContext: intakeCtx,
   };
 }
 
@@ -424,6 +430,42 @@ export async function loadPersonalContext(userId: string): Promise<AIContext> {
   const attachmentRows = attachmentResult ? [attachmentResult] : [];
   const llRows = llResult ? [llResult] : [];
 
+  // ── Intake data ──
+  let intakeCtx: string | undefined;
+  if (membership) {
+    const memberIds = [userId];
+    intakeCtx = await formatIntakeContext(membership.coupleId, memberIds, userProfiles);
+  } else {
+    // Solo user — load individual intake data from profileData
+    const pd = userData?.profileData;
+    if (pd?.familyOfOrigin || pd?.attachmentHistory || pd?.externalStressors || pd?.mentalHealthContext) {
+      const parts: string[] = [];
+      if (pd.familyOfOrigin) {
+        const fo = pd.familyOfOrigin;
+        const foLines: string[] = [];
+        if (fo.parentsRelationship) foLines.push(`Parents' relationship: ${fo.parentsRelationship}`);
+        if (fo.familyConflictStyle) foLines.push(`Family conflict style: ${fo.familyConflictStyle}`);
+        if (fo.emotionalEnvironment) foLines.push(`Emotional environment: ${fo.emotionalEnvironment}`);
+        if (fo.familyRole) foLines.push(`Family role: ${fo.familyRole}`);
+        if (fo.unspokenRules?.length) foLines.push(`Unspoken rules: ${fo.unspokenRules.join(", ")}`);
+        if (fo.culturalContext) foLines.push(`Cultural context: ${fo.culturalContext}`);
+        if (foLines.length) parts.push(`Family of Origin:\n${foLines.join("\n")}`);
+      }
+      if (pd.attachmentHistory) {
+        const ah = pd.attachmentHistory;
+        const ahLines: string[] = [];
+        if (ah.childhoodComfortSource) ahLines.push(`Comfort source: ${ah.childhoodComfortSource}`);
+        if (ah.wasComfortAvailable !== undefined) ahLines.push(`Comfort available: ${ah.wasComfortAvailable ? "Yes" : "No"}`);
+        if (ah.selfSoothingPatterns?.length) ahLines.push(`Self-soothing: ${ah.selfSoothingPatterns.join(", ")}`);
+        if (ah.vulnerabilityComfort) ahLines.push(`Vulnerability comfort: ${ah.vulnerabilityComfort}`);
+        if (ahLines.length) parts.push(`Attachment History:\n${ahLines.join("\n")}`);
+      }
+      if (pd.externalStressors?.length) parts.push(`External stressors: ${pd.externalStressors.join(", ")}`);
+      if (pd.mentalHealthContext) parts.push(`Mental health context: ${pd.mentalHealthContext}`);
+      intakeCtx = parts.join("\n\n");
+    }
+  }
+
   return {
     personalProfile:
       profileParts.length > 0 ? profileParts.join("\n") : undefined,
@@ -435,6 +477,7 @@ export async function loadPersonalContext(userId: string): Promise<AIContext> {
     attachmentContext: formatAttachmentStyles(attachmentRows, userProfiles),
     gratitudeContext: formatGratitudeEntries(gratitude, userProfiles),
     loveLanguageContext: formatLoveLanguages(llRows, userProfiles),
+    intakeContext: intakeCtx,
   };
 }
 
@@ -451,6 +494,24 @@ export interface ProfileRow {
     copingMechanisms?: string[];
     growthAreas?: string[];
     loveLanguage?: string;
+    familyOfOrigin?: {
+      parentsRelationship?: string;
+      familyConflictStyle?: string;
+      emotionalEnvironment?: string;
+      familyRole?: string;
+      unspokenRules?: string[];
+      significantLosses?: string[];
+      culturalContext?: string;
+    };
+    attachmentHistory?: {
+      childhoodComfortSource?: string;
+      wasComfortAvailable?: boolean;
+      selfSoothingPatterns?: string[];
+      previousRelationships?: string;
+      vulnerabilityComfort?: string;
+    };
+    externalStressors?: string[];
+    mentalHealthContext?: string;
   } | null;
 }
 
@@ -715,4 +776,119 @@ export function getDominantAttachmentStyle(
   ];
   const max = scores.reduce((a, b) => (b[1] > a[1] ? b : a));
   return max[1] > 0 ? max[0] : null;
+}
+
+/* ──────────────────────────────────────────────────
+   Intake context formatter
+   ────────────────────────────────────────────────── */
+
+async function formatIntakeContext(
+  coupleId: string,
+  memberIds: string[],
+  profiles: ProfileRow[],
+): Promise<string | undefined> {
+  const parts: string[] = [];
+
+  // 1. Couple profile intake fields
+  const [profile] = await db
+    .select()
+    .from(coupleProfiles)
+    .where(eq(coupleProfiles.coupleId, coupleId))
+    .limit(1);
+
+  if (profile) {
+    const cpLines: string[] = [];
+    if (profile.relationshipStage)
+      cpLines.push(`Relationship stage: ${profile.relationshipStage}`);
+    if (profile.togetherSince)
+      cpLines.push(`Together since: ${profile.togetherSince}`);
+    if (profile.livingSituation)
+      cpLines.push(`Living situation: ${profile.livingSituation}`);
+    if (profile.children && (profile.children as unknown[]).length > 0) {
+      const childList = (
+        profile.children as { name: string; age: number; relationship: string }[]
+      )
+        .map((c) => `${c.name} (${c.age}yo, ${c.relationship})`)
+        .join(", ");
+      cpLines.push(`Children: ${childList}`);
+    }
+    if (profile.therapyGoals && (profile.therapyGoals as string[]).length > 0) {
+      cpLines.push(`Therapy goals: ${(profile.therapyGoals as string[]).join(", ")}`);
+    }
+    if (cpLines.length) {
+      parts.push(`Relationship Profile:\n${cpLines.join("\n")}`);
+    }
+  }
+
+  // 2. Dual-perspective responses
+  const responses = await db
+    .select()
+    .from(intakeResponses)
+    .where(eq(intakeResponses.coupleId, coupleId));
+
+  if (responses.length > 0) {
+    // Group by field, show each partner's perspective
+    const byField = new Map<string, { userId: string; value: unknown }[]>();
+    for (const r of responses) {
+      if (!byField.has(r.field)) byField.set(r.field, []);
+      byField.get(r.field)!.push({ userId: r.userId, value: r.value });
+    }
+
+    const perspectiveLines: string[] = [];
+    for (const [field, entries] of byField) {
+      const label = field.replace(/([A-Z])/g, " $1").trim();
+      if (entries.length === 1) {
+        const name = nameFor(profiles as ProfileRow[], entries[0].userId);
+        perspectiveLines.push(`${label} (${name}): ${String(entries[0].value)}`);
+      } else {
+        for (const e of entries) {
+          const name = nameFor(profiles as ProfileRow[], e.userId);
+          perspectiveLines.push(`${label} (${name}): ${String(e.value)}`);
+        }
+      }
+    }
+    if (perspectiveLines.length) {
+      parts.push(`Dual Perspectives:\n${perspectiveLines.join("\n")}`);
+    }
+  }
+
+  // 3. Individual data from profileData for each member
+  for (const userId of memberIds) {
+    const p = profiles.find((pr) => pr.id === userId);
+    if (!p?.profileData) continue;
+    const pd = p.profileData;
+    const indParts: string[] = [];
+
+    if (pd.familyOfOrigin) {
+      const fo = pd.familyOfOrigin;
+      const foLines: string[] = [];
+      if (fo.parentsRelationship) foLines.push(`Parents' relationship: ${fo.parentsRelationship}`);
+      if (fo.familyConflictStyle) foLines.push(`Family conflict style: ${fo.familyConflictStyle}`);
+      if (fo.emotionalEnvironment) foLines.push(`Emotional environment: ${fo.emotionalEnvironment}`);
+      if (fo.familyRole) foLines.push(`Family role: ${fo.familyRole}`);
+      if (fo.unspokenRules?.length) foLines.push(`Unspoken rules: ${fo.unspokenRules.join(", ")}`);
+      if (fo.culturalContext) foLines.push(`Cultural context: ${fo.culturalContext}`);
+      if (foLines.length) indParts.push(`Family of Origin:\n${foLines.join("\n")}`);
+    }
+
+    if (pd.attachmentHistory) {
+      const ah = pd.attachmentHistory;
+      const ahLines: string[] = [];
+      if (ah.childhoodComfortSource) ahLines.push(`Comfort source: ${ah.childhoodComfortSource}`);
+      if (ah.wasComfortAvailable !== undefined) ahLines.push(`Comfort available: ${ah.wasComfortAvailable ? "Yes" : "No"}`);
+      if (ah.selfSoothingPatterns?.length) ahLines.push(`Self-soothing: ${ah.selfSoothingPatterns.join(", ")}`);
+      if (ah.vulnerabilityComfort) ahLines.push(`Vulnerability comfort: ${ah.vulnerabilityComfort}`);
+      if (ahLines.length) indParts.push(`Attachment History:\n${ahLines.join("\n")}`);
+    }
+
+    if (pd.externalStressors?.length) indParts.push(`External stressors: ${pd.externalStressors.join(", ")}`);
+    if (pd.mentalHealthContext) indParts.push(`Mental health context: ${pd.mentalHealthContext}`);
+
+    if (indParts.length) {
+      const name = p.name || "User";
+      parts.push(`${name}'s Personal History:\n${indParts.join("\n")}`);
+    }
+  }
+
+  return parts.length > 0 ? parts.join("\n\n") : undefined;
 }
