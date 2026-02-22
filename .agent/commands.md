@@ -15,12 +15,13 @@ All available CLI commands and scripts for the Kuxani project.
 
 ## Database (Drizzle)
 
-| Command               | Description                             |
-| --------------------- | --------------------------------------- |
-| `npm run db:generate` | Generate Drizzle migrations from schema |
-| `npm run db:migrate`  | Run Drizzle migrations                  |
-| `npm run db:push`     | Push schema directly to database (dev)  |
-| `npm run db:studio`   | Open Drizzle Studio (DB browser)        |
+| Command               | Description                                                |
+| --------------------- | ---------------------------------------------------------- |
+| `npm run db:generate` | Generate Drizzle migrations from schema                    |
+| `npm run db:migrate`  | Run Drizzle migrations                                     |
+| `npm run db:push`     | Push schema directly to database (dev)                     |
+| `npm run db:studio`   | Open Drizzle Studio (DB browser)                           |
+| `npm run db:flush`    | ⚠️ Drop all tables & re-migrate (never runs in production) |
 
 ## Testing
 

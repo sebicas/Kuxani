@@ -1,5 +1,8 @@
 /**
- * Personal Chat Messages API — Send message + stream AI response
+ * Personal Chat Messages API
+ *
+ * POST /api/personal/chats/[id]/messages — Send message + stream AI response
+ * PUT  /api/personal/chats/[id]/messages — Save voice transcript messages
  *
  * POST /api/personal/chats/[id]/messages
  *
@@ -136,4 +139,57 @@ export async function POST(request: NextRequest, { params }: Params) {
       Connection: "keep-alive",
     },
   });
+}
+
+/**
+ * PUT /api/personal/chats/[id]/messages — Save voice transcript messages
+ *
+ * Receives an array of { role, content } pairs from a voice session
+ * and inserts them into the database.
+ */
+export async function PUT(request: NextRequest, { params }: Params) {
+  const session = await getServerSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const body = await request.json();
+  const { messages: transcriptMessages } = body;
+
+  if (!Array.isArray(transcriptMessages) || transcriptMessages.length === 0) {
+    return NextResponse.json({ error: "Messages array required" }, { status: 400 });
+  }
+
+  // Verify chat ownership
+  const [chat] = await db
+    .select()
+    .from(personalChats)
+    .where(
+      and(eq(personalChats.id, id), eq(personalChats.userId, session.user.id))
+    );
+
+  if (!chat) {
+    return NextResponse.json({ error: "Chat not found" }, { status: 404 });
+  }
+
+  // Validate and insert messages
+  const validMessages = transcriptMessages.filter(
+    (m: { role?: string; content?: string }) =>
+      m.role && (m.role === "user" || m.role === "assistant") && m.content?.trim()
+  );
+
+  if (validMessages.length === 0) {
+    return NextResponse.json({ error: "No valid messages" }, { status: 400 });
+  }
+
+  await db.insert(personalMessages).values(
+    validMessages.map((m: { role: "user" | "assistant"; content: string }) => ({
+      chatId: id,
+      role: m.role,
+      content: m.content.trim(),
+    }))
+  );
+
+  return NextResponse.json({ saved: validMessages.length });
 }

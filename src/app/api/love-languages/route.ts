@@ -1,12 +1,12 @@
 /**
  * Love Languages API — Get Results & Save Results
  *
- * GET  /api/love-languages — Get user's results (+ partner's if available)
- * POST /api/love-languages — Save quiz results
+ * GET  /api/love-languages — Get user's results (+ partner's if available) with names
+ * POST /api/love-languages — Save quiz results + answers + emit real-time event
  */
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { loveLanguageResults, coupleMembers } from "@/lib/db/schema";
+import { loveLanguageResults, coupleMembers, user } from "@/lib/db/schema";
 import { getServerSession } from "@/lib/auth/session";
 import { eq, desc, and, ne } from "drizzle-orm";
 
@@ -24,8 +24,15 @@ export async function GET() {
     .orderBy(desc(loveLanguageResults.createdAt))
     .limit(1);
 
-  // Try to get partner's result
+  // Get user's name
+  const [currentUser] = await db
+    .select({ name: user.name })
+    .from(user)
+    .where(eq(user.id, session.user.id));
+
+  // Try to get partner's result + name
   let partnerResult = null;
+  let partnerName: string | null = null;
   const userMemberships = await db
     .select({ coupleId: coupleMembers.coupleId })
     .from(coupleMembers)
@@ -45,6 +52,13 @@ export async function GET() {
       );
 
     if (partner) {
+      // Get partner name
+      const [partnerUser] = await db
+        .select({ name: user.name })
+        .from(user)
+        .where(eq(user.id, partner.userId));
+      partnerName = partnerUser?.name || "Partner";
+
       const [result] = await db
         .select()
         .from(loveLanguageResults)
@@ -59,6 +73,8 @@ export async function GET() {
   return NextResponse.json({
     userResult: userResult || null,
     partnerResult,
+    userName: currentUser?.name || "You",
+    partnerName,
   });
 }
 
@@ -69,7 +85,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { wordsOfAffirmation, actsOfService, receivingGifts, qualityTime, physicalTouch } = body;
+  const { wordsOfAffirmation, actsOfService, receivingGifts, qualityTime, physicalTouch, answers } = body;
 
   // Validate all scores are present and reasonable
   const scores = [wordsOfAffirmation, actsOfService, receivingGifts, qualityTime, physicalTouch];
@@ -89,6 +105,7 @@ export async function POST(request: NextRequest) {
       receivingGifts,
       qualityTime,
       physicalTouch,
+      answers: answers || null,
     })
     .returning();
 

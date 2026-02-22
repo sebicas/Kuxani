@@ -26,8 +26,9 @@ A collaborative AI-mediated platform where couples work together to understand e
 
 **Every time you create an Implementation Plan, you MUST:**
 
-1. **Wait for user approval** before writing any code. Do NOT start coding until the user explicitly approves the plan.
-2. **Last task item = `/verify`** — The final item in the task checklist must always be running the `.agent/workflows/verify.md` workflow.
+1. **Start with a feature branch** — The plan must begin by stating that a new feature branch will be created from `development` (e.g., `feat/voice-conversation`). Create the branch before writing any code.
+2. **Wait for user approval** before writing any code. Do NOT start coding until the user explicitly approves the plan.
+3. **Last task item = `/verify`** — The final item in the task checklist must always be running the `.agent/workflows/verify.md` workflow.
 
 > **No exceptions.** Plans without user approval and a closing `/verify` step are incomplete.
 
@@ -293,6 +294,32 @@ All features that involve partner collaboration **MUST** use Socket.IO to push l
 - Use client hooks (`useChallengeSocket`, `usePartnerSocket`, etc.) to listen and refetch
 - Event constants live in `src/lib/socket/events.ts`
 - Skip own events with `userId` filtering in the client hook
+
+### Couple Quiz/Test Pages — Partner Result Fetch (MANDATORY)
+
+When creating any couple quiz or test page (love languages, attachment styles, childhood wounds, etc.), the `submitQuiz` function **MUST** do a follow-up GET fetch after the POST save to retrieve the partner's results. This ensures the partner comparison section is populated immediately on save — not just via the socket real-time path.
+
+**Pattern:**
+
+```ts
+if (res.ok) {
+  const result = await res.json();
+  setUserResult(result);
+  // MANDATORY: Fetch partner result — they may have already completed the quiz
+  try {
+    const fullRes = await fetch("/api/<test-endpoint>");
+    if (fullRes.ok) {
+      const data = await fullRes.json();
+      if (data.partnerResult) setPartnerResult(data.partnerResult);
+    }
+  } catch {
+    /* partner result is optional */
+  }
+  setView("results");
+}
+```
+
+> **Why:** The POST response only returns the current user's result. Without this second fetch, the partner comparison section shows "waiting" even if the partner already completed the quiz.
 
 ### Code Style
 
