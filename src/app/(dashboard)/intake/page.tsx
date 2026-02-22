@@ -27,6 +27,8 @@ interface Child {
 
 /* ── Component ── */
 
+const MODALITY_STORAGE_KEY = "kuxani-intake-modality";
+
 export default function IntakeWizardPage() {
   const [view, setView] = useState<ViewState>("loading");
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -34,7 +36,14 @@ export default function IntakeWizardPage() {
   const [tagInputs, setTagInputs] = useState<Record<string, string>>({});
   const [direction, setDirection] = useState<"forward" | "backward">("forward");
   const [saving, setSaving] = useState(false);
-  const [modality, setModality] = useState<Modality>("form");
+  const [modality, setModalityState] = useState<Modality>("form");
+  const [isReturning, setIsReturning] = useState(false);
+
+  // Persist modality to localStorage whenever it changes
+  const setModality = useCallback((m: Modality) => {
+    setModalityState(m);
+    try { localStorage.setItem(MODALITY_STORAGE_KEY, m); } catch { /* ignore */ }
+  }, []);
 
   // Track which phases we've already loaded
   const loadedPhases = useRef(new Set<number>());
@@ -103,6 +112,14 @@ export default function IntakeWizardPage() {
   useEffect(() => {
     (async () => {
       try {
+        // Restore last-used modality from localStorage
+        try {
+          const savedModality = localStorage.getItem(MODALITY_STORAGE_KEY) as Modality | null;
+          if (savedModality && ["form", "chat", "voice"].includes(savedModality)) {
+            setModalityState(savedModality);
+          }
+        } catch { /* ignore */ }
+
         const res = await fetch("/api/intake/progress");
         if (!res.ok) {
           setView("intro");
@@ -131,8 +148,10 @@ export default function IntakeWizardPage() {
           return;
         }
 
-        // If any phase has been started, resume at the right question
+        // If any phase has been started, pre-load data and determine resume point
         if (completedPhases.length > 0 || inProgressPhases.length > 0) {
+          setIsReturning(true);
+
           // Find the first unanswered phase
           const allStarted = [
             ...new Set([...completedPhases, ...inProgressPhases]),
@@ -157,7 +176,8 @@ export default function IntakeWizardPage() {
           );
           if (resumeIndex >= 0) setCurrentIndex(resumeIndex);
 
-          setView("interview");
+          // Always show intro — user chooses when to continue
+          setView("intro");
         } else {
           setView("intro");
         }
@@ -165,6 +185,7 @@ export default function IntakeWizardPage() {
         setView("intro");
       }
     })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadPhaseData]);
 
   /* ── Save logic ── */
@@ -646,30 +667,63 @@ export default function IntakeWizardPage() {
         </div>
         <div className={`card ${styles.introCard}`}>
           <span className={styles.introIcon}>🗣️</span>
-          <h2 className={styles.introTitle}>Your Intake Interview</h2>
+          <h2 className={styles.introTitle}>
+            {isReturning ? "Welcome Back! 👋" : "Your Intake Interview"}
+          </h2>
           <p className={styles.introDescription}>
-            Help your AI therapist understand you, your relationship, and what
-            you&apos;re hoping to work on. Answer one question at a time —
-            skip anything you&apos;re not ready for.
+            {isReturning
+              ? "Ready to pick up where you left off? Choose how you\u2019d like to continue."
+              : "Help your AI therapist understand you, your relationship, and what you\u2019re hoping to work on. Answer one question at a time — skip anything you\u2019re not ready for."}
           </p>
-          <div className={styles.categoryPreview}>
-            {Object.entries(INTAKE_CATEGORIES).map(([key, cat]) => (
-              <span key={key} className={styles.categoryTag}>
-                {cat.icon} {cat.name}
-              </span>
-            ))}
+
+          {/* Modality selector */}
+          <div className={styles.modalityBar} style={{ marginBottom: "1.25rem" }}>
+            <button
+              className={`${styles.modalityBtn} ${modality === "form" ? styles.modalityBtnActive : ""}`}
+              onClick={() => setModality("form")}
+              id="intro-modality-type"
+            >
+              📝 Type
+            </button>
+            <button
+              className={`${styles.modalityBtn} ${modality === "chat" ? styles.modalityBtnActive : ""}`}
+              onClick={() => setModality("chat")}
+              id="intro-modality-chat"
+            >
+              💬 Chat
+            </button>
+            <button
+              className={`${styles.modalityBtn} ${modality === "voice" ? styles.modalityBtnActive : ""}`}
+              onClick={() => setModality("voice")}
+              id="intro-modality-voice"
+            >
+              🎙️ Voice
+            </button>
           </div>
-          <div className={styles.introMeta}>
-            <span>📋 {totalQuestions} questions</span>
-            <span>⏱️ ~15 minutes</span>
-            <span>⏭️ Skip any question</span>
-          </div>
+
+          {!isReturning && (
+            <>
+              <div className={styles.categoryPreview}>
+                {Object.entries(INTAKE_CATEGORIES).map(([key, cat]) => (
+                  <span key={key} className={styles.categoryTag}>
+                    {cat.icon} {cat.name}
+                  </span>
+                ))}
+              </div>
+              <div className={styles.introMeta}>
+                <span>📋 {totalQuestions} questions</span>
+                <span>⏱️ ~15 minutes</span>
+                <span>⏭️ Skip any question</span>
+              </div>
+            </>
+          )}
+
           <button
             className="btn btn-primary btn-lg"
             onClick={startInterview}
             id="start-interview"
           >
-            Start Interview
+            {isReturning ? "Continue Interview" : "Start Interview"}
           </button>
         </div>
       </div>
